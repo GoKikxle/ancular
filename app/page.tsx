@@ -29,6 +29,7 @@ export default function Home() {
           dates="Apr 12 → Apr 18"
           travelers="2 travelers"
           status="Active"
+          href="/trips/barcelona-getaway"
         />
 
         <NextActionCard

@@ -1,8 +1,11 @@
+import Link from "next/link";
+
 type CurrentTripCardProps = {
   title: string;
   dates: string;
   travelers: string;
   status: string;
+  href?: string;
 };
 
 export function CurrentTripCard({
@@ -10,9 +13,10 @@ export function CurrentTripCard({
   dates,
   travelers,
   status,
+  href,
 }: CurrentTripCardProps) {
-  return (
-    <section className="mb-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+  const content = (
+    <section className="mb-4 rounded-3xl border border-white/10 bg-white/5 p-4 transition hover:border-white/20 hover:bg-white/[0.07]">
       <div className="mb-2 flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-wide text-white/50">
@@ -30,5 +34,13 @@ export function CurrentTripCard({
         {dates} • {travelers}
       </p>
     </section>
+  );
+
+  if (!href) return content;
+
+  return (
+    <Link href={href} className="block">
+      {content}
+    </Link>
   );
 }
