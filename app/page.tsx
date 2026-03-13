@@ -4,8 +4,11 @@ import { NextActionCard } from "@/components/dashboard/NextActionCard";
 import { WeatherCard } from "@/components/dashboard/WeatherCard";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { CurrentTripCard } from "@/components/trips/CurrentTripCard";
+import { trips } from "@/data/trips";
 
 export default function Home() {
+  const trip = trips[0];
+
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <PageContainer>
@@ -25,34 +28,27 @@ export default function Home() {
         </header>
 
         <CurrentTripCard
-          title="Barcelona Getaway"
-          dates="Apr 12 → Apr 18"
-          travelers="2 travelers"
-          status="Active"
-          href="/trips/barcelona-getaway"
+          title={trip.title}
+          dates={trip.dates}
+          travelers={trip.travelers}
+          status={trip.status}
+          href={`/trips/${trip.slug}`}
         />
 
         <NextActionCard
-          title="Leave for airport at 4:30 PM"
-          description="International flight check-in closes 1 hour before departure."
+          title={trip.nextActionTitle}
+          description={trip.nextActionDescription}
           buttonLabel="View Timeline"
+          buttonHref={`/trips/${trip.slug}#timeline`}
         />
 
         <section className="grid gap-4">
-          <DocumentsCard
-            items={["Flight ticket", "Hotel confirmation", "Passport copy"]}
-          />
+          <DocumentsCard items={trip.documents} />
           <WeatherCard
-            summary="22°C Sunny"
-            note="Great weather for walking and outdoor dining."
+            summary={trip.weatherSummary}
+            note={trip.weatherNote}
           />
-          <NearbyCard
-            items={[
-              "Brunch spot 6 min away",
-              "Pharmacy 4 min away",
-              "Beach entrance 12 min away",
-            ]}
-          />
+          <NearbyCard items={trip.nearby} />
         </section>
       </PageContainer>
     </main>

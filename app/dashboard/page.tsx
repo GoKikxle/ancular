@@ -1,8 +1,11 @@
 import { NextActionCard } from "@/components/dashboard/NextActionCard";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { CurrentTripCard } from "@/components/trips/CurrentTripCard";
+import { trips } from "@/data/trips";
 
 export default function DashboardPage() {
+  const activeTrip = trips[0];
+
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <PageContainer>
@@ -12,26 +15,31 @@ export default function DashboardPage() {
         </header>
 
         <CurrentTripCard
-          title="Barcelona Getaway"
-          dates="Apr 12 → Apr 18"
-          travelers="2 travelers"
-          status="Active"
-          href="/trips/barcelona-getaway"
+          title={activeTrip.title}
+          dates={activeTrip.dates}
+          travelers={activeTrip.travelers}
+          status={activeTrip.status}
+          href={`/trips/${activeTrip.slug}`}
         />
 
         <NextActionCard
-          title="Leave for airport at 4:30 PM"
-          description="International flight check-in closes 1 hour before departure."
-          buttonLabel="Open Trip"
+          title={activeTrip.nextActionTitle}
+          description={activeTrip.nextActionDescription}
+          buttonLabel="Open Trip Timeline"
+          buttonHref={`/trips/${activeTrip.slug}#timeline`}
         />
 
         <section className="space-y-4">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-            <h2 className="text-xl font-semibold">Lagos Work Trip</h2>
-            <p className="mt-1 text-sm text-white/70">
-              May 03 → May 07 • 1 traveler
-            </p>
-          </div>
+          {trips.slice(1).map((trip) => (
+            <CurrentTripCard
+              key={trip.id}
+              title={trip.title}
+              dates={trip.dates}
+              travelers={trip.travelers}
+              status={trip.status}
+              href={`/trips/${trip.slug}`}
+            />
+          ))}
         </section>
       </PageContainer>
     </main>
