@@ -42,6 +42,7 @@ export default async function TripDetailPage({
           title="Leave for airport at 4:30 PM"
           description="International flight check-in closes 1 hour before departure."
           buttonLabel="Open Timeline"
+          buttonHref="#timeline"
         />
 
         <TimelineCard
