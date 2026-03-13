@@ -1,18 +1,32 @@
-import { NextActionCard } from "@/components/dashboard/NextActionCard";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { TripSwitcher } from "@/components/trips/TripSwitcher";
 import { CurrentTripCard } from "@/components/trips/CurrentTripCard";
-import { trips } from "@/data/trips";
+import { NextActionCard } from "@/components/dashboard/NextActionCard";
+import { getTrips } from "@/lib/trips-store";
 
 export default function DashboardPage() {
+  const trips = getTrips();
   const activeTrip = trips[0];
+
+  if (!activeTrip) {
+    return (
+      <main className="min-h-screen bg-neutral-950 text-white">
+        <PageContainer>
+          <p className="text-sm text-white/50">No trips found.</p>
+        </PageContainer>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <PageContainer>
         <header className="mb-8">
-          <p className="text-sm text-white/50">Good evening</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Your trips</h1>
+          <p className="text-sm text-white/50">Dashboard</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Your Trips</h1>
         </header>
+
+        <TripSwitcher trips={trips} currentSlug={activeTrip.slug} />
 
         <CurrentTripCard
           title={activeTrip.title}

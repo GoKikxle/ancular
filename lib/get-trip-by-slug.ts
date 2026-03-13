@@ -1,5 +1,3 @@
-import { trips } from "@/data/trips";
-
-export function getTripBySlug(slug: string) {
-  return trips.find((trip) => trip.slug === slug);
-}
+// Thin wrapper kept for backwards compatibility.
+// All callers can also import getTripBySlug directly from @/lib/trips-store.
+export { getTripBySlug } from "@/lib/trips-store";

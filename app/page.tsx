@@ -1,64 +1,73 @@
 import Link from "next/link";
-import { DocumentsCard } from "@/components/dashboard/DocumentsCard";
-import { NearbyCard } from "@/components/dashboard/NearbyCard";
-import { NextActionCard } from "@/components/dashboard/NextActionCard";
-import { WeatherCard } from "@/components/dashboard/WeatherCard";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { CurrentTripCard } from "@/components/trips/CurrentTripCard";
-import { trips } from "@/data/trips";
+import { TripSwitcher } from "@/components/trips/TripSwitcher";
+import { getTrips } from "@/lib/trips-store";
 
 export default function Home() {
-  const trip = trips[0];
+  const trips = getTrips();
 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <PageContainer>
-        <header className="mb-8">
-          <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
-            Ancular
+        <header className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-white/50">Ancular</p>
+            <h1 className="text-3xl font-semibold tracking-tight">Your Trips</h1>
           </div>
 
-          <h1 className="text-4xl font-semibold leading-tight tracking-tight">
-            Everything about your trip in one place.
-          </h1>
-
-          <p className="mt-3 text-sm leading-6 text-white/70">
-            A mobile-first travel command center for tickets, documents,
-            reminders, weather, and what to do next.
-          </p>
-
-          <div className="mt-4">
-            <Link
-              href="/trips"
-              className="inline-flex rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80"
-            >
-              View all trips
-            </Link>
-          </div>
+          <Link
+            href="/trips/new"
+            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 hover:bg-white/[0.08]"
+          >
+            + New Trip
+          </Link>
         </header>
 
-        <CurrentTripCard
-          title={trip.title}
-          dates={trip.dates}
-          travelers={trip.travelers}
-          status={trip.status}
-        />
+        <TripSwitcher trips={trips} />
 
-        <NextActionCard
-          title={trip.nextActionTitle}
-          description={trip.nextActionDescription}
-          buttonLabel="View Timeline"
-        />
+        <section className="space-y-4">
+          {trips.map((trip) => (
+            <Link
+              key={trip.id}
+              href={`/trips/${trip.slug}`}
+              className="block rounded-3xl border border-white/10 bg-white/5 p-4 transition hover:border-white/20 hover:bg-white/[0.07]"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-semibold">{trip.title}</h2>
+                  <p className="mt-1 text-sm text-white/70">
+                    {trip.dates} · {trip.travelers}
+                  </p>
+                </div>
 
-        <section className="grid gap-4">
-          <DocumentsCard items={trip.documents} />
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    trip.status === "Active"
+                      ? "bg-emerald-500/15 text-emerald-300"
+                      : "bg-white/10 text-white/70"
+                  }`}
+                >
+                  {trip.status}
+                </span>
+              </div>
 
-          <WeatherCard
-            summary={trip.weatherSummary}
-            note={trip.weatherNote}
-          />
+              {trip.nextActionTitle && (
+                <p className="mt-4 text-sm text-white/50">{trip.nextActionTitle}</p>
+              )}
+            </Link>
+          ))}
 
-          <NearbyCard items={trip.nearby} />
+          {trips.length === 0 && (
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-center">
+              <p className="text-sm text-white/50">No trips yet.</p>
+              <Link
+                href="/trips/new"
+                className="mt-3 inline-block text-sm text-white/80 underline underline-offset-2"
+              >
+                Create your first trip
+              </Link>
+            </div>
+          )}
         </section>
       </PageContainer>
     </main>
