@@ -1,45 +1,44 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
-import { addTrip, deleteTrip } from "@/lib/trips-store";
-import type { Trip } from "@/types/trip";
+import { createTrip, deleteTripById } from "@/lib/trip-mutations";
 
-export async function createTrip(formData: FormData) {
-  const title = (formData.get("title") as string).trim();
-  const slug = (formData.get("slug") as string).trim();
-  const dates = (formData.get("dates") as string).trim();
-  const travelers = (formData.get("travelers") as string).trim();
-  const status = (formData.get("status") as string).trim();
+export async function createTripAction(formData: FormData) {
+  const title = String(formData.get("title") ?? "").trim();
+  const slug = String(formData.get("slug") ?? "").trim();
+  const dates = String(formData.get("dates") ?? "").trim();
+  const travelers = String(formData.get("travelers") ?? "").trim();
+  const status = String(formData.get("status") ?? "Upcoming").trim() as
+    | "Active"
+    | "Upcoming"
+    | "Past";
 
-  if (!title || !slug) return;
+  if (!title || !slug || !dates || !travelers) {
+    throw new Error("Missing required fields.");
+  }
 
-  // TODO: Replace with Supabase insert:
-  // const { error } = await supabase.from("trips").insert({ title, slug, dates, travelers, status, ... });
-  const newTrip: Trip = {
-    id: Date.now().toString(),
-    slug,
+  const trip = await createTrip({
     title,
+    slug,
     dates,
     travelers,
     status,
-    nextActionTitle: "",
-    nextActionDescription: "",
+    nextActionTitle: "Add your next action",
+    nextActionDescription: "Set the next important step for this trip.",
     weatherSummary: "",
     weatherNote: "",
-    nearby: [],
-    timeline: [],
-  };
+  });
 
-  addTrip(newTrip);
-  revalidatePath("/");
-  redirect(`/trips/${slug}`);
+  redirect(`/trips/${trip.slug}`);
 }
 
-export async function deleteTripById(id: string) {
-  // TODO: Replace with Supabase delete:
-  // await supabase.from("trips").delete().eq("id", id);
-  deleteTrip(id);
-  revalidatePath("/");
+export async function deleteTripAction(formData: FormData) {
+  const id = String(formData.get("id") ?? "").trim();
+
+  if (!id) {
+    throw new Error("Missing trip id.");
+  }
+
+  await deleteTripById(id);
   redirect("/");
 }
