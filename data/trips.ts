@@ -32,4 +32,35 @@ export const trips: Trip[] = [
       },
     ],
   },
+  {
+    id: "2",
+    slug: "lagos-work-trip",
+    title: "Lagos Work Trip",
+    dates: "May 03 → May 07",
+    travelers: "1 traveler",
+    status: "Upcoming",
+    nextActionTitle: "Pack laptop and travel adapter",
+    nextActionDescription:
+      "You have a client meeting the morning after arrival.",
+    documents: ["Flight itinerary", "Hotel booking", "Conference pass"],
+    weatherSummary: "29°C Humid",
+    weatherNote: "Warm weather with a chance of evening showers.",
+    nearby: [
+      "Coffee shop 3 min away",
+      "Pharmacy 8 min away",
+      "Meeting venue 10 min away",
+    ],
+    timeline: [
+      {
+        time: "7:00 AM",
+        title: "Leave for airport",
+        note: "Morning traffic can build up quickly.",
+      },
+      {
+        time: "9:30 AM",
+        title: "Flight departure",
+        note: "Boarding usually begins 40 minutes before takeoff.",
+      },
+    ],
+  },
 ];
