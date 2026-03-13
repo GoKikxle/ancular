@@ -11,7 +11,6 @@ export const trips: Trip[] = [
     nextActionTitle: "Leave for airport at 4:30 PM",
     nextActionDescription:
       "International flight check-in closes 1 hour before departure.",
-    documents: ["Flight ticket", "Hotel confirmation", "Passport copy"],
     weatherSummary: "22°C Sunny",
     weatherNote: "Great weather for walking and outdoor dining.",
     nearby: [
@@ -42,7 +41,6 @@ export const trips: Trip[] = [
     nextActionTitle: "Pack laptop and travel adapter",
     nextActionDescription:
       "You have a client meeting the morning after arrival.",
-    documents: ["Flight itinerary", "Hotel booking", "Conference pass"],
     weatherSummary: "29°C Humid",
     weatherNote: "Warm weather with a chance of evening showers.",
     nearby: [

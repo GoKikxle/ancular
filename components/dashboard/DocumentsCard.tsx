@@ -1,7 +1,12 @@
+import type { Document } from "@/types/document";
+import { DocumentCategoryIcon } from "@/components/documents/DocumentCategoryIcon";
+
 type DocumentsCardProps = {
-  items: string[];
+  items: Document[];
 };
 
+// Read-only document list. For the interactive trip version (attach/detach/upload),
+// use TripDocumentsPanel instead.
 export function DocumentsCard({ items }: DocumentsCardProps) {
   if (items.length === 0) return null;
 
@@ -12,33 +17,9 @@ export function DocumentsCard({ items }: DocumentsCardProps) {
       </p>
       <ul className="space-y-2.5">
         {items.map((item) => (
-          <li key={item} className="flex items-center gap-2.5 text-[14px] text-white/60">
-            <span className="flex-shrink-0 text-white/22">
-              <svg
-                width="13"
-                height="14"
-                viewBox="0 0 13 14"
-                fill="none"
-                aria-hidden="true"
-              >
-                <rect
-                  x="1.5"
-                  y="1"
-                  width="10"
-                  height="12"
-                  rx="2"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                />
-                <path
-                  d="M4 5h5M4 7.5h5M4 10h3"
-                  stroke="currentColor"
-                  strokeWidth="1.1"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>
-            {item}
+          <li key={item.id} className="flex items-center gap-2.5 text-[14px] text-white/60">
+            <DocumentCategoryIcon category={item.category} />
+            {item.name}
           </li>
         ))}
       </ul>

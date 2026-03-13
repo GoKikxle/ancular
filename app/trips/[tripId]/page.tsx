@@ -5,12 +5,18 @@ import { TripSwitcher } from "@/components/trips/TripSwitcher";
 import { TripActions } from "@/components/trips/TripActions";
 import { NextActionCard } from "@/components/dashboard/NextActionCard";
 import { TimelineCard } from "@/components/dashboard/TimelineCard";
-import { DocumentsCard } from "@/components/dashboard/DocumentsCard";
 import { WeatherCard } from "@/components/dashboard/WeatherCard";
 import { NearbyCard } from "@/components/dashboard/NearbyCard";
+import { TripDocumentsPanel } from "@/components/documents/TripDocumentsPanel";
 import { FadeUp } from "@/components/motion/FadeUp";
 import { getTripBySlug, getTrips } from "@/lib/trips-store";
+import { getDocumentsForTrip, getUnattachedDocuments } from "@/lib/documents-store";
 import { deleteTripById } from "@/app/trips/actions";
+import {
+  attachDocumentToTrip,
+  detachDocumentFromTrip,
+  uploadAndAttachDocument,
+} from "@/app/documents/actions";
 
 type TripDetailPageProps = {
   params: Promise<{ tripId: string }>;
@@ -29,7 +35,14 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
   if (!trip) notFound();
 
   const allTrips = getTrips();
+  const attachedDocs = getDocumentsForTrip(trip.id);
+  const availableDocs = getUnattachedDocuments(trip.id);
+
+  // Bind the trip ID into each server action so client components don't need it.
   const deleteThisTrip = deleteTripById.bind(null, trip.id);
+  const attachToThisTrip = attachDocumentToTrip.bind(null, trip.id);
+  const detachFromThisTrip = detachDocumentFromTrip.bind(null, trip.id);
+  const uploadToThisTrip = uploadAndAttachDocument.bind(null, trip.id);
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white">
@@ -79,17 +92,29 @@ export default async function TripDetailPage({ params }: TripDetailPageProps) {
           <TimelineCard items={trip.timeline} />
         </FadeUp>
 
-        {/* Info grid */}
+        {/* Documents — interactive panel with attach/upload */}
         <FadeUp delay={0.18}>
+          <div className="mb-3">
+            <TripDocumentsPanel
+              attachedDocs={attachedDocs}
+              availableDocs={availableDocs}
+              onAttach={attachToThisTrip}
+              onDetach={detachFromThisTrip}
+              onUpload={uploadToThisTrip}
+            />
+          </div>
+        </FadeUp>
+
+        {/* Weather + Nearby */}
+        <FadeUp delay={0.22}>
           <div className="space-y-3">
-            <DocumentsCard items={trip.documents} />
             <WeatherCard summary={trip.weatherSummary} note={trip.weatherNote} />
             <NearbyCard items={trip.nearby} />
           </div>
         </FadeUp>
 
         {/* Danger zone */}
-        <FadeUp delay={0.22}>
+        <FadeUp delay={0.26}>
           <TripActions onDelete={deleteThisTrip} />
         </FadeUp>
       </PageContainer>

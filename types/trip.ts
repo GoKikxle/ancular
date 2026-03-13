@@ -13,7 +13,6 @@ export type Trip = {
   status: string;
   nextActionTitle: string;
   nextActionDescription: string;
-  documents: string[];
   weatherSummary: string;
   weatherNote: string;
   nearby: string[];

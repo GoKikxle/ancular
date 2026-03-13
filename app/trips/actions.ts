@@ -25,7 +25,6 @@ export async function createTrip(formData: FormData) {
     status,
     nextActionTitle: "",
     nextActionDescription: "",
-    documents: [],
     weatherSummary: "",
     weatherNote: "",
     nearby: [],
