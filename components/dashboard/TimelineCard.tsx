@@ -8,8 +8,13 @@ type TimelineCardProps = {
 
 export function TimelineCard({ items }: TimelineCardProps) {
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/5 p-4">
-      <p className="text-xs uppercase tracking-wide text-white/50">Timeline</p>
+    <section
+      id="timeline"
+      className="rounded-3xl border border-white/10 bg-white/5 p-4"
+    >
+      <p className="text-xs uppercase tracking-wide text-white/50">
+        Timeline
+      </p>
 
       <div className="mt-4 space-y-4">
         {items.map((item) => (
