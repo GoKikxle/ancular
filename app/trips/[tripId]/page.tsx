@@ -1,3 +1,4 @@
+import { TimelineCard } from "@/components/dashboard/TimelineCard";
 import { DocumentsCard } from "@/components/dashboard/DocumentsCard";
 import { NearbyCard } from "@/components/dashboard/NearbyCard";
 import { NextActionCard } from "@/components/dashboard/NextActionCard";
@@ -41,6 +42,21 @@ export default async function TripDetailPage({
           title="Leave for airport at 4:30 PM"
           description="International flight check-in closes 1 hour before departure."
           buttonLabel="Open Timeline"
+        />
+
+        <TimelineCard
+          items={[
+            {
+              time: "4:30 PM",
+              title: "Leave for airport",
+              note: "Make sure to arrive at the airport at least 2 hours before your flight."
+            },
+            {
+              time: "5:00 PM",
+              title: "Check-in at the airport",
+              note: "Proceed to the check-in counter and present your identification and boarding pass."
+            }
+          ]}
         />
 
         <section className="grid gap-4">
