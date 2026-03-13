@@ -1,65 +1,91 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen bg-neutral-950 text-white">
+      <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-6">
+        <header className="mb-8">
+          <div className="mb-3 inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+            Ancular
+          </div>
+
+          <h1 className="text-4xl font-semibold leading-tight tracking-tight">
+            Everything about your trip in one place.
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <p className="mt-3 text-sm leading-6 text-white/70">
+            A mobile-first travel command center for tickets, documents,
+            reminders, weather, and what to do next.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        </header>
+
+        <section className="mb-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-white/50">
+                Current Trip
+              </p>
+              <h2 className="text-xl font-semibold">Barcelona Getaway</h2>
+            </div>
+
+            <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-300">
+              Active
+            </span>
+          </div>
+
+          <p className="text-sm text-white/70">Apr 12 → Apr 18 • 2 travelers</p>
+        </section>
+
+        <section className="mb-4 rounded-3xl bg-sky-500 px-4 py-5 text-slate-950">
+          <p className="text-xs font-semibold uppercase tracking-wide opacity-70">
+            Next Action
+          </p>
+
+          <h3 className="mt-2 text-2xl font-semibold">
+            Leave for airport at 4:30 PM
+          </h3>
+
+          <p className="mt-2 text-sm opacity-80">
+            International flight check-in closes 1 hour before departure.
+          </p>
+
+          <button className="mt-4 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-medium text-white">
+            View Timeline
+          </button>
+        </section>
+
+        <section className="grid gap-4">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs uppercase tracking-wide text-white/50">
+              Documents
+            </p>
+            <ul className="mt-3 space-y-2 text-sm text-white/80">
+              <li>• Flight ticket</li>
+              <li>• Hotel confirmation</li>
+              <li>• Passport copy</li>
+            </ul>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs uppercase tracking-wide text-white/50">
+              Weather
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold">22°C Sunny</h3>
+            <p className="mt-1 text-sm text-white/70">
+              Great weather for walking and outdoor dining.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs uppercase tracking-wide text-white/50">
+              Nearby
+            </p>
+            <ul className="mt-3 space-y-2 text-sm text-white/80">
+              <li>• Brunch spot 6 min away</li>
+              <li>• Pharmacy 4 min away</li>
+              <li>• Beach entrance 12 min away</li>
+            </ul>
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }
