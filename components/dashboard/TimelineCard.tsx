@@ -1,32 +1,58 @@
+type TimelineItem = {
+  time: string;
+  title: string;
+  note: string;
+};
+
 type TimelineCardProps = {
-  items: {
-    time: string;
-    title: string;
-    note: string;
-  }[];
+  items: TimelineItem[];
 };
 
 export function TimelineCard({ items }: TimelineCardProps) {
+  if (items.length === 0) return null;
+
   return (
     <section
       id="timeline"
-      className="rounded-3xl border border-white/10 bg-white/5 p-4"
+      className="mb-4 rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5"
     >
-      <p className="text-xs uppercase tracking-wide text-white/50">
+      <p className="mb-5 text-[11px] uppercase tracking-[0.1em] text-white/35">
         Timeline
       </p>
 
-      <div className="mt-4 space-y-4">
-        {items.map((item) => (
-          <div
-            key={`${item.time}-${item.title}`}
-            className="rounded-2xl border border-white/10 bg-black/10 p-3"
-          >
-            <p className="text-xs text-sky-300">{item.time}</p>
-            <h3 className="mt-1 text-base font-semibold">{item.title}</h3>
-            <p className="mt-1 text-sm text-white/70">{item.note}</p>
-          </div>
-        ))}
+      <div className="relative">
+        {/* Vertical connector line */}
+        <div className="absolute bottom-2 left-[7px] top-2 w-px bg-white/[0.07]" />
+
+        <div className="space-y-6">
+          {items.map((item, i) => (
+            <div key={`${item.time}-${item.title}`} className="flex gap-4">
+              {/* Dot */}
+              <div className="relative z-10 mt-[3px] flex-shrink-0">
+                <div
+                  className={`h-[15px] w-[15px] rounded-full border-2 ${
+                    i === 0
+                      ? "border-sky-400 bg-sky-400/20"
+                      : "border-white/[0.18] bg-[#0a0a0a]"
+                  }`}
+                />
+              </div>
+
+              {/* Content */}
+              <div className="min-w-0 pb-1">
+                <p className="text-[11px] font-medium text-sky-400/75">
+                  {item.time}
+                </p>
+                <h3 className="mt-0.5 text-[15px] font-semibold tracking-[-0.01em]">
+                  {item.title}
+                </h3>
+                <p className="mt-1 text-[13px] leading-relaxed text-white/45">
+                  {item.note}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

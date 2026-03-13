@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 type CurrentTripCardProps = {
   title: string;
@@ -8,6 +11,12 @@ type CurrentTripCardProps = {
   href?: string;
 };
 
+function statusBadgeClass(status: string) {
+  if (status === "Active") return "bg-emerald-500/15 text-emerald-300";
+  if (status === "Upcoming") return "bg-amber-500/15 text-amber-300";
+  return "bg-white/10 text-white/45";
+}
+
 export function CurrentTripCard({
   title,
   dates,
@@ -16,28 +25,28 @@ export function CurrentTripCard({
   href,
 }: CurrentTripCardProps) {
   const content = (
-    <section className="mb-4 rounded-3xl border border-white/10 bg-white/5 p-4 transition hover:border-white/20 hover:bg-white/[0.07]">
-      <div className="mb-2 flex items-center justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-white/50">
-            Current Trip
-          </p>
-          <h2 className="text-xl font-semibold">{title}</h2>
-        </div>
-
-        <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-300">
+    <motion.div
+      whileTap={href ? { scale: 0.98 } : {}}
+      className="mb-4 rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5 transition hover:border-white/[0.12] hover:bg-white/[0.06]"
+    >
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-[11px] uppercase tracking-[0.1em] text-white/35">
+          {status === "Active" ? "Active Trip" : "Upcoming Trip"}
+        </p>
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${statusBadgeClass(status)}`}
+        >
           {status}
         </span>
       </div>
-
-      <p className="text-sm text-white/70">
-        {dates} • {travelers}
+      <h2 className="text-[19px] font-semibold tracking-[-0.01em]">{title}</h2>
+      <p className="mt-1.5 text-[13px] text-white/45">
+        {dates} · {travelers}
       </p>
-    </section>
+    </motion.div>
   );
 
   if (!href) return content;
-
   return (
     <Link href={href} className="block">
       {content}
