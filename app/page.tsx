@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DocumentsCard } from "@/components/dashboard/DocumentsCard";
 import { NearbyCard } from "@/components/dashboard/NearbyCard";
 import { NextActionCard } from "@/components/dashboard/NextActionCard";
@@ -25,6 +26,15 @@ export default function Home() {
             A mobile-first travel command center for tickets, documents,
             reminders, weather, and what to do next.
           </p>
+
+          <div className="mt-4">
+            <Link
+              href="/trips"
+              className="inline-flex rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80"
+            >
+              View all trips
+            </Link>
+          </div>
         </header>
 
         <CurrentTripCard
@@ -32,22 +42,22 @@ export default function Home() {
           dates={trip.dates}
           travelers={trip.travelers}
           status={trip.status}
-          href={`/trips/${trip.slug}`}
         />
 
         <NextActionCard
           title={trip.nextActionTitle}
           description={trip.nextActionDescription}
           buttonLabel="View Timeline"
-          buttonHref={`/trips/${trip.slug}#timeline`}
         />
 
         <section className="grid gap-4">
           <DocumentsCard items={trip.documents} />
+
           <WeatherCard
             summary={trip.weatherSummary}
             note={trip.weatherNote}
           />
+
           <NearbyCard items={trip.nearby} />
         </section>
       </PageContainer>
