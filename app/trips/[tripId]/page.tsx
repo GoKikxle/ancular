@@ -1,9 +1,11 @@
 import { NextActionCard } from "@/components/dashboard/NextActionCard";
 import { TimelineCard } from "@/components/dashboard/TimelineCard";
+import { TripDocumentsSection } from "@/components/documents/TripDocumentsSection";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { BackButton } from "@/components/layout/BackButton";
 import { getTripBySlug } from "@/lib/trips";
 import { getTimelineItemsForTrip } from "@/lib/timeline-items";
+import { getDocumentsForTrip } from "@/lib/trip-documents";
 import { notFound } from "next/navigation";
 import { deleteTripAction } from "@/app/trips/actions";
 
@@ -23,8 +25,11 @@ export default async function TripDetailPage({
     notFound();
   }
 
-  // tripId in the URL is the slug; use trip.id (UUID) for the foreign key lookup.
-  const timelineItems = await getTimelineItemsForTrip(trip.id);
+  // tripId in the URL is the slug; use trip.id (UUID) for all FK lookups.
+  const [timelineItems, tripDocs] = await Promise.all([
+    getTimelineItemsForTrip(trip.id),
+    getDocumentsForTrip(trip.id),
+  ]);
 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
@@ -49,6 +54,8 @@ export default async function TripDetailPage({
         />
 
         <TimelineCard items={timelineItems} />
+
+        <TripDocumentsSection docs={tripDocs} />
       </PageContainer>
     </main>
   );

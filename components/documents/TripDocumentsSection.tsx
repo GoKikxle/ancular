@@ -1,0 +1,52 @@
+import type { DbDocument } from "@/lib/trip-documents";
+import { DocumentCategoryIcon } from "./DocumentCategoryIcon";
+
+type Props = {
+  docs: DbDocument[];
+};
+
+/**
+ * Read-only document list for the trip detail page (Phase 1).
+ * Upload and attach flows are intentionally excluded here — see TripDocumentsPanel
+ * for the full interactive version when those phases are ready.
+ */
+export function TripDocumentsSection({ docs }: Props) {
+  return (
+    <section className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5">
+      <p className="mb-4 text-[11px] uppercase tracking-[0.1em] text-white/35">
+        Documents
+      </p>
+
+      {docs.length > 0 ? (
+        <ul className="space-y-2.5">
+          {docs.map((doc) => (
+            <li key={doc.id} className="flex items-center gap-2.5">
+              <DocumentCategoryIcon category={doc.category} />
+              <span className="min-w-0 flex-1 truncate text-[14px] text-white/60">
+                {doc.name}
+              </span>
+              {doc.file_url ? (
+                <a
+                  href={doc.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 rounded-full border border-white/[0.07] px-2 py-0.5 text-[10px] text-white/28 transition-colors hover:text-white/50"
+                >
+                  View
+                </a>
+              ) : (
+                <span className="flex-shrink-0 rounded-full border border-white/[0.07] px-2 py-0.5 text-[10px] text-white/20">
+                  No file
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-[13px] text-white/28">
+          No documents attached to this trip yet.
+        </p>
+      )}
+    </section>
+  );
+}
