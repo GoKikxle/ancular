@@ -38,7 +38,7 @@ export function AttachDocumentPicker({ tripId, tripSlug, availableDocs }: Props)
   }
 
   return (
-    <div className="mt-4 border-t border-white/[0.06] pt-4">
+    <div>
       <button
         onClick={() => setOpen((o) => !o)}
         disabled={isPending}

@@ -1,6 +1,7 @@
 import type { DbDocument } from "@/lib/trip-documents";
 import { DocumentCategoryIcon } from "./DocumentCategoryIcon";
 import { AttachDocumentPicker } from "./AttachDocumentPicker";
+import { UploadDocumentForm } from "./UploadDocumentForm";
 
 type Props = {
   tripId: string;
@@ -53,11 +54,14 @@ export function TripDocumentsSection({
         </p>
       )}
 
-      <AttachDocumentPicker
-        tripId={tripId}
-        tripSlug={tripSlug}
-        availableDocs={availableDocs}
-      />
+      <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.06] pt-4">
+        <AttachDocumentPicker
+          tripId={tripId}
+          tripSlug={tripSlug}
+          availableDocs={availableDocs}
+        />
+        <UploadDocumentForm tripId={tripId} tripSlug={tripSlug} />
+      </div>
     </section>
   );
 }
