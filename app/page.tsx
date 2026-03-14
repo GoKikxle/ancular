@@ -16,12 +16,20 @@ export default async function Home() {
             </h1>
           </div>
 
-          <Link
-            href="/trips/new"
-            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80"
-          >
-            + Add Trip
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/documents"
+              className="rounded-2xl border border-white/[0.07] px-4 py-2 text-sm text-white/40 transition-colors hover:text-white/65"
+            >
+              Vault
+            </Link>
+            <Link
+              href="/trips/new"
+              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80"
+            >
+              + Add Trip
+            </Link>
+          </div>
         </header>
 
         <section className="space-y-4">
