@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { DocumentCategory } from "@/types/document";
+import { getBucketForCategory, SIGNED_URL_TTL } from "@/lib/storage-buckets";
 
 /**
  * Canonical DB shape for a row in the `documents` table (snake_case columns).
@@ -22,12 +23,17 @@ export type DbDocument = {
   id: string;
   name: string;
   category: DocumentCategory;
+  /** Long-lived signed URL (5-year TTL). Regenerate from storage_bucket + storage_path if expired. */
   file_url: string | null;
   /** Original filename from upload — stored separately from the display name. */
   file_name?: string | null;
   mime_type: string | null;
   uploaded_at: string;
   notes?: string | null;
+  /** Object path within the storage bucket — used to regenerate signed URLs. */
+  storage_path?: string | null;
+  /** Supabase Storage bucket name (e.g. "flight"). See lib/storage-buckets.ts. */
+  storage_bucket?: string | null;
 };
 
 /** Fetches every document in the vault, newest first. */
@@ -48,49 +54,51 @@ export async function getAllDocuments(): Promise<DbDocument[]> {
 }
 
 /**
- * Uploads a file to Supabase Storage and returns its public URL.
+ * Uploads a file to the correct private Supabase Storage bucket for its
+ * document category, then returns a long-lived signed URL.
  *
- * Storage layout:  documents/{tripId}/{timestamp}-{sanitizedFilename}
+ * Bucket routing:  category → bucket (see lib/storage-buckets.ts)
+ * Storage layout:  {bucket}/{tripId}/{timestamp}-{sanitizedFilename}
  *
- * BUCKET SETUP (required once in the Supabase dashboard):
- *   1. Create a bucket named "documents".
- *   2. For simplest access, make it PUBLIC (Storage → Bucket → "Make public").
- *      The public URL is then stable and never expires.
- *   3. If you need private access, keep it private and call
- *      supabase.storage.from("documents").createSignedUrl(path, 3600)
- *      at render time instead of storing the URL directly.
+ * Signed URL TTL: SIGNED_URL_TTL (~5 years). The URL is stored in the
+ * documents.file_url column. To regenerate a fresh signed URL later:
+ *   supabase.storage.from(storage_bucket).createSignedUrl(storage_path, SIGNED_URL_TTL)
  *
- * STORAGE POLICY (anon uploads via server action use the anon key):
- *   INSERT policy on "documents" bucket for role "anon" — path prefix optional.
- *   Example permissive policy for now:
- *     (bucket_id = 'documents')
+ * BUCKET SETUP: Run supabase/storage-setup.sql once in your Supabase project.
  */
 export async function uploadToStorage(
   file: File,
-  tripId: string
-): Promise<{ path: string; publicUrl: string; error: string | null }> {
+  tripId: string,
+  category: DocumentCategory
+): Promise<{ path: string; bucket: string; signedUrl: string; error: string | null }> {
   const supabase = await createClient();
 
+  const bucket = getBucketForCategory(category);
   const sanitized = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path = `${tripId}/${Date.now()}-${sanitized}`;
 
   const { error: uploadError } = await supabase.storage
-    .from("documents")
+    .from(bucket)
     .upload(path, file, {
       contentType: file.type || "application/octet-stream",
       upsert: false,
     });
 
   if (uploadError) {
-    console.error("[documents] Storage upload failed:", uploadError.message);
-    return { path: "", publicUrl: "", error: uploadError.message };
+    console.error(`[documents] Storage upload to "${bucket}" failed:`, uploadError.message);
+    return { path: "", bucket: "", signedUrl: "", error: uploadError.message };
   }
 
-  const { data: urlData } = supabase.storage
-    .from("documents")
-    .getPublicUrl(path);
+  const { data: signedData, error: signedError } = await supabase.storage
+    .from(bucket)
+    .createSignedUrl(path, SIGNED_URL_TTL);
 
-  return { path, publicUrl: urlData.publicUrl, error: null };
+  if (signedError || !signedData?.signedUrl) {
+    console.error("[documents] Failed to create signed URL:", signedError?.message);
+    return { path: "", bucket: "", signedUrl: "", error: signedError?.message ?? "Failed to sign URL" };
+  }
+
+  return { path, bucket, signedUrl: signedData.signedUrl, error: null };
 }
 
 type InsertDocumentInput = {
@@ -99,6 +107,8 @@ type InsertDocumentInput = {
   file_url: string;
   file_name: string;
   mime_type: string;
+  storage_path: string;
+  storage_bucket: string;
 };
 
 /** Inserts a new row into the documents table and returns it. */
@@ -115,6 +125,8 @@ export async function insertDocument(
       file_url: input.file_url,
       file_name: input.file_name,
       mime_type: input.mime_type,
+      storage_path: input.storage_path,
+      storage_bucket: input.storage_bucket,
     })
     .select()
     .single();

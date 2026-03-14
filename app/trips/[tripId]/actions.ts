@@ -45,17 +45,19 @@ export async function uploadAndAttachDocumentAction(
   if (!file || file.size === 0) return { error: "Please select a file." };
   if (!name) return { error: "Please enter a document title." };
 
-  // 1 — Upload to storage
-  const { publicUrl, error: storageError } = await uploadToStorage(file, tripId);
+  // 1 — Upload to the bucket that matches the document category
+  const { path, bucket, signedUrl, error: storageError } = await uploadToStorage(file, tripId, category);
   if (storageError) return { error: `Upload failed: ${storageError}` };
 
   // 2 — Insert documents row
   const { document, error: insertError } = await insertDocument({
     name,
     category,
-    file_url: publicUrl,
+    file_url: signedUrl,
     file_name: file.name,
     mime_type: file.type || "application/octet-stream",
+    storage_path: path,
+    storage_bucket: bucket,
   });
   if (insertError || !document) return { error: `Could not save document: ${insertError}` };
 
