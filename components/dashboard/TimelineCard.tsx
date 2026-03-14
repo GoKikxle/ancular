@@ -1,7 +1,11 @@
-type TimelineItem = {
+export type TimelineItem = {
   time: string;
   title: string;
   note: string;
+  /** Physical location or gate info. TODO: backed by `location` column in timeline_items */
+  location?: string | null;
+  /** Label for an associated document (e.g. "Boarding Pass"). TODO: backed by `document_label` column */
+  document_label?: string | null;
 };
 
 type TimelineCardProps = {
@@ -49,6 +53,18 @@ export function TimelineCard({ items }: TimelineCardProps) {
                 <p className="mt-1 text-[13px] leading-relaxed text-white/45">
                   {item.note}
                 </p>
+                {item.location && (
+                  <p className="mt-1.5 text-[12px] text-white/30">
+                    <span className="mr-1 text-white/20">Location</span>
+                    {item.location}
+                  </p>
+                )}
+                {item.document_label && (
+                  <p className="mt-1 text-[12px] text-white/30">
+                    <span className="mr-1 text-white/20">Doc</span>
+                    {item.document_label}
+                  </p>
+                )}
               </div>
             </div>
           ))}
