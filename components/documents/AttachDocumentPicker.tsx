@@ -74,7 +74,7 @@ export function AttachDocumentPicker({ tripId, tripSlug, availableDocs }: Props)
                       >
                         <DocumentCategoryIcon category={doc.category} />
                         <span className="min-w-0 flex-1 truncate text-left">
-                          {doc.name}
+                          {doc.title}
                         </span>
                       </motion.button>
                     </li>

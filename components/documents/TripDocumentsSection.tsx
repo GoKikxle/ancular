@@ -29,7 +29,7 @@ export function TripDocumentsSection({
             <li key={doc.id} className="flex items-center gap-2.5">
               <DocumentCategoryIcon category={doc.category} />
               <span className="min-w-0 flex-1 truncate text-[14px] text-white/60">
-                {doc.name}
+                {doc.title}
               </span>
               {doc.file_url ? (
                 <a

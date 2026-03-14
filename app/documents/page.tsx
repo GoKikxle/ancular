@@ -77,7 +77,7 @@ export default async function DocumentsPage() {
                         <DocumentCategoryIcon category={doc.category} />
                         <div className="min-w-0">
                           <p className="truncate text-[15px] font-medium text-white/80">
-                            {doc.name}
+                            {doc.title}
                           </p>
                           <p className="mt-0.5 text-[11px] text-white/30">
                             {categoryLabel(doc.category)}
@@ -94,8 +94,8 @@ export default async function DocumentsPage() {
                       </span>
                     </div>
 
-                    {/* Filename row — only shown when stored separately from name */}
-                    {displayName && displayName !== doc.name && (
+                    {/* Filename row — only shown when the OS filename differs from the title */}
+                    {displayName && displayName !== doc.title && (
                       <p className="mt-2 truncate pl-[21px] text-[12px] text-white/25">
                         {displayName}
                       </p>

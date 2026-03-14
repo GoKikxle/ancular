@@ -39,11 +39,12 @@ export async function uploadAndAttachDocumentAction(
   formData: FormData
 ): Promise<{ error: string | null }> {
   const file = formData.get("file") as File | null;
-  const name = (formData.get("name") as string | null)?.trim();
+  // The form field is named "name" (HTML convention) but maps to `title` in the DB.
+  const title = (formData.get("name") as string | null)?.trim();
   const category = (formData.get("category") as DocumentCategory | null) ?? "other";
 
   if (!file || file.size === 0) return { error: "Please select a file." };
-  if (!name) return { error: "Please enter a document title." };
+  if (!title) return { error: "Please enter a document title." };
 
   // 1 — Upload to the bucket that matches the document category
   const { path, bucket, signedUrl, error: storageError } = await uploadToStorage(file, tripId, category);
@@ -51,7 +52,7 @@ export async function uploadAndAttachDocumentAction(
 
   // 2 — Insert documents row
   const { document, error: insertError } = await insertDocument({
-    name,
+    title,
     category,
     file_url: signedUrl,
     file_name: file.name,

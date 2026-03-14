@@ -8,24 +8,35 @@ import { getBucketForCategory, SIGNED_URL_TTL } from "@/lib/storage-buckets";
  *
  * Required table definition:
  *   id           UUID PRIMARY KEY DEFAULT gen_random_uuid()
- *   name         TEXT NOT NULL
+ *   title        TEXT NOT NULL        ← canonical display field
+ *   name         TEXT NULL            ← optional alias; mirrored from title on insert
  *   category     TEXT NOT NULL CHECK (category IN ('flight','hotel','identity','booking','other'))
- *   file_url     TEXT NULL      -- public URL from Supabase Storage (see uploadToStorage)
- *   file_name    TEXT NULL      -- original filename (e.g. "boarding-pass.pdf")
+ *   file_url     TEXT NULL      -- long-lived signed URL from Supabase Storage
+ *   file_name    TEXT NULL      -- original OS filename (e.g. "boarding-pass.pdf")
  *   mime_type    TEXT NULL      -- e.g. "application/pdf", "image/jpeg"
  *   uploaded_at  DATE NOT NULL DEFAULT now()
  *   notes        TEXT NULL
  *
- * If `file_name` column does not exist yet, run:
- *   ALTER TABLE documents ADD COLUMN file_name TEXT NULL;
+ * If migrating from a `name`-only schema, run once:
+ *   ALTER TABLE documents RENAME COLUMN name TO title;
+ *   ALTER TABLE documents ADD COLUMN name TEXT NULL;
+ *   UPDATE documents SET name = title;
+ *
+ * If adding missing columns:
+ *   ALTER TABLE documents ADD COLUMN IF NOT EXISTS file_name TEXT NULL;
+ *   ALTER TABLE documents ADD COLUMN IF NOT EXISTS storage_path TEXT NULL;
+ *   ALTER TABLE documents ADD COLUMN IF NOT EXISTS storage_bucket TEXT NULL;
  */
 export type DbDocument = {
   id: string;
-  name: string;
+  /** Canonical user-facing display label (e.g. "Boarding pass"). Maps to `title` in DB. */
+  title: string;
+  /** Optional alias kept for backward compatibility with rows that pre-date the title migration. */
+  name?: string | null;
   category: DocumentCategory;
   /** Long-lived signed URL (5-year TTL). Regenerate from storage_bucket + storage_path if expired. */
   file_url: string | null;
-  /** Original filename from upload — stored separately from the display name. */
+  /** Original OS filename from upload — stored separately from the display title. */
   file_name?: string | null;
   mime_type: string | null;
   uploaded_at: string;
@@ -102,7 +113,7 @@ export async function uploadToStorage(
 }
 
 type InsertDocumentInput = {
-  name: string;
+  title: string;
   category: DocumentCategory;
   file_url: string;
   file_name: string;
@@ -120,7 +131,8 @@ export async function insertDocument(
   const { data, error } = await supabase
     .from("documents")
     .insert({
-      name: input.name,
+      title: input.title,
+      name: input.title, // mirror for backward compat — remove if `name` column does not exist
       category: input.category,
       file_url: input.file_url,
       file_name: input.file_name,
