@@ -36,7 +36,7 @@ export async function getDocumentsForTrip(
 
   // Each row is { documents: DbDocument }; unwrap and filter out any null joins.
   return (data ?? [])
-    .map((row) => (row as { documents: DbDocument }).documents)
+    .map((row) => (row as unknown as { documents: DbDocument }).documents)
     .filter(Boolean);
 }
 
