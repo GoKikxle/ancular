@@ -6,6 +6,7 @@ import { BackButton } from "@/components/layout/BackButton";
 import { getTripBySlug } from "@/lib/trips";
 import { getTimelineItemsForTrip } from "@/lib/timeline-items";
 import { getDocumentsForTrip } from "@/lib/trip-documents";
+import { getAllDocuments } from "@/lib/documents";
 import { notFound } from "next/navigation";
 import { deleteTripAction } from "@/app/trips/actions";
 
@@ -26,10 +27,15 @@ export default async function TripDetailPage({
   }
 
   // tripId in the URL is the slug; use trip.id (UUID) for all FK lookups.
-  const [timelineItems, tripDocs] = await Promise.all([
+  const [timelineItems, tripDocs, allDocs] = await Promise.all([
     getTimelineItemsForTrip(trip.id),
     getDocumentsForTrip(trip.id),
+    getAllDocuments(),
   ]);
+
+  // Documents in the vault that are not yet attached to this trip.
+  const attachedIds = new Set(tripDocs.map((d) => d.id));
+  const availableDocs = allDocs.filter((d) => !attachedIds.has(d.id));
 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
@@ -55,7 +61,12 @@ export default async function TripDetailPage({
 
         <TimelineCard items={timelineItems} />
 
-        <TripDocumentsSection docs={tripDocs} />
+        <TripDocumentsSection
+          tripId={trip.id}
+          tripSlug={trip.slug}
+          docs={tripDocs}
+          availableDocs={availableDocs}
+        />
       </PageContainer>
     </main>
   );

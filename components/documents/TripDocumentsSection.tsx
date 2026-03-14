@@ -1,16 +1,21 @@
 import type { DbDocument } from "@/lib/trip-documents";
 import { DocumentCategoryIcon } from "./DocumentCategoryIcon";
+import { AttachDocumentPicker } from "./AttachDocumentPicker";
 
 type Props = {
+  tripId: string;
+  tripSlug: string;
   docs: DbDocument[];
+  /** Vault documents not yet attached to this trip — passed to the attach picker. */
+  availableDocs: DbDocument[];
 };
 
-/**
- * Read-only document list for the trip detail page (Phase 1).
- * Upload and attach flows are intentionally excluded here — see TripDocumentsPanel
- * for the full interactive version when those phases are ready.
- */
-export function TripDocumentsSection({ docs }: Props) {
+export function TripDocumentsSection({
+  tripId,
+  tripSlug,
+  docs,
+  availableDocs,
+}: Props) {
   return (
     <section className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5">
       <p className="mb-4 text-[11px] uppercase tracking-[0.1em] text-white/35">
@@ -47,6 +52,12 @@ export function TripDocumentsSection({ docs }: Props) {
           No documents attached to this trip yet.
         </p>
       )}
+
+      <AttachDocumentPicker
+        tripId={tripId}
+        tripSlug={tripSlug}
+        availableDocs={availableDocs}
+      />
     </section>
   );
 }

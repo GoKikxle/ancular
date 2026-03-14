@@ -10,12 +10,9 @@ export type { DbDocument } from "@/lib/documents";
  *   trip_id      UUID NOT NULL REFERENCES trips(id) ON DELETE CASCADE
  *   document_id  UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE
  *   attached_at  DATE NOT NULL DEFAULT now()
- *   UNIQUE (trip_id, document_id)
+ *   UNIQUE (trip_id, document_id)   ← enforces no-duplicate at DB level
  *
- * TODO (Phase 2 – attach flow):
- *   supabase.from("trip_documents").insert({ trip_id, document_id })
- *
- * TODO (Phase 3 – upload flow):
+ * TODO (Phase 4 – upload flow):
  *   supabase.storage.from("documents").upload(path, file)
  *   then supabase.from("documents").insert({ name, category, file_url, ... })
  */
@@ -41,4 +38,29 @@ export async function getDocumentsForTrip(
   return (data ?? [])
     .map((row) => (row as { documents: DbDocument }).documents)
     .filter(Boolean);
+}
+
+/**
+ * Attaches a vault document to a trip.
+ * The UNIQUE constraint on (trip_id, document_id) prevents duplicates at the
+ * DB level. Postgres error code 23505 = unique_violation; we treat it as a
+ * no-op so callers don't need to pre-filter.
+ */
+export async function attachDocumentToTrip(
+  tripId: string,
+  documentId: string
+): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("trip_documents")
+    .insert({ trip_id: tripId, document_id: documentId });
+
+  if (error) {
+    if (error.code === "23505") return { error: null }; // already attached — silent no-op
+    console.error("[trip-documents] Failed to attach:", error.message);
+    return { error: error.message };
+  }
+
+  return { error: null };
 }
