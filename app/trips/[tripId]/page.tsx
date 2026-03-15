@@ -147,6 +147,7 @@ export default async function TripDetailPage({
           suggestions={suggestions}
           tripId={trip.id}
           tripSlug={trip.slug}
+          tripTitle={trip.title}
         />
       </PageContainer>
     </main>

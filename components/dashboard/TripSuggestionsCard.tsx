@@ -4,59 +4,76 @@ import { useState, useTransition } from "react";
 import type { Suggestion, SuggestionCategory } from "@/lib/trip-suggestions";
 import { addSuggestionToTimelineAction } from "@/app/trips/[tripId]/actions";
 
-// ─── Category styling ─────────────────────────────────────────────────────────
+// ─── Category styles ──────────────────────────────────────────────────────────
+// Each category gets a small coloured dot + a text label.
+// Using a dot instead of a bordered pill keeps the card header clean and
+// lets the title dominate as the visual anchor.
 
 const CATEGORY_STYLES: Record<
   SuggestionCategory,
-  { pill: string; label: string }
+  { dot: string; text: string; label: string }
 > = {
   food: {
-    pill: "border-amber-500/20 bg-amber-500/[0.08] text-amber-400/75",
+    dot: "bg-amber-400/55",
+    text: "text-amber-400/65",
     label: "Food",
   },
   sightseeing: {
-    pill: "border-sky-500/20 bg-sky-500/[0.08] text-sky-400/75",
+    dot: "bg-sky-400/55",
+    text: "text-sky-400/65",
     label: "Sightseeing",
   },
   transport: {
-    pill: "border-violet-500/20 bg-violet-500/[0.08] text-violet-400/75",
+    dot: "bg-violet-400/55",
+    text: "text-violet-400/65",
     label: "Transport",
   },
   "weather-aware": {
-    pill: "border-cyan-500/20 bg-cyan-500/[0.08] text-cyan-400/75",
+    dot: "bg-cyan-400/55",
+    text: "text-cyan-400/65",
     label: "Weather",
   },
   admin: {
-    pill: "border-white/[0.10] bg-white/[0.04] text-white/35",
+    dot: "bg-white/25",
+    text: "text-white/32",
     label: "Prep",
   },
   relaxation: {
-    pill: "border-emerald-500/20 bg-emerald-500/[0.08] text-emerald-400/75",
+    dot: "bg-emerald-400/55",
+    text: "text-emerald-400/65",
     label: "Relax",
   },
   culture: {
-    pill: "border-indigo-500/20 bg-indigo-500/[0.08] text-indigo-400/75",
+    dot: "bg-indigo-400/55",
+    text: "text-indigo-400/65",
     label: "Culture",
   },
   "local-tip": {
-    pill: "border-orange-500/20 bg-orange-500/[0.08] text-orange-400/75",
+    dot: "bg-orange-400/55",
+    text: "text-orange-400/65",
     label: "Local tip",
   },
 };
 
-// ─── Per-suggestion state ─────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type ItemState = "idle" | "pending" | "added" | { error: string };
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 type Props = {
   suggestions: Suggestion[];
   tripId: string;
   tripSlug: string;
+  tripTitle: string;
 };
 
-export function TripSuggestionsCard({ suggestions, tripId, tripSlug }: Props) {
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export function TripSuggestionsCard({
+  suggestions,
+  tripId,
+  tripSlug,
+  tripTitle,
+}: Props) {
   const [states, setStates] = useState<Record<string, ItemState>>({});
   const [, startTransition] = useTransition();
 
@@ -73,7 +90,6 @@ export function TripSuggestionsCard({ suggestions, tripId, tripSlug }: Props) {
   function handleAdd(s: Suggestion) {
     const current = getState(s.id);
     if (current === "pending" || current === "added") return;
-
     setState(s.id, "pending");
 
     startTransition(async () => {
@@ -85,7 +101,6 @@ export function TripSuggestionsCard({ suggestions, tripId, tripSlug }: Props) {
 
       if (result.error) {
         setState(s.id, { error: result.error });
-        // Clear error after 4 seconds so the button becomes usable again
         setTimeout(() => setState(s.id, "idle"), 4000);
       } else {
         setState(s.id, "added");
@@ -95,18 +110,16 @@ export function TripSuggestionsCard({ suggestions, tripId, tripSlug }: Props) {
 
   return (
     <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5">
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="mb-4">
+      {/* ── Section header ───────────────────────────────────────────────────── */}
+      <div className="mb-5">
         <p className="text-[11px] uppercase tracking-[0.1em] text-white/35">
           Suggested for You
         </p>
-        <p className="mt-0.5 text-[12px] text-white/25">
-          Contextual picks based on your trip
-        </p>
+        <p className="mt-0.5 text-[12px] text-white/25">{tripTitle}</p>
       </div>
 
       {/* ── Suggestion list ──────────────────────────────────────────────────── */}
-      <ul className="space-y-2.5">
+      <ul className="space-y-3">
         {suggestions.map((s) => {
           const itemState = getState(s.id);
           const isPending = itemState === "pending";
@@ -116,58 +129,60 @@ export function TripSuggestionsCard({ suggestions, tripId, tripSlug }: Props) {
               ? itemState.error
               : null;
 
-          const { pill, label } = CATEGORY_STYLES[s.category];
+          const { dot, text, label } = CATEGORY_STYLES[s.category];
 
           return (
             <li
               key={s.id}
-              className="rounded-2xl border border-white/[0.05] bg-white/[0.02] px-3.5 py-3.5"
+              className="rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-4"
             >
-              {/* Row 1: category pill + optional best_time */}
-              <div className="mb-2 flex items-center gap-2">
+              {/* ── Meta row: category dot + label · best_time ─────────────── */}
+              <div className="mb-2.5 flex items-center gap-2">
                 <span
-                  className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${pill}`}
-                >
+                  className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${dot}`}
+                  aria-hidden="true"
+                />
+                <span className={`text-[11px] font-medium ${text}`}>
                   {label}
                 </span>
-
                 {s.best_time && (
-                  <span className="text-[10px] text-white/22">
-                    {s.best_time}
+                  <span className="text-[11px] text-white/20">
+                    · {s.best_time}
                   </span>
                 )}
               </div>
 
-              {/* Row 2: title */}
-              <p className="text-[13px] font-semibold leading-snug text-white/88">
+              {/* ── Title ──────────────────────────────────────────────────── */}
+              <p className="text-[14px] font-semibold leading-snug tracking-[-0.01em] text-white/90">
                 {s.title}
               </p>
 
-              {/* Row 3: description */}
-              <p className="mt-1 text-[12px] leading-relaxed text-white/38">
+              {/* ── Description ────────────────────────────────────────────── */}
+              <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-white/43">
                 {s.description}
               </p>
 
-              {/* Row 4: reason + Add button */}
-              <div className="mt-3 flex items-center justify-between gap-3">
+              {/* ── Footer: reason + CTA ───────────────────────────────────── */}
+              <div className="mt-4 flex items-center justify-between gap-3">
                 {s.reason ? (
-                  <p className="text-[10px] text-white/20">{s.reason}</p>
+                  <p className="text-[10px] leading-tight text-white/28">
+                    {s.reason}
+                  </p>
                 ) : (
                   <span />
                 )}
 
-                {/* Add to timeline CTA */}
                 {isAdded ? (
-                  <span className="flex items-center gap-1 text-[11px] text-emerald-400/80">
+                  <span className="flex flex-shrink-0 items-center gap-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.07] px-3 py-2 text-[12px] font-medium text-emerald-400/80">
                     <svg
-                      width="11"
-                      height="11"
-                      viewBox="0 0 11 11"
+                      width="10"
+                      height="10"
+                      viewBox="0 0 10 10"
                       fill="none"
                       aria-hidden="true"
                     >
                       <path
-                        d="M1.5 5.5L4 8L9.5 3"
+                        d="M1.5 5L3.75 7.5L8.5 2.5"
                         stroke="currentColor"
                         strokeWidth="1.4"
                         strokeLinecap="round"
@@ -177,20 +192,20 @@ export function TripSuggestionsCard({ suggestions, tripId, tripSlug }: Props) {
                     Added
                   </span>
                 ) : errorMsg ? (
-                  <span className="text-[11px] text-red-400/70">
-                    {errorMsg}
+                  <span className="flex-shrink-0 text-[11px] text-red-400/70">
+                    Failed — tap to retry
                   </span>
                 ) : (
                   <button
                     type="button"
                     onClick={() => handleAdd(s)}
                     disabled={isPending}
-                    className="flex items-center gap-1.5 rounded-xl border border-white/[0.07] bg-white/[0.03] px-2.5 py-1.5 text-[11px] text-white/45 transition-colors hover:border-white/[0.12] hover:text-white/65 disabled:opacity-40"
+                    className="flex flex-shrink-0 items-center gap-1.5 rounded-xl border border-white/[0.09] bg-white/[0.04] px-3 py-2 text-[12px] font-medium text-white/45 transition-colors hover:border-white/[0.15] hover:bg-white/[0.07] hover:text-white/65 active:scale-[0.97] disabled:opacity-40"
                   >
                     {isPending ? (
                       <>
                         <span
-                          className="inline-block h-2 w-2 animate-spin rounded-full border border-white/20 border-t-white/60"
+                          className="h-2.5 w-2.5 animate-spin rounded-full border border-white/20 border-t-white/55"
                           aria-hidden="true"
                         />
                         Adding…
@@ -198,16 +213,16 @@ export function TripSuggestionsCard({ suggestions, tripId, tripSlug }: Props) {
                     ) : (
                       <>
                         <svg
-                          width="9"
-                          height="9"
-                          viewBox="0 0 9 9"
+                          width="10"
+                          height="10"
+                          viewBox="0 0 10 10"
                           fill="none"
                           aria-hidden="true"
                         >
                           <path
-                            d="M4.5 1v7M1 4.5h7"
+                            d="M5 1.5v7M1.5 5h7"
                             stroke="currentColor"
-                            strokeWidth="1.2"
+                            strokeWidth="1.3"
                             strokeLinecap="round"
                           />
                         </svg>
