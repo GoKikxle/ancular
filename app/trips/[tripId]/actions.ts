@@ -3,7 +3,61 @@
 import { revalidatePath } from "next/cache";
 import { attachDocumentToTrip } from "@/lib/trip-documents";
 import { uploadToStorage, insertDocument } from "@/lib/documents";
+import { generateItinerary } from "@/lib/ai-itinerary";
+import { replaceTimelineItems } from "@/lib/timeline-mutations";
 import type { DocumentCategory } from "@/types/document";
+
+type TripContext = {
+  title: string;
+  dates: string;
+  weather_summary: string | null;
+  weather_note: string | null;
+};
+
+/**
+ * Generate an AI itinerary for a trip and persist it into timeline_items.
+ *
+ * Flow:
+ *   1. Read user preferences from FormData.
+ *   2. Call generateItinerary() — currently the smart mock; swap for a real
+ *      provider by editing lib/ai-itinerary.ts (interface unchanged).
+ *   3. Persist via replaceTimelineItems() — clears existing items, inserts new.
+ *   4. Revalidate the trip page so the updated timeline is shown.
+ *
+ * Returns { error: string | null } so the client can display inline feedback.
+ */
+export async function generateItineraryAction(
+  tripId: string,
+  tripSlug: string,
+  tripContext: TripContext,
+  formData: FormData
+): Promise<{ error: string | null }> {
+  const destination = (formData.get("destination") as string | null)?.trim();
+  const travelStyle = (formData.get("travel_style") as string | null)?.trim();
+  const interests = (formData.get("interests") as string | null)?.trim();
+  const pace = (formData.get("pace") as string | null)?.trim();
+  const notes = (formData.get("notes") as string | null)?.trim();
+
+  const { items, error: genError } = await generateItinerary({
+    tripTitle: tripContext.title,
+    tripDates: tripContext.dates,
+    weatherSummary: tripContext.weather_summary,
+    weatherNote: tripContext.weather_note,
+    destination,
+    travelStyle,
+    interests,
+    pace,
+    notes,
+  });
+
+  if (genError) return { error: `Generation failed: ${genError}` };
+
+  const { error: saveError } = await replaceTimelineItems(tripId, items);
+  if (saveError) return { error: `Could not save itinerary: ${saveError}` };
+
+  revalidatePath(`/trips/${tripSlug}`);
+  return { error: null };
+}
 
 /**
  * Attaches an existing vault document to a trip.

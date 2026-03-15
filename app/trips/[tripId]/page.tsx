@@ -1,5 +1,6 @@
 import { NextEventCard } from "@/components/dashboard/NextEventCard";
 import { TimelineCard } from "@/components/dashboard/TimelineCard";
+import { ItineraryGenerator } from "@/components/dashboard/ItineraryGenerator";
 import { TripWeatherCard } from "@/components/dashboard/TripWeatherCard";
 import { SuggestedActivitiesCard } from "@/components/dashboard/SuggestedActivitiesCard";
 import { TripDocumentsSection } from "@/components/documents/TripDocumentsSection";
@@ -100,8 +101,17 @@ export default async function TripDetailPage({
         />
 
         {/* 2 — Smart itinerary / timeline */}
-        <div className="mb-4">
+        <div className="mb-4 space-y-3">
           <TimelineCard items={timelineItems} />
+          <ItineraryGenerator
+            tripId={trip.id}
+            tripSlug={trip.slug}
+            tripTitle={trip.title}
+            tripDates={trip.dates}
+            weatherSummary={trip.weather_summary}
+            weatherNote={trip.weather_note}
+            hasExistingItems={timelineItems.length > 0}
+          />
         </div>
 
         {/* 3 — Documents */}
