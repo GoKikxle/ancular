@@ -1,4 +1,4 @@
-import { NextEventCard } from "@/components/dashboard/NextEventCard";
+import { PrimaryActionCard } from "@/components/dashboard/PrimaryActionCard";
 import { TimelineCard } from "@/components/dashboard/TimelineCard";
 import { ItineraryGenerator } from "@/components/dashboard/ItineraryGenerator";
 import { TripWeatherCard } from "@/components/dashboard/TripWeatherCard";
@@ -11,6 +11,7 @@ import { getTimelineItemsForTrip } from "@/lib/timeline-items";
 import { getDocumentsForTrip } from "@/lib/trip-documents";
 import { getAllDocuments } from "@/lib/documents";
 import { getSuggestionsForTrip } from "@/lib/trip-suggestions";
+import { buildPrimaryActionView } from "@/lib/timeline-view-model";
 import { notFound } from "next/navigation";
 
 type TripDetailPageProps = {
@@ -36,41 +37,27 @@ export default async function TripDetailPage({
     getAllDocuments(),
   ]);
 
-  // Documents in the vault that are not yet attached to this trip.
+  // Documents in the vault not yet attached to this trip.
   const attachedIds = new Set(tripDocs.map((d) => d.id));
   const availableDocs = allDocs.filter((d) => !attachedIds.has(d.id));
 
-  // Generate contextual suggestions from trip data — pure, no DB call needed.
+  // Build the Primary Action hero data from the first timeline item (or fallback).
+  const primaryAction = buildPrimaryActionView(
+    timelineItems,
+    {
+      nextActionTitle: trip.next_action_title,
+      nextActionDescription: trip.next_action_description,
+    },
+    tripDocs.length > 0
+  );
+
+  // Contextual suggestions — pure, no DB call.
   const suggestions = getSuggestionsForTrip({
     tripTitle: trip.title,
     tripDates: trip.dates,
     weatherSummary: trip.weather_summary,
     weatherNote: trip.weather_note,
   });
-
-  /**
-   * Compute "next event":
-   * — If timeline items exist, use the first one (ordered by sort_order ascending).
-   * — Otherwise fall back to the trip's next_action fields.
-   */
-  const firstItem = timelineItems[0] ?? null;
-  const nextEvent = firstItem
-    ? {
-        label: "Up Next",
-        time: firstItem.time,
-        title: firstItem.title,
-        description: firstItem.note || trip.next_action_description,
-        buttonLabel: "View Itinerary",
-        buttonHref: "#timeline",
-      }
-    : {
-        label: "Next Action",
-        time: null,
-        title: trip.next_action_title,
-        description: trip.next_action_description,
-        buttonLabel: "Open Timeline",
-        buttonHref: "#timeline",
-      };
 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
@@ -82,35 +69,26 @@ export default async function TripDetailPage({
 
         {/* Trip header */}
         <header className="mb-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.1em] text-white/35">
-                {trip.status}
-              </p>
-              <h1 className="mt-1 text-[28px] font-semibold tracking-[-0.02em]">
-                {trip.title}
-              </h1>
-              <p className="mt-1.5 text-[13px] text-white/50">
-                {trip.dates}
-                {trip.travelers ? ` · ${trip.travelers}` : ""}
-              </p>
-            </div>
-          </div>
+          <p className="text-[11px] uppercase tracking-[0.1em] text-white/35">
+            {trip.status}
+          </p>
+          <h1 className="mt-1 text-[28px] font-semibold tracking-[-0.02em]">
+            {trip.title}
+          </h1>
+          <p className="mt-1.5 text-[13px] text-white/50">
+            {trip.dates}
+            {trip.travelers ? ` · ${trip.travelers}` : ""}
+          </p>
         </header>
 
-        {/* 1 — Next event hero card */}
-        <NextEventCard
-          label={nextEvent.label}
-          time={nextEvent.time}
-          title={nextEvent.title}
-          description={nextEvent.description}
-          buttonLabel={nextEvent.buttonLabel}
-          buttonHref={nextEvent.buttonHref}
-        />
+        {/* 1 — Primary action hero
+             Answers: what next, when, which document.
+             CTA scrolls to #documents when documents exist. */}
+        <PrimaryActionCard {...primaryAction} />
 
-        {/* 2 — Smart itinerary / timeline */}
-        {/* id="timeline" lives here so the #timeline anchor always resolves,
-            even when TimelineCard renders nothing (empty trip). */}
+        {/* 2 — Full itinerary with action grouping (Next / Up next / Later)
+             id="timeline" here so the anchor always resolves even when
+             TimelineCard renders nothing (empty trip). */}
         <div id="timeline" className="mb-4 space-y-3">
           <TimelineCard items={timelineItems} />
           <ItineraryGenerator
@@ -124,8 +102,9 @@ export default async function TripDetailPage({
           />
         </div>
 
-        {/* 3 — Documents */}
-        <div className="mb-4">
+        {/* 3 — Documents
+             id="documents" is the scroll target for the PrimaryActionCard CTA. */}
+        <div id="documents" className="mb-4">
           <TripDocumentsSection
             tripId={trip.id}
             tripSlug={trip.slug}
@@ -142,7 +121,7 @@ export default async function TripDetailPage({
           />
         </div>
 
-        {/* 5 — Smart suggestions */}
+        {/* 5 — Contextual suggestions (visually deprioritized — secondary read) */}
         <TripSuggestionsCard
           suggestions={suggestions}
           tripId={trip.id}

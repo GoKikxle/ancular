@@ -109,13 +109,13 @@ export function TripSuggestionsCard({
   }
 
   return (
-    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5">
+    <div className="rounded-3xl border border-white/[0.05] bg-white/[0.02] p-5">
       {/* ── Section header ───────────────────────────────────────────────────── */}
       <div className="mb-5">
-        <p className="text-[11px] uppercase tracking-[0.1em] text-white/35">
+        <p className="text-[11px] uppercase tracking-[0.1em] text-white/22">
           Suggested for You
         </p>
-        <p className="mt-0.5 text-[12px] text-white/25">{tripTitle}</p>
+        <p className="mt-0.5 text-[12px] text-white/18">{tripTitle}</p>
       </div>
 
       {/* ── Suggestion list ──────────────────────────────────────────────────── */}
