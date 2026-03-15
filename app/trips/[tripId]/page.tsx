@@ -101,7 +101,9 @@ export default async function TripDetailPage({
         />
 
         {/* 2 — Smart itinerary / timeline */}
-        <div className="mb-4 space-y-3">
+        {/* id="timeline" lives here so the #timeline anchor always resolves,
+            even when TimelineCard renders nothing (empty trip). */}
+        <div id="timeline" className="mb-4 space-y-3">
           <TimelineCard items={timelineItems} />
           <ItineraryGenerator
             tripId={trip.id}

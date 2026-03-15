@@ -42,7 +42,8 @@ export function ItineraryGenerator({
   weatherNote,
   hasExistingItems,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  // Auto-open when there is no itinerary yet so the form is immediately visible.
+  const [open, setOpen] = useState(!hasExistingItems);
   const [panelState, setPanelState] = useState<PanelState>("idle");
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);

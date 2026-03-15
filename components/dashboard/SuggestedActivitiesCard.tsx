@@ -48,16 +48,11 @@ export function SuggestedActivitiesCard({ tripTitle }: SuggestedActivitiesCardPr
   return (
     <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5">
       {/* Header */}
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.1em] text-white/35">
-            Suggested for You
-          </p>
-          <p className="mt-0.5 text-[12px] text-white/25">{tripTitle}</p>
-        </div>
-        <span className="flex-shrink-0 rounded-full border border-white/[0.07] bg-white/[0.03] px-2.5 py-0.5 text-[10px] text-white/28">
-          Coming soon
-        </span>
+      <div className="mb-4">
+        <p className="text-[11px] uppercase tracking-[0.1em] text-white/35">
+          Suggested for You
+        </p>
+        <p className="mt-0.5 text-[12px] text-white/25">{tripTitle}</p>
       </div>
 
       {/* Suggestion rows */}
@@ -80,7 +75,7 @@ export function SuggestedActivitiesCard({ tripTitle }: SuggestedActivitiesCardPr
       </ul>
 
       <p className="mt-4 text-[11px] text-white/18">
-        Smart suggestions powered by AI — coming in a future update.
+        Personalised activity suggestions — expanding soon.
       </p>
     </div>
   );
