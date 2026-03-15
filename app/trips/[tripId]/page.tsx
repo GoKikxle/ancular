@@ -1,5 +1,7 @@
-import { NextActionCard } from "@/components/dashboard/NextActionCard";
+import { NextEventCard } from "@/components/dashboard/NextEventCard";
 import { TimelineCard } from "@/components/dashboard/TimelineCard";
+import { TripWeatherCard } from "@/components/dashboard/TripWeatherCard";
+import { SuggestedActivitiesCard } from "@/components/dashboard/SuggestedActivitiesCard";
 import { TripDocumentsSection } from "@/components/documents/TripDocumentsSection";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { BackButton } from "@/components/layout/BackButton";
@@ -37,36 +39,91 @@ export default async function TripDetailPage({
   const attachedIds = new Set(tripDocs.map((d) => d.id));
   const availableDocs = allDocs.filter((d) => !attachedIds.has(d.id));
 
+  /**
+   * Compute "next event":
+   * — If timeline items exist, use the first one (ordered by sort_order ascending).
+   * — Otherwise fall back to the trip's next_action fields.
+   */
+  const firstItem = timelineItems[0] ?? null;
+  const nextEvent = firstItem
+    ? {
+        label: "Up Next",
+        time: firstItem.time,
+        title: firstItem.title,
+        description: firstItem.note || trip.next_action_description,
+        buttonLabel: "View Itinerary",
+        buttonHref: "#timeline",
+      }
+    : {
+        label: "Next Action",
+        time: null,
+        title: trip.next_action_title,
+        description: trip.next_action_description,
+        buttonLabel: "Open Timeline",
+        buttonHref: "#timeline",
+      };
+
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <PageContainer>
+        {/* Back nav */}
         <div className="mb-6">
           <BackButton href="/" label="Back to trips" />
         </div>
 
-        <header className="mb-8">
-          <p className="text-sm text-white/50">Trip Overview</p>
-          <h1 className="text-3xl font-semibold tracking-tight">{trip.title}</h1>
-          <p className="mt-2 text-sm text-white/70">
-            {trip.dates} • {trip.travelers}
-          </p>
+        {/* Trip header */}
+        <header className="mb-6">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.1em] text-white/35">
+                {trip.status}
+              </p>
+              <h1 className="mt-1 text-[28px] font-semibold tracking-[-0.02em]">
+                {trip.title}
+              </h1>
+              <p className="mt-1.5 text-[13px] text-white/50">
+                {trip.dates}
+                {trip.travelers ? ` · ${trip.travelers}` : ""}
+              </p>
+            </div>
+          </div>
         </header>
 
-        <NextActionCard
-          title={trip.next_action_title}
-          description={trip.next_action_description}
-          buttonLabel="Open Timeline"
-          buttonHref="#timeline"
+        {/* 1 — Next event hero card */}
+        <NextEventCard
+          label={nextEvent.label}
+          time={nextEvent.time}
+          title={nextEvent.title}
+          description={nextEvent.description}
+          buttonLabel={nextEvent.buttonLabel}
+          buttonHref={nextEvent.buttonHref}
         />
 
-        <TimelineCard items={timelineItems} />
+        {/* 2 — Smart itinerary / timeline */}
+        <div className="mb-4">
+          <TimelineCard items={timelineItems} />
+        </div>
 
-        <TripDocumentsSection
-          tripId={trip.id}
-          tripSlug={trip.slug}
-          docs={tripDocs}
-          availableDocs={availableDocs}
-        />
+        {/* 3 — Documents */}
+        <div className="mb-4">
+          <TripDocumentsSection
+            tripId={trip.id}
+            tripSlug={trip.slug}
+            docs={tripDocs}
+            availableDocs={availableDocs}
+          />
+        </div>
+
+        {/* 4 — Weather */}
+        <div className="mb-4">
+          <TripWeatherCard
+            summary={trip.weather_summary}
+            note={trip.weather_note}
+          />
+        </div>
+
+        {/* 5 — Suggested activities placeholder */}
+        <SuggestedActivitiesCard tripTitle={trip.title} />
       </PageContainer>
     </main>
   );
