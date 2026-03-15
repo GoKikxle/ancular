@@ -1,6 +1,8 @@
 import { PrimaryActionCard } from "@/components/dashboard/PrimaryActionCard";
 import { TimelineCard } from "@/components/dashboard/TimelineCard";
-import { ItineraryGenerator } from "@/components/dashboard/ItineraryGenerator";
+import { AddActionForm } from "@/components/dashboard/AddActionForm";
+// ItineraryGenerator is preserved in components/dashboard/ItineraryGenerator.tsx
+// and can be re-enabled here when AI itinerary becomes a primary feature again.
 import { TripWeatherCard } from "@/components/dashboard/TripWeatherCard";
 import { TripSuggestionsCard } from "@/components/dashboard/TripSuggestionsCard";
 import { TripDocumentsSection } from "@/components/documents/TripDocumentsSection";
@@ -86,18 +88,14 @@ export default async function TripDetailPage({
              CTA scrolls to #documents when documents exist. */}
         <PrimaryActionCard {...primaryAction} />
 
-        {/* 2 — Full itinerary with action grouping (Next / Up next / Later)
-             id="timeline" here so the anchor always resolves even when
-             TimelineCard renders nothing (empty trip). */}
+        {/* 2 — Timeline + manual action entry
+             id="timeline" lives here so the PrimaryActionCard CTA anchor
+             always resolves, even when TimelineCard renders nothing. */}
         <div id="timeline" className="mb-4 space-y-3">
           <TimelineCard items={timelineItems} />
-          <ItineraryGenerator
+          <AddActionForm
             tripId={trip.id}
             tripSlug={trip.slug}
-            tripTitle={trip.title}
-            tripDates={trip.dates}
-            weatherSummary={trip.weather_summary}
-            weatherNote={trip.weather_note}
             hasExistingItems={timelineItems.length > 0}
           />
         </div>

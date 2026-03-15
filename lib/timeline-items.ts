@@ -34,11 +34,14 @@ export async function getTimelineItemsForTrip(
 ): Promise<DbTimelineItem[]> {
   const supabase = await createClient();
 
+  // Primary sort: time (HH:MM — lexicographic order is chronological for zero-padded 24h strings).
+  // Secondary sort: sort_order (for AI-generated items that share the same time slot, nulls last).
   const { data, error } = await supabase
     .from("timeline_items")
     .select("*")
     .eq("trip_id", tripId)
-    .order("sort_order", { ascending: true });
+    .order("time", { ascending: true })
+    .order("sort_order", { ascending: true, nullsFirst: false });
 
   if (error) {
     // Timeline is non-critical — log and return an empty list

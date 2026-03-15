@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { attachDocumentToTrip } from "@/lib/trip-documents";
 import { uploadToStorage, insertDocument } from "@/lib/documents";
 import { generateItinerary } from "@/lib/ai-itinerary";
-import { replaceTimelineItems, appendTimelineItem } from "@/lib/timeline-mutations";
+import {
+  replaceTimelineItems,
+  appendTimelineItem,
+  insertManualTimelineItem,
+} from "@/lib/timeline-mutations";
 import type { DocumentCategory } from "@/types/document";
 
 type TripContext = {
@@ -77,6 +81,49 @@ export async function addSuggestionToTimelineAction(
     note: suggestion.description,
   });
   if (error) return { error };
+  revalidatePath(`/trips/${tripSlug}`);
+  return { error: null };
+}
+
+/**
+ * Adds a manually-entered booked action to the trip timeline.
+ *
+ * Fields without a DB column yet (end_time, route) are encoded into the
+ * note field as readable plain text. See lib/timeline-mutations.ts for the
+ * full encoding strategy and migration path.
+ *
+ * FormData keys:
+ *   action_type  — 'train' | 'flight' | 'pickup' | 'hotel' | 'restaurant' | 'activity' | 'other'
+ *   title        — e.g. "Train to London" (required)
+ *   start_time   — HH:MM (required)
+ *   end_time     — HH:MM (optional)
+ *   route        — route, venue, or location (optional)
+ *   note         — free-text notes (optional)
+ */
+export async function addManualActionAction(
+  tripId: string,
+  tripSlug: string,
+  formData: FormData
+): Promise<{ error: string | null }> {
+  const title = (formData.get("title") as string | null)?.trim();
+  const startTime = (formData.get("start_time") as string | null)?.trim();
+  const endTime = (formData.get("end_time") as string | null)?.trim() || undefined;
+  const route = (formData.get("route") as string | null)?.trim() || undefined;
+  const note = (formData.get("note") as string | null)?.trim() || undefined;
+
+  if (!title) return { error: "Please enter a title for this action." };
+  if (!startTime) return { error: "Please enter a start time." };
+
+  const { error } = await insertManualTimelineItem(tripId, {
+    time: startTime,
+    title,
+    endTime,
+    route,
+    note,
+  });
+
+  if (error) return { error: `Could not save action: ${error}` };
+
   revalidatePath(`/trips/${tripSlug}`);
   return { error: null };
 }
