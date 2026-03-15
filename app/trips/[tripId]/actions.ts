@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { attachDocumentToTrip } from "@/lib/trip-documents";
 import { uploadToStorage, insertDocument } from "@/lib/documents";
 import { generateItinerary } from "@/lib/ai-itinerary";
-import { replaceTimelineItems } from "@/lib/timeline-mutations";
+import { replaceTimelineItems, appendTimelineItem } from "@/lib/timeline-mutations";
 import type { DocumentCategory } from "@/types/document";
 
 type TripContext = {
@@ -55,6 +55,28 @@ export async function generateItineraryAction(
   const { error: saveError } = await replaceTimelineItems(tripId, items);
   if (saveError) return { error: `Could not save itinerary: ${saveError}` };
 
+  revalidatePath(`/trips/${tripSlug}`);
+  return { error: null };
+}
+
+/**
+ * Adds a single smart suggestion as a new timeline item on a trip.
+ * Non-destructive — appends after all existing items.
+ *
+ * Returns { error: string | null } for client feedback.
+ */
+export async function addSuggestionToTimelineAction(
+  tripId: string,
+  tripSlug: string,
+  suggestion: { title: string; description: string; suggested_time?: string }
+): Promise<{ error: string | null }> {
+  const time = suggestion.suggested_time ?? "12:00";
+  const { error } = await appendTimelineItem(tripId, {
+    time,
+    title: suggestion.title,
+    note: suggestion.description,
+  });
+  if (error) return { error };
   revalidatePath(`/trips/${tripSlug}`);
   return { error: null };
 }

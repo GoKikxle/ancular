@@ -2,7 +2,7 @@ import { NextEventCard } from "@/components/dashboard/NextEventCard";
 import { TimelineCard } from "@/components/dashboard/TimelineCard";
 import { ItineraryGenerator } from "@/components/dashboard/ItineraryGenerator";
 import { TripWeatherCard } from "@/components/dashboard/TripWeatherCard";
-import { SuggestedActivitiesCard } from "@/components/dashboard/SuggestedActivitiesCard";
+import { TripSuggestionsCard } from "@/components/dashboard/TripSuggestionsCard";
 import { TripDocumentsSection } from "@/components/documents/TripDocumentsSection";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { BackButton } from "@/components/layout/BackButton";
@@ -10,8 +10,8 @@ import { getTripBySlug } from "@/lib/trips";
 import { getTimelineItemsForTrip } from "@/lib/timeline-items";
 import { getDocumentsForTrip } from "@/lib/trip-documents";
 import { getAllDocuments } from "@/lib/documents";
+import { getSuggestionsForTrip } from "@/lib/trip-suggestions";
 import { notFound } from "next/navigation";
-import { deleteTripAction } from "@/app/trips/actions";
 
 type TripDetailPageProps = {
   params: Promise<{
@@ -39,6 +39,14 @@ export default async function TripDetailPage({
   // Documents in the vault that are not yet attached to this trip.
   const attachedIds = new Set(tripDocs.map((d) => d.id));
   const availableDocs = allDocs.filter((d) => !attachedIds.has(d.id));
+
+  // Generate contextual suggestions from trip data — pure, no DB call needed.
+  const suggestions = getSuggestionsForTrip({
+    tripTitle: trip.title,
+    tripDates: trip.dates,
+    weatherSummary: trip.weather_summary,
+    weatherNote: trip.weather_note,
+  });
 
   /**
    * Compute "next event":
@@ -134,8 +142,12 @@ export default async function TripDetailPage({
           />
         </div>
 
-        {/* 5 — Suggested activities placeholder */}
-        <SuggestedActivitiesCard tripTitle={trip.title} />
+        {/* 5 — Smart suggestions */}
+        <TripSuggestionsCard
+          suggestions={suggestions}
+          tripId={trip.id}
+          tripSlug={trip.slug}
+        />
       </PageContainer>
     </main>
   );

@@ -2,6 +2,43 @@ import { createClient } from "@/lib/supabase/server";
 import type { GeneratedItem } from "@/lib/ai-itinerary";
 
 /**
+ * Appends a single item to the trip timeline, placed after all existing items.
+ * Unlike replaceTimelineItems, this is non-destructive — it does not remove
+ * any existing rows.
+ */
+export async function appendTimelineItem(
+  tripId: string,
+  item: { time: string; title: string; note: string }
+): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+
+  // Find the current highest sort_order so we can append after it
+  const { data: existing } = await supabase
+    .from("timeline_items")
+    .select("sort_order")
+    .eq("trip_id", tripId)
+    .order("sort_order", { ascending: false })
+    .limit(1);
+
+  const maxOrder = (existing?.[0]?.sort_order as number | null) ?? 0;
+
+  const { error } = await supabase.from("timeline_items").insert({
+    trip_id: tripId,
+    time: item.time,
+    title: item.title,
+    note: item.note,
+    sort_order: maxOrder + 1,
+  });
+
+  if (error) {
+    console.error("[timeline-mutations] Append failed:", error.message);
+    return { error: error.message };
+  }
+
+  return { error: null };
+}
+
+/**
  * Replaces all timeline_items for a trip with the provided items.
  *
  * Strategy: DELETE all existing rows for the trip, then bulk INSERT the new ones.
