@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 type TripFormProps = {
   action: (formData: FormData) => Promise<void>;
@@ -11,7 +12,8 @@ const fieldClass =
 
 const labelClass = "mb-1.5 block text-[11px] uppercase tracking-[0.1em] text-white/35";
 
-const fields = [
+// Text inputs rendered via the loop (dates handled separately with DatePickers)
+const textFields = [
   {
     name: "title",
     label: "Trip name",
@@ -27,31 +29,29 @@ const fields = [
     pattern: "[a-z0-9-]+",
   },
   {
-    name: "dates",
-    label: "Dates",
-    placeholder: "e.g. Jun 10 → Jun 17",
-  },
-  {
     name: "travelers",
     label: "Travelers",
     placeholder: "e.g. 2 travelers",
   },
 ];
 
+// Stagger delay offset: text fields run 0..n, date fields start after, then status.
+const DATE_DELAY_INDEX = textFields.length;
+
+function fadeUp(delay: number) {
+  return {
+    initial: { opacity: 0, y: 8 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay, duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as const },
+  };
+}
+
 export function TripForm({ action }: TripFormProps) {
   return (
     <form action={action} className="space-y-3">
-      {fields.map((field, i) => (
-        <motion.div
-          key={field.name}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            delay: i * 0.05,
-            duration: 0.3,
-            ease: [0.25, 0.46, 0.45, 0.94],
-          }}
-        >
+      {/* ── Text fields ──────────────────────────────────────────────────────── */}
+      {textFields.map((field, i) => (
+        <motion.div key={field.name} {...fadeUp(i * 0.05)}>
           <label className={labelClass}>
             {field.label}
             {field.hint && (
@@ -75,15 +75,29 @@ export function TripForm({ action }: TripFormProps) {
         </motion.div>
       ))}
 
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
-          delay: fields.length * 0.05,
-          duration: 0.3,
-          ease: [0.25, 0.46, 0.45, 0.94],
-        }}
-      >
+      {/* ── Trip dates: start + end ─────────────────────────────────────────── */}
+      {/* These replace the old free-text "dates" field. The server action
+          formats start_date + end_date into the human-readable `dates` column. */}
+      <motion.div {...fadeUp(DATE_DELAY_INDEX * 0.05)}>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass}>Start date</label>
+            <DatePicker name="start_date" required size="lg" />
+          </div>
+          <div>
+            <label className={labelClass}>
+              End date{" "}
+              <span className="normal-case tracking-normal text-white/20">
+                (optional)
+              </span>
+            </label>
+            <DatePicker name="end_date" size="lg" />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ── Status ───────────────────────────────────────────────────────────── */}
+      <motion.div {...fadeUp((DATE_DELAY_INDEX + 1) * 0.05)}>
         <label className={labelClass}>Status</label>
         <select name="status" defaultValue="Upcoming" className={fieldClass}>
           <option value="Upcoming" className="bg-neutral-900">
@@ -98,14 +112,9 @@ export function TripForm({ action }: TripFormProps) {
         </select>
       </motion.div>
 
+      {/* ── Submit ───────────────────────────────────────────────────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
-          delay: (fields.length + 1) * 0.05,
-          duration: 0.3,
-          ease: [0.25, 0.46, 0.45, 0.94],
-        }}
+        {...fadeUp((DATE_DELAY_INDEX + 2) * 0.05)}
         className="pt-2"
       >
         <motion.button

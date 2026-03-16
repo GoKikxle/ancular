@@ -95,6 +95,7 @@ export async function addSuggestionToTimelineAction(
  *
  * FormData keys:
  *   action_type  — 'train' | 'flight' | 'pickup' | 'hotel' | 'restaurant' | 'activity' | 'other'
+ *   event_date   — "YYYY-MM-DD" (required)
  *   title        — e.g. "Train to London" (required)
  *   start_time   — HH:MM (required)
  *   end_time     — HH:MM (optional)
@@ -106,16 +107,19 @@ export async function addManualActionAction(
   tripSlug: string,
   formData: FormData
 ): Promise<{ error: string | null }> {
+  const eventDate = (formData.get("event_date") as string | null)?.trim();
   const title = (formData.get("title") as string | null)?.trim();
   const startTime = (formData.get("start_time") as string | null)?.trim();
   const endTime = (formData.get("end_time") as string | null)?.trim() || undefined;
   const route = (formData.get("route") as string | null)?.trim() || undefined;
   const note = (formData.get("note") as string | null)?.trim() || undefined;
 
+  if (!eventDate) return { error: "Please select a date for this action." };
   if (!title) return { error: "Please enter a title for this action." };
   if (!startTime) return { error: "Please enter a start time." };
 
   const { error } = await insertManualTimelineItem(tripId, {
+    eventDate,
     time: startTime,
     title,
     endTime,

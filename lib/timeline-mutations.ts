@@ -14,7 +14,8 @@ import type { GeneratedItem } from "@/lib/ai-itinerary";
  *   source       TEXT NULL     — 'manual' | 'ai' | 'document'
  */
 export type ManualActionInput = {
-  time: string;         // HH:MM — from <input type="time">
+  eventDate: string;    // "YYYY-MM-DD" — from <input type="date">; stored in event_date column
+  time: string;         // "HH:MM" — from <input type="time">
   title: string;
   endTime?: string;     // HH:MM, optional
   route?: string;       // route, venue, or location string
@@ -46,10 +47,11 @@ export async function insertManualTimelineItem(
 
   const { error } = await supabase.from("timeline_items").insert({
     trip_id: tripId,
+    event_date: input.eventDate,  // "YYYY-MM-DD" — requires schema migration (see lib/timeline-items.ts)
     time: input.time,
     title: input.title,
     note: noteParts.join(" · "),
-    sort_order: null, // chronological ordering is handled by the time column
+    sort_order: null, // chronological ordering is handled by event_date + time columns
     // TODO: source: 'manual', action_type: input.actionType — add when columns exist
   });
 

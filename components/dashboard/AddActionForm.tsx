@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { addManualActionAction } from "@/app/trips/[tripId]/actions";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 // ── Action type config ────────────────────────────────────────────────────────
 
@@ -280,6 +281,19 @@ export function AddActionForm({ tripId, tripSlug, hasExistingItems }: Props) {
                     required
                     placeholder={typeConfig.titlePlaceholder}
                     className={inputCls}
+                  />
+                </div>
+
+                {/* ── Date ──────────────────────────────────────────────────── */}
+                <div>
+                  <label htmlFor="action-date" className={labelCls}>
+                    Date
+                  </label>
+                  <DatePicker
+                    id="action-date"
+                    name="event_date"
+                    required
+                    size="sm"
                   />
                 </div>
 

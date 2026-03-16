@@ -3,14 +3,21 @@ import { createClient } from "@/lib/supabase/server";
 /**
  * DB shape for a row in the `timeline_items` table.
  *
- * Minimum required columns (create the table with at least these):
+ * Required columns:
  *   id          UUID PRIMARY KEY DEFAULT gen_random_uuid()
  *   trip_id     UUID NOT NULL REFERENCES trips(id) ON DELETE CASCADE
- *   time        TEXT NOT NULL          -- e.g. "9:00 AM"
+ *   event_date  DATE NULL              -- "YYYY-MM-DD"; see migration note below
+ *   time        TEXT NOT NULL          -- "HH:MM" (24-hour, zero-padded)
  *   title       TEXT NOT NULL
  *   note        TEXT NOT NULL DEFAULT ''
  *   sort_order  INTEGER NULL           -- ascending display order
  *   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+ *
+ * ⚠️  Schema migration required for event_date:
+ *   Run supabase/add-event-date.sql (or the equivalent Supabase Dashboard SQL):
+ *     ALTER TABLE timeline_items ADD COLUMN IF NOT EXISTS event_date DATE NULL;
+ *     CREATE INDEX IF NOT EXISTS idx_timeline_items_date_time
+ *       ON timeline_items(trip_id, event_date, time);
  *
  * TODO: extend the schema with these columns when ready:
  *   location        TEXT NULL   -- e.g. "Terminal 2, Gate B14"
@@ -19,6 +26,8 @@ import { createClient } from "@/lib/supabase/server";
 export type DbTimelineItem = {
   id: string;
   trip_id: string;
+  /** ISO date string "YYYY-MM-DD". NULL for items created before date support. */
+  event_date?: string | null;
   time: string;
   title: string;
   note: string;
@@ -34,12 +43,16 @@ export async function getTimelineItemsForTrip(
 ): Promise<DbTimelineItem[]> {
   const supabase = await createClient();
 
-  // Primary sort: time (HH:MM — lexicographic order is chronological for zero-padded 24h strings).
-  // Secondary sort: sort_order (for AI-generated items that share the same time slot, nulls last).
+  // Sort order:
+  //   1. event_date ASC, nulls last  — items with a date come first in calendar order;
+  //      legacy items (no date) fall to the bottom.
+  //   2. time ASC                    — within the same day, sort chronologically by HH:MM.
+  //   3. sort_order ASC, nulls last  — tiebreak for AI-generated items sharing a time slot.
   const { data, error } = await supabase
     .from("timeline_items")
     .select("*")
     .eq("trip_id", tripId)
+    .order("event_date", { ascending: true, nullsFirst: false })
     .order("time", { ascending: true })
     .order("sort_order", { ascending: true, nullsFirst: false });
 
