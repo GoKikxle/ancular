@@ -92,7 +92,11 @@ export default async function TripDetailPage({
              id="timeline" lives here so the PrimaryActionCard CTA anchor
              always resolves, even when TimelineCard renders nothing. */}
         <div id="timeline" className="mb-4 space-y-3">
-          <TimelineCard items={timelineItems} tripSlug={trip.slug} />
+          <TimelineCard
+            items={timelineItems}
+            tripSlug={trip.slug}
+            hasDocuments={tripDocs.length > 0}
+          />
           <AddActionForm
             tripId={trip.id}
             tripSlug={trip.slug}
