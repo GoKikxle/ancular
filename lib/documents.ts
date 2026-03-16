@@ -122,6 +122,51 @@ type InsertDocumentInput = {
   storage_bucket: string;
 };
 
+/**
+ * Permanently deletes a document from the vault.
+ *
+ * Deletion order:
+ *   1. Remove file from Supabase Storage (if storage_path + storage_bucket are set).
+ *      If storage removal fails, a warning is recorded but we still proceed —
+ *      an orphaned storage object is recoverable; an orphaned DB row is not.
+ *   2. Delete the `documents` row.
+ *      The FK constraint on `trip_documents.document_id` has ON DELETE CASCADE,
+ *      so all trip links are automatically removed at the DB level.
+ *
+ * Storage "not found" is treated as a no-op (idempotent).
+ */
+export async function deleteDocumentFromVault(
+  doc: Pick<DbDocument, "id" | "storage_path" | "storage_bucket">
+): Promise<{ error: string | null; storageWarning: string | null }> {
+  const supabase = await createClient();
+  let storageWarning: string | null = null;
+
+  if (doc.storage_path && doc.storage_bucket) {
+    const { error: storageError } = await supabase.storage
+      .from(doc.storage_bucket)
+      .remove([doc.storage_path]);
+
+    if (storageError) {
+      console.warn("[documents] Storage removal warning:", storageError.message);
+      // Log but continue — we always delete the DB row so the vault stays clean.
+      // Orphaned storage objects can be swept up by a maintenance job if needed.
+      storageWarning = storageError.message;
+    }
+  }
+
+  const { error: dbError } = await supabase
+    .from("documents")
+    .delete()
+    .eq("id", doc.id);
+
+  if (dbError) {
+    console.error("[documents] Vault deletion failed:", dbError.message);
+    return { error: dbError.message, storageWarning };
+  }
+
+  return { error: null, storageWarning };
+}
+
 /** Inserts a new row into the documents table and returns it. */
 export async function insertDocument(
   input: InsertDocumentInput
