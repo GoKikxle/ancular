@@ -236,7 +236,10 @@ export async function insertDocumentTimelineItems(
 
   const rows = newItems.map((item) => ({
     trip_id: tripId,
-    event_date: null,    // Unknown until user edits — sorts last (NULLS LAST in getTimelineItemsForTrip)
+    // Use the event_date assigned by the generator (trip-date fallback or null).
+    // Null items sort after dated rows (NULLS LAST) so they never displace
+    // real dated items — the user can correct the date via the edit form.
+    event_date: item.event_date ?? null,
     time: item.time,
     title: item.title,
     note: item.note,
@@ -252,4 +255,49 @@ export async function insertDocumentTimelineItems(
   }
 
   return { inserted: newItems.length, error: null };
+}
+
+// ─── Update ────────────────────────────────────────────────────────────────────
+
+/**
+ * Input shape for updating an existing timeline item.
+ * Only the user-editable fields are exposed here; trip_id and source are
+ * never changed by the edit form.
+ */
+export type UpdateTimelineItemInput = {
+  id: string;
+  eventDate: string;  // "YYYY-MM-DD"
+  time: string;       // "HH:MM"
+  title: string;
+  note: string;
+};
+
+/**
+ * Updates a single timeline item's editable fields.
+ * Only the row with the given `id` is touched; all other rows are preserved.
+ *
+ * Fields NOT updated here (stable after creation):
+ *   trip_id, sort_order, source, source_document_id, created_at
+ */
+export async function updateTimelineItem(
+  input: UpdateTimelineItemInput
+): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("timeline_items")
+    .update({
+      event_date: input.eventDate,
+      time: input.time,
+      title: input.title,
+      note: input.note,
+    })
+    .eq("id", input.id);
+
+  if (error) {
+    console.error("[timeline-mutations] Update failed:", error.message);
+    return { error: error.message };
+  }
+
+  return { error: null };
 }

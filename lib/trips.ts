@@ -11,6 +11,10 @@ export type DbTrip = {
   next_action_description: string;
   weather_summary: string | null;
   weather_note: string | null;
+  /** ISO date "YYYY-MM-DD". Populated by createTrip; NULL for legacy trips. */
+  start_date: string | null;
+  /** ISO date "YYYY-MM-DD". NULL if return date is unknown or trip is one-way. */
+  end_date: string | null;
   created_at: string;
 };
 

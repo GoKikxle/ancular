@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { computeItemState, getGroupLabel } from "@/lib/timeline-view-model";
 import type { ItemState } from "@/lib/timeline-view-model";
 import { deleteTimelineItemAction } from "@/app/trips/[tripId]/actions";
+import { EditTimelineItemForm } from "./EditTimelineItemForm";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -40,6 +41,20 @@ type TimelineCardProps = {
 };
 
 // ─── Icons ─────────────────────────────────────────────────────────────────────
+
+function PencilIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path
+        d="M8.5 1.5a1.414 1.414 0 012 2L3.5 10.5l-3 .5.5-3 7.5-6.5z"
+        stroke="currentColor"
+        strokeWidth="1.15"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 function TrashIcon() {
   return (
@@ -185,6 +200,7 @@ const confirmSlide = {
 export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProps) {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   // Capture a single stable "now" snapshot for the whole render cycle so every
@@ -211,6 +227,7 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
 
   function requestConfirm(id: string) {
     setConfirmingId(id);
+    setEditingId(null);  // close edit if open for same item
   }
 
   function cancelConfirm() {
@@ -224,6 +241,15 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
       await deleteTimelineItemAction(id, tripSlug);
       setDeletingId(null);
     });
+  }
+
+  function startEditing(id: string) {
+    setEditingId(id);
+    setConfirmingId(null);  // close delete confirm if open for same item
+  }
+
+  function closeEdit() {
+    setEditingId(null);
   }
 
   if (items.length === 0) return null;
@@ -247,6 +273,7 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
 
             const isCurrent = state === "current";
             const isCompleted = state === "completed";
+            const isEditing = editingId === item.id;
 
             return (
               <Fragment key={item.id}>
@@ -267,14 +294,13 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
 
                 {/* ── Item row ─────────────────────────────────────────────────────
                      Row-level opacity encodes state visually without touching
-                     individual children. Completed items fade to 40%, delete
-                     in-flight goes lower, confirm dims slightly. */}
+                     individual children. */}
                 <div
                   ref={isCurrent ? currentItemRef : undefined}
                   className={`flex items-start gap-4 transition-opacity duration-200 ${
                     isDeleting
                       ? "pointer-events-none opacity-30"
-                      : isConfirming
+                      : isConfirming || isEditing
                       ? "opacity-55"
                       : isCompleted
                       ? "opacity-40"
@@ -317,10 +343,7 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
                       {item.title}
                     </h3>
 
-                    {/* Note
-                         Current:   full visibility — route / venue context matters most now.
-                         Upcoming:  muted — useful but not urgent.
-                         Completed: hidden — already acted on; keeps the list clean. */}
+                    {/* Note — hidden for completed items */}
                     {!isCompleted && item.note && (
                       <p
                         className={`mt-1 text-[13px] leading-relaxed ${
@@ -346,9 +369,7 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
                       </span>
                     )}
 
-                    {/* View document CTA — current item only, when documents exist.
-                         Scrolls to the #documents section so users can open the file
-                         without leaving the page. */}
+                    {/* View document CTA — current item only, when documents exist */}
                     {isCurrent && hasDocuments && (
                       <motion.a
                         href="#documents"
@@ -362,20 +383,54 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
 
                   </div>
 
-                  {/* ── Delete trigger ──────────────────────────────────────────── */}
-                  {!isConfirming && (
-                    <button
-                      type="button"
-                      onClick={() => requestConfirm(item.id)}
-                      disabled={isPending}
-                      aria-label={`Delete "${item.title}"`}
-                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-white/[0.28] transition-colors hover:text-white/50 active:text-red-400/70 disabled:opacity-30"
-                    >
-                      <TrashIcon />
-                    </button>
+                  {/* ── Edit + delete triggers ───────────────────────────────────
+                       Hidden during delete confirmation and while deleting.
+                       When editing is open for this item, hide to avoid clutter. */}
+                  {!isConfirming && !isEditing && !isDeleting && (
+                    <div className="flex flex-shrink-0 flex-col gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => startEditing(item.id)}
+                        disabled={isPending}
+                        aria-label={`Edit "${item.title}"`}
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-white/[0.22] transition-colors hover:text-white/45 disabled:opacity-30"
+                      >
+                        <PencilIcon />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => requestConfirm(item.id)}
+                        disabled={isPending}
+                        aria-label={`Delete "${item.title}"`}
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-white/[0.22] transition-colors hover:text-white/45 active:text-red-400/70 disabled:opacity-30"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
                   )}
 
                 </div>
+
+                {/* ── Inline edit form ─────────────────────────────────────────── */}
+                <AnimatePresence initial={false}>
+                  {isEditing && (
+                    <motion.div
+                      key={`edit-${item.id}`}
+                      variants={confirmSlide}
+                      initial="hidden"
+                      animate="show"
+                      exit="exit"
+                      className="overflow-hidden pl-[31px]"
+                    >
+                      <EditTimelineItemForm
+                        item={item}
+                        tripSlug={tripSlug}
+                        onCancel={closeEdit}
+                        onSaved={closeEdit}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* ── Inline delete confirmation ────────────────────────────────── */}
                 <AnimatePresence initial={false}>

@@ -10,8 +10,10 @@ import {
   insertManualTimelineItem,
   deleteTimelineItem,
   insertDocumentTimelineItems,
+  updateTimelineItem,
 } from "@/lib/timeline-mutations";
 import { generateTimelineItemsFromDocument } from "@/lib/document-to-timeline";
+import type { TripDateContext } from "@/lib/document-to-timeline";
 import type { DocumentCategory } from "@/types/document";
 
 type TripContext = {
@@ -136,6 +138,36 @@ export async function addManualActionAction(
 }
 
 /**
+ * Updates a single timeline item's editable fields and revalidates the trip page.
+ *
+ * FormData keys:
+ *   event_date  — "YYYY-MM-DD" (required)
+ *   time        — "HH:MM"      (required)
+ *   title       — display text  (required)
+ *   note        — free text     (optional)
+ */
+export async function updateTimelineItemAction(
+  itemId: string,
+  tripSlug: string,
+  formData: FormData
+): Promise<{ error: string | null }> {
+  const eventDate = (formData.get("event_date") as string | null)?.trim();
+  const time = (formData.get("time") as string | null)?.trim();
+  const title = (formData.get("title") as string | null)?.trim();
+  const note = (formData.get("note") as string | null)?.trim() ?? "";
+
+  if (!eventDate) return { error: "Please select a date." };
+  if (!time) return { error: "Please enter a time." };
+  if (!title) return { error: "Please enter a title." };
+
+  const { error } = await updateTimelineItem({ id: itemId, eventDate, time, title, note });
+  if (error) return { error: `Could not update action: ${error}` };
+
+  revalidatePath(`/trips/${tripSlug}`);
+  return { error: null };
+}
+
+/**
  * Deletes a single timeline item and revalidates the trip page.
  * Only the row with the given itemId is removed; all others are preserved.
  */
@@ -182,16 +214,20 @@ export async function removeDocumentFromTripAction(
 export async function attachDocumentAction(
   tripId: string,
   tripSlug: string,
-  doc: { id: string; title: string; category: DocumentCategory }
+  doc: { id: string; title: string; category: DocumentCategory },
+  /** Trip start/end dates used to assign event_date to generated timeline items. */
+  tripDates?: TripDateContext
 ): Promise<{ error: string | null; timelineItemsCreated: number }> {
   const { error } = await attachDocumentToTrip(tripId, doc.id);
   if (error) return { error, timelineItemsCreated: 0 };
 
   // Auto-create timeline items from the document's category + title.
-  const generated = generateTimelineItemsFromDocument({
-    title: doc.title,
-    category: doc.category,
-  });
+  // tripDates provides fallback event_date values so hotel/flight items land
+  // on the correct day instead of sorting last with a null date.
+  const generated = generateTimelineItemsFromDocument(
+    { title: doc.title, category: doc.category },
+    tripDates
+  );
   const { inserted } = await insertDocumentTimelineItems(tripId, generated, doc.id);
 
   revalidatePath(`/trips/${tripSlug}`);
@@ -217,7 +253,9 @@ export async function attachDocumentAction(
 export async function uploadAndAttachDocumentAction(
   tripId: string,
   tripSlug: string,
-  formData: FormData
+  formData: FormData,
+  /** Trip start/end dates used to assign event_date to generated timeline items. */
+  tripDates?: TripDateContext
 ): Promise<{ error: string | null; timelineItemsCreated: number }> {
   const file = formData.get("file") as File | null;
   // The form field is named "name" (HTML convention) but maps to `title` in the DB.
@@ -248,7 +286,7 @@ export async function uploadAndAttachDocumentAction(
   if (attachError) return { error: `Uploaded but failed to attach: ${attachError}`, timelineItemsCreated: 0 };
 
   // 4 — Auto-create timeline items from category + title (deduped, non-blocking)
-  const generated = generateTimelineItemsFromDocument({ title, category });
+  const generated = generateTimelineItemsFromDocument({ title, category }, tripDates);
   const { inserted } = await insertDocumentTimelineItems(tripId, generated, document.id);
 
   revalidatePath(`/trips/${tripSlug}`);

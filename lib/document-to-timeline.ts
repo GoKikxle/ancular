@@ -9,9 +9,24 @@
  * intelligence. To upgrade from rule-based → AI/OCR:
  *   1. Accept a `fileContent: string` (extracted text) alongside the metadata.
  *   2. Pass it to an LLM/OCR extractor that returns date, time, route, reference.
- *   3. Populate `eventDate` and `time` from the extracted values instead of placeholders.
+ *   3. Populate `event_date` and `time` from the extracted values instead of
+ *      the trip-date fallbacks used here.
  *
  * All callers (`insertDocumentTimelineItems`, server actions) stay unchanged.
+ *
+ * ── Date assignment strategy ────────────────────────────────────────────────────
+ *
+ *   flight      → trip start date    (departure day)
+ *   hotel c/in  → trip start date    (check-in on arrival day)
+ *   hotel c/out → trip end date      (check-out on last day)
+ *                 fallback: start + 1 day when no end_date
+ *   booking     → trip start date    (most bookings fall in the first/only day)
+ *   identity    → no items
+ *   other       → no items
+ *
+ * When no tripContext is supplied all event_date values are null, which sorts
+ * those items after explicitly-dated rows (NULLS LAST). The user can correct
+ * the date via the inline edit form on the trip page.
  *
  * ── Supported categories ───────────────────────────────────────────────────────
  *   flight   → 1 item  (departure action, 09:00 placeholder)
@@ -28,6 +43,15 @@ import type { DocumentCategory } from "@/types/document";
 export type DocumentGeneratedItem = {
   /** Timeline item title — travel-specific, derived from document metadata. */
   title: string;
+
+  /**
+   * ISO date "YYYY-MM-DD" derived from trip context, or null if no reliable
+   * date can be assigned (e.g. no tripContext provided, or trip has no dates).
+   *
+   * Null items sort after dated items (NULLS LAST in getTimelineItemsForTrip)
+   * so they don't pollute the chronological view; the user can edit them later.
+   */
+  event_date: string | null;
 
   /**
    * Placeholder 24-hour time ("HH:MM"). Sensible per category.
@@ -47,6 +71,15 @@ export type DocumentGeneratedItem = {
    *   ALTER TABLE timeline_items ADD COLUMN IF NOT EXISTS action_type TEXT NULL;
    */
   actionType: "flight" | "hotel" | "activity" | "train" | "restaurant" | "other";
+};
+
+/**
+ * Optional trip date context passed to the generator.
+ * Both fields are ISO date strings "YYYY-MM-DD".
+ */
+export type TripDateContext = {
+  startDate?: string | null;
+  endDate?: string | null;
 };
 
 // ─── String helpers ────────────────────────────────────────────────────────────
@@ -70,23 +103,24 @@ function noteFor(docTitle: string, hint: string): string {
   return `From "${docTitle}" · ${hint}`;
 }
 
+/**
+ * Adds `n` days to an ISO date string and returns the result.
+ * Uses local-date arithmetic to avoid UTC-midnight timezone shifts.
+ */
+function addDays(dateStr: string, n: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(y, m - 1, d + n);
+  const yy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, "0");
+  const dd = String(dt.getDate()).padStart(2, "0");
+  return `${yy}-${mm}-${dd}`;
+}
+
 // ─── Flight extraction ─────────────────────────────────────────────────────────
 
-// Matches "to [Destination]" — e.g. "flight to barcelona", "London to Heathrow"
 const TO_DEST_RE = /\bto\s+([A-Za-z][A-Za-z ]{1,22}?)(?:\s*[-–→,.(]|$)/i;
-
-// Matches route arrows — "London → Barcelona", "LHR → BCN", "LHR->BCN"
 const ARROW_ROUTE_RE = /([A-Za-z][A-Za-z ]{1,18}?)\s*[-–→>]{1,2}\s*([A-Za-z][A-Za-z ]{1,18})/;
 
-/**
- * Derives a travel-specific flight title from the document title.
- *
- * Priority:
- *   1. "boarding" anywhere          → "Flight check-in"
- *   2. "to [Destination]" pattern   → "Flight to [Destination]"
- *   3. "[Origin] → [Dest]" pattern  → "Flight to [Destination]"
- *   4. Fallback                     → "Flight"
- */
 function extractFlightTitle(docTitle: string): string {
   const cleaned = cleanDocTitle(docTitle);
   const lower = cleaned.toLowerCase();
@@ -110,48 +144,33 @@ function extractFlightTitle(docTitle: string): string {
 
 // ─── Hotel extraction ──────────────────────────────────────────────────────────
 
-// Generic words that don't form part of a hotel name
 const HOTEL_GENERIC = /\s*[-–·:]\s*(?:confirmation|booking|reservation|receipt|invoice|voucher)\s*$/i;
 const HOTEL_FULL_GENERIC = new Set([
   "hotel", "hotel confirmation", "hotel booking", "hotel reservation",
   "confirmation", "booking", "reservation", "receipt",
 ]);
 
-/**
- * Extracts the hotel name from the document title.
- * Returns the name if it looks specific, or "Hotel" as a fallback.
- *
- * Examples:
- *   "Best Western London"              → "Best Western London"
- *   "Holiday Inn Barcelona confirmation" → "Holiday Inn Barcelona"
- *   "Hotel confirmation"               → "Hotel"
- *   "Marriott Booking"                 → "Marriott"
- */
 function extractHotelName(docTitle: string): string {
   const cleaned = cleanDocTitle(docTitle);
   const lower = cleaned.toLowerCase().trim();
 
   if (HOTEL_FULL_GENERIC.has(lower)) return "Hotel";
 
-  // Strip trailing confirmation/booking/receipt suffixes
   const stripped = cleaned.replace(HOTEL_GENERIC, "").trim();
-
-  // Strip the word "hotel" if it's the whole remaining string
   const withoutHotelWord = stripped.replace(/^hotel\s+/i, "").trim();
-
   const candidate = withoutHotelWord || stripped;
-  if (!candidate || candidate.length < 3 || candidate.length > 36) return "Hotel";
 
+  if (!candidate || candidate.length < 3 || candidate.length > 36) return "Hotel";
   return candidate;
 }
 
 // ─── Booking classification ────────────────────────────────────────────────────
 
-/**
- * Keyword buckets map document title words to a descriptive timeline label.
- * Checked in order — first match wins.
- */
-const BOOKING_CLASSIFIERS: { keywords: string[]; label: string; actionType: DocumentGeneratedItem["actionType"] }[] = [
+const BOOKING_CLASSIFIERS: {
+  keywords: string[];
+  label: string;
+  actionType: DocumentGeneratedItem["actionType"];
+}[] = [
   {
     keywords: ["restaurant", "dinner", "lunch", "breakfast", "bistro", "café", "cafe", "bar", "brasserie", "eatery", "dining"],
     label: "Dinner reservation",
@@ -194,21 +213,15 @@ const BOOKING_CLASSIFIERS: { keywords: string[]; label: string; actionType: Docu
   },
 ];
 
-// Pure generic booking words that shouldn't become the timeline title
 const GENERIC_BOOKING = new Set([
   "booking", "reservation", "confirmation", "confirmed", "receipt", "booked", "voucher",
 ]);
 
-type BookingClassification = { label: string; actionType: DocumentGeneratedItem["actionType"] };
+type BookingClassification = {
+  label: string;
+  actionType: DocumentGeneratedItem["actionType"];
+};
 
-/**
- * Classifies a booking document title into a travel-specific timeline label.
- *
- * Priority:
- *   1. Keyword match → classified label (e.g. "Dinner reservation", "Tour booking")
- *   2. Specific non-generic title ≤ 30 chars → use the title as-is
- *   3. Fallback → "Reservation"
- */
 function classifyBooking(docTitle: string): BookingClassification {
   const cleaned = cleanDocTitle(docTitle);
   const lower = cleaned.toLowerCase();
@@ -219,7 +232,6 @@ function classifyBooking(docTitle: string): BookingClassification {
     }
   }
 
-  // If the title is specific (not a generic word), use it directly
   if (
     cleaned.length >= 3 &&
     cleaned.length <= 30 &&
@@ -235,19 +247,25 @@ function classifyBooking(docTitle: string): BookingClassification {
 
 /**
  * Returns zero or more timeline item templates derived from a document's
- * category and title. All items have `event_date: null` (no date known yet)
- * so they sort after explicitly-dated items and the user can fill them in.
+ * category and title.
+ *
+ * When `tripContext` is provided, `event_date` is set to the best available
+ * trip date for each item type (see date strategy at the top of this file).
+ * Without `tripContext`, `event_date` is null and items sort last.
  *
  * Pure and synchronous — never touches the database.
  *
- * @param doc  Document metadata. Only `title` and `category` are used for now.
- *             Add `fileContent?: string` here when upgrading to OCR/AI extraction.
+ * @param doc         Document metadata. Only `title` and `category` used for now.
+ *                    Add `fileContent?: string` when upgrading to OCR/AI extraction.
+ * @param tripContext Optional trip dates used to assign a fallback `event_date`.
  */
-export function generateTimelineItemsFromDocument(doc: {
-  title: string;
-  category: DocumentCategory;
-}): DocumentGeneratedItem[] {
+export function generateTimelineItemsFromDocument(
+  doc: { title: string; category: DocumentCategory },
+  tripContext?: TripDateContext
+): DocumentGeneratedItem[] {
   const { category } = doc;
+  const startDate = tripContext?.startDate ?? null;
+  const endDate = tripContext?.endDate ?? null;
 
   switch (category) {
     case "flight": {
@@ -256,6 +274,7 @@ export function generateTimelineItemsFromDocument(doc: {
       return [
         {
           title,
+          event_date: startDate,   // Flights depart on the trip start day
           time: "09:00",
           note: noteFor(
             doc.title,
@@ -271,15 +290,21 @@ export function generateTimelineItemsFromDocument(doc: {
     case "hotel": {
       const name = extractHotelName(doc.title);
       const label = name === "Hotel" ? "Hotel" : name;
+
+      // Check-out fallback: trip end date, or start + 1 day if no end date.
+      const checkOutDate = endDate ?? (startDate ? addDays(startDate, 1) : null);
+
       return [
         {
           title: `${label} check-in`,
+          event_date: startDate,     // Check-in on arrival day
           time: "15:00",
           note: noteFor(doc.title, "Update check-in date when confirmed."),
           actionType: "hotel",
         },
         {
           title: `${label} check-out`,
+          event_date: checkOutDate,  // Check-out on departure/last day
           time: "11:00",
           note: noteFor(doc.title, "Update check-out date when confirmed."),
           actionType: "hotel",
@@ -292,6 +317,7 @@ export function generateTimelineItemsFromDocument(doc: {
       return [
         {
           title: label,
+          event_date: startDate,   // Best guess: bookings fall in the trip window
           time: "12:00",
           note: noteFor(doc.title, "Update date and time when confirmed."),
           actionType,

@@ -112,6 +112,10 @@ export default async function TripDetailPage({
             tripSlug={trip.slug}
             docs={tripDocs}
             availableDocs={availableDocs}
+            tripDates={{
+              startDate: trip.start_date,
+              endDate: trip.end_date,
+            }}
           />
         </div>
 

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { DbDocument } from "@/lib/documents";
+import type { TripDateContext } from "@/lib/document-to-timeline";
 import { DocumentCategoryIcon } from "./DocumentCategoryIcon";
 import { attachDocumentAction } from "@/app/trips/[tripId]/actions";
 
@@ -10,6 +11,8 @@ type Props = {
   tripId: string;
   tripSlug: string;
   availableDocs: DbDocument[];
+  /** Forwarded to attachDocumentAction so generated timeline items get real dates. */
+  tripDates?: TripDateContext;
 };
 
 type AttachState = "idle" | { success: true; timelineItemsCreated: number } | { error: string };
@@ -34,7 +37,7 @@ function successMessage(itemsCreated: number): string {
   return `Document attached · ${itemsCreated} actions added to timeline.`;
 }
 
-export function AttachDocumentPicker({ tripId, tripSlug, availableDocs }: Props) {
+export function AttachDocumentPicker({ tripId, tripSlug, availableDocs, tripDates }: Props) {
   const [open, setOpen] = useState(false);
   const [attachState, setAttachState] = useState<AttachState>("idle");
   const [isPending, startTransition] = useTransition();
@@ -42,11 +45,12 @@ export function AttachDocumentPicker({ tripId, tripSlug, availableDocs }: Props)
   function handleAttach(doc: DbDocument) {
     setAttachState("idle");
     startTransition(async () => {
-      const result = await attachDocumentAction(tripId, tripSlug, {
-        id: doc.id,
-        title: doc.title,
-        category: doc.category,
-      });
+      const result = await attachDocumentAction(
+        tripId,
+        tripSlug,
+        { id: doc.id, title: doc.title, category: doc.category },
+        tripDates
+      );
 
       if (result.error) {
         setAttachState({ error: result.error });

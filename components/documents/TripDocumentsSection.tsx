@@ -1,4 +1,5 @@
 import type { DbDocument } from "@/lib/trip-documents";
+import type { TripDateContext } from "@/lib/document-to-timeline";
 import { TripDocumentList } from "./TripDocumentList";
 import { AttachDocumentPicker } from "./AttachDocumentPicker";
 import { UploadDocumentForm } from "./UploadDocumentForm";
@@ -9,6 +10,11 @@ type Props = {
   docs: DbDocument[];
   /** Vault documents not yet attached to this trip — passed to the attach picker. */
   availableDocs: DbDocument[];
+  /**
+   * Trip start/end dates forwarded to the document pickers so that
+   * auto-generated timeline items receive a real event_date instead of null.
+   */
+  tripDates?: TripDateContext;
 };
 
 export function TripDocumentsSection({
@@ -16,6 +22,7 @@ export function TripDocumentsSection({
   tripSlug,
   docs,
   availableDocs,
+  tripDates,
 }: Props) {
   return (
     <section className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5">
@@ -36,8 +43,9 @@ export function TripDocumentsSection({
           tripId={tripId}
           tripSlug={tripSlug}
           availableDocs={availableDocs}
+          tripDates={tripDates}
         />
-        <UploadDocumentForm tripId={tripId} tripSlug={tripSlug} />
+        <UploadDocumentForm tripId={tripId} tripSlug={tripSlug} tripDates={tripDates} />
       </div>
     </section>
   );

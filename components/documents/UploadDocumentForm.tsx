@@ -3,11 +3,14 @@
 import { useRef, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { DocumentCategory } from "@/types/document";
+import type { TripDateContext } from "@/lib/document-to-timeline";
 import { uploadAndAttachDocumentAction } from "@/app/trips/[tripId]/actions";
 
 type Props = {
   tripId: string;
   tripSlug: string;
+  /** Forwarded to the upload action so generated timeline items get real dates. */
+  tripDates?: TripDateContext;
 };
 
 type UploadState =
@@ -42,7 +45,7 @@ function fileBaseName(filename: string): string {
   return filename.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
 }
 
-export function UploadDocumentForm({ tripId, tripSlug }: Props) {
+export function UploadDocumentForm({ tripId, tripSlug, tripDates }: Props) {
   const [open, setOpen] = useState(false);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -77,7 +80,7 @@ export function UploadDocumentForm({ tripId, tripSlug }: Props) {
     setUploadState("idle");
 
     startTransition(async () => {
-      const result = await uploadAndAttachDocumentAction(tripId, tripSlug, formData);
+      const result = await uploadAndAttachDocumentAction(tripId, tripSlug, formData, tripDates);
       if (result.error) {
         setUploadState({ error: result.error });
       } else {
