@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { updateTimelineItemAction } from "@/app/trips/[tripId]/actions";
 import type { TimelineItem } from "./TimelineCard";
@@ -37,6 +38,7 @@ const labelCls =
  * so the user can edit everything in one place until dedicated DB columns exist.
  */
 export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Props) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [editState, setEditState] = useState<EditState>("idle");
 
@@ -49,14 +51,29 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Prop
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
     setEditState("idle");
+
+    // Build FormData explicitly from React state rather than from the DOM form
+    // element. For controlled <input type="date"> and <input type="time">,
+    // new FormData(form) reads the DOM property, which can lag behind React's
+    // controlled value on some mobile browsers. Building it from state is
+    // unambiguous and always correct.
+    const formData = new FormData();
+    formData.set("event_date", date);
+    formData.set("time", time);
+    formData.set("title", title);
+    formData.set("note", note);
 
     startTransition(async () => {
       const result = await updateTimelineItemAction(item.id, tripSlug, formData);
       if (result.error) {
         setEditState({ error: result.error });
       } else {
+        // router.refresh() forces the RSC to re-render with fresh Supabase data.
+        // revalidatePath() (called in the server action) marks the cache stale,
+        // but for programmatic server action calls Next.js does NOT automatically
+        // refresh the router — the client needs to trigger it explicitly.
+        router.refresh();
         onSaved();
       }
     });

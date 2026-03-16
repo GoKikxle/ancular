@@ -146,23 +146,42 @@ export async function addManualActionAction(
  *   title       — display text  (required)
  *   note        — free text     (optional)
  */
+/**
+ * Matches ISO date strings produced by <input type="date">: "YYYY-MM-DD".
+ * Rejects empty strings, locale-formatted strings, and partial dates before
+ * they reach Supabase's DATE column parser.
+ */
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Matches 24-hour time strings produced by <input type="time">: "HH:MM".
+ */
+const HH_MM_RE = /^\d{2}:\d{2}$/;
+
 export async function updateTimelineItemAction(
   itemId: string,
   tripSlug: string,
   formData: FormData
 ): Promise<{ error: string | null }> {
-  const eventDate = (formData.get("event_date") as string | null)?.trim();
-  const time = (formData.get("time") as string | null)?.trim();
-  const title = (formData.get("title") as string | null)?.trim();
+  const eventDate = (formData.get("event_date") as string | null)?.trim() ?? "";
+  const time = (formData.get("time") as string | null)?.trim() ?? "";
+  const title = (formData.get("title") as string | null)?.trim() ?? "";
   const note = (formData.get("note") as string | null)?.trim() ?? "";
 
-  if (!eventDate) return { error: "Please select a date." };
-  if (!time) return { error: "Please enter a time." };
-  if (!title) return { error: "Please enter a title." };
+  // Validate before hitting Supabase — ISO format guards prevent malformed
+  // date strings from reaching the DB's DATE column parser.
+  if (!eventDate || !ISO_DATE_RE.test(eventDate))
+    return { error: "Please select a valid date (YYYY-MM-DD)." };
+  if (!time || !HH_MM_RE.test(time))
+    return { error: "Please enter a valid time (HH:MM)." };
+  if (!title)
+    return { error: "Please enter a title." };
 
   const { error } = await updateTimelineItem({ id: itemId, eventDate, time, title, note });
   if (error) return { error: `Could not update action: ${error}` };
 
+  // Invalidate the trip page cache so the next RSC render returns the updated,
+  // correctly-ordered timeline from Supabase.
   revalidatePath(`/trips/${tripSlug}`);
   return { error: null };
 }
