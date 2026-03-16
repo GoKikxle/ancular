@@ -3,7 +3,6 @@
 import { useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { addManualActionAction } from "@/app/trips/[tripId]/actions";
-import { DatePicker } from "@/components/ui/DatePicker";
 
 // ── Action type config ────────────────────────────────────────────────────────
 
@@ -92,8 +91,10 @@ const slide = {
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 
+// Explicit h-10 (no py-*) locks all standalone controls — text, time, date — to
+// the same rendered height regardless of browser-native control sizing quirks.
 const inputCls =
-  "w-full rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-[13px] text-white placeholder-white/20 transition-colors focus:border-white/[0.15] focus:outline-none";
+  "h-10 w-full rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 text-[13px] text-white placeholder-white/20 transition-colors focus:border-white/[0.15] focus:outline-none";
 
 const labelCls =
   "mb-1.5 block text-[11px] uppercase tracking-[0.1em] text-white/30";
@@ -284,44 +285,55 @@ export function AddActionForm({ tripId, tripSlug, hasExistingItems }: Props) {
                   />
                 </div>
 
-                {/* ── Date ──────────────────────────────────────────────────── */}
+                {/* ── When: date + time — compound grouped field ────────────
+                     One visual card keeps "what day" and "what time" together
+                     so the user reads them as a single answer, not three. */}
                 <div>
-                  <label htmlFor="action-date" className={labelCls}>
-                    Date
-                  </label>
-                  <DatePicker
-                    id="action-date"
-                    name="event_date"
-                    required
-                    size="sm"
-                  />
-                </div>
+                  <p className={labelCls}>When</p>
+                  <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04]">
 
-                {/* ── Start time + End time ─────────────────────────────────── */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="action-start" className={labelCls}>
-                      Start time
-                    </label>
+                    {/* Date row — full width */}
                     <input
-                      id="action-start"
-                      name="start_time"
-                      type="time"
+                      id="action-date"
+                      name="event_date"
+                      type="date"
                       required
-                      className={inputCls}
+                      aria-label="Date"
+                      className="h-10 w-full bg-transparent px-3.5 text-[13px] text-white outline-none [color-scheme:dark]"
                     />
-                  </div>
-                  <div>
-                    <label htmlFor="action-end" className={labelCls}>
-                      End{" "}
-                      <span className="normal-case text-white/20">(optional)</span>
-                    </label>
-                    <input
-                      id="action-end"
-                      name="end_time"
-                      type="time"
-                      className={inputCls}
-                    />
+
+                    {/* Internal row divider */}
+                    <div className="h-px bg-white/[0.06]" />
+
+                    {/* From + To time — split columns with inline micro-labels */}
+                    <div className="grid grid-cols-2 divide-x divide-white/[0.06]">
+                      <div className="flex items-center gap-2 px-3.5 py-2.5">
+                        <span className="shrink-0 text-[10px] uppercase tracking-[0.1em] text-white/30">
+                          From
+                        </span>
+                        <input
+                          id="action-start"
+                          name="start_time"
+                          type="time"
+                          required
+                          aria-label="Start time"
+                          className="min-w-0 flex-1 bg-transparent text-[13px] text-white outline-none [color-scheme:dark]"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 px-3.5 py-2.5">
+                        <span className="shrink-0 text-[10px] uppercase tracking-[0.1em] text-white/30">
+                          To
+                        </span>
+                        <input
+                          id="action-end"
+                          name="end_time"
+                          type="time"
+                          aria-label="End time (optional)"
+                          className="min-w-0 flex-1 bg-transparent text-[13px] text-white/45 outline-none [color-scheme:dark]"
+                        />
+                      </div>
+                    </div>
+
                   </div>
                 </div>
 
