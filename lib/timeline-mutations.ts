@@ -99,6 +99,28 @@ export async function appendTimelineItem(
 }
 
 /**
+ * Deletes a single timeline item by its primary key.
+ * Safe: only removes the row with the given id.
+ */
+export async function deleteTimelineItem(
+  itemId: string
+): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("timeline_items")
+    .delete()
+    .eq("id", itemId);
+
+  if (error) {
+    console.error("[timeline-mutations] Delete failed:", error.message);
+    return { error: error.message };
+  }
+
+  return { error: null };
+}
+
+/**
  * Replaces all timeline_items for a trip with the provided items.
  *
  * Strategy: DELETE all existing rows for the trip, then bulk INSERT the new ones.

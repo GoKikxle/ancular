@@ -8,6 +8,7 @@ import {
   replaceTimelineItems,
   appendTimelineItem,
   insertManualTimelineItem,
+  deleteTimelineItem,
 } from "@/lib/timeline-mutations";
 import type { DocumentCategory } from "@/types/document";
 
@@ -124,6 +125,20 @@ export async function addManualActionAction(
 
   if (error) return { error: `Could not save action: ${error}` };
 
+  revalidatePath(`/trips/${tripSlug}`);
+  return { error: null };
+}
+
+/**
+ * Deletes a single timeline item and revalidates the trip page.
+ * Only the row with the given itemId is removed; all others are preserved.
+ */
+export async function deleteTimelineItemAction(
+  itemId: string,
+  tripSlug: string
+): Promise<{ error: string | null }> {
+  const { error } = await deleteTimelineItem(itemId);
+  if (error) return { error };
   revalidatePath(`/trips/${tripSlug}`);
   return { error: null };
 }
