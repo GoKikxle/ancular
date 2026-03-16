@@ -3,7 +3,12 @@ import { createClient } from "@/lib/supabase/server";
 type CreateTripInput = {
   slug: string;
   title: string;
+  /** Human-readable display string, e.g. "Jun 10 → Jun 17, 2025". */
   dates: string;
+  /** ISO date "YYYY-MM-DD" — stored in the structured start_date column. */
+  startDate: string;
+  /** ISO date "YYYY-MM-DD" — stored in the structured end_date column. Null if open-ended. */
+  endDate: string | null;
   travelers: string;
   status: "Active" | "Upcoming" | "Past";
   nextActionTitle: string;
@@ -21,6 +26,8 @@ export async function createTrip(input: CreateTripInput) {
       slug: input.slug,
       title: input.title,
       dates: input.dates,
+      start_date: input.startDate,
+      end_date: input.endDate ?? null,
       travelers: input.travelers,
       status: input.status,
       next_action_title: input.nextActionTitle,

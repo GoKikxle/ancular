@@ -54,6 +54,8 @@ export async function createTripAction(formData: FormData) {
     title,
     slug,
     dates,
+    startDate: startDate,
+    endDate: endDate || null,
     travelers,
     status,
     nextActionTitle: "Add your next action",
