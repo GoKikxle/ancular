@@ -5,13 +5,6 @@ import { motion } from "framer-motion";
 import { updateTimelineItemAction } from "@/app/trips/[tripId]/actions";
 import type { TimelineItem } from "./TimelineCard";
 
-// ─── Styles ────────────────────────────────────────────────────────────────────
-
-const inputCls =
-  "h-10 w-full rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 text-[13px] text-white placeholder-white/20 transition-colors focus:border-white/[0.15] focus:outline-none";
-
-const labelCls = "mb-1.5 block text-[11px] uppercase tracking-[0.1em] text-white/30";
-
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 type Props = {
@@ -24,23 +17,29 @@ type Props = {
 
 type EditState = "idle" | { error: string };
 
+// ─── Shared style tokens ────────────────────────────────────────────────────────
+
+// h-10 (no py-*) locks every standalone control to the same 40px rendered height
+// across all input types (text, date, time) regardless of browser quirks.
+const inputCls =
+  "h-10 w-full rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 text-[13px] text-white placeholder-white/20 transition-colors focus:border-white/[0.15] focus:outline-none";
+
+const labelCls =
+  "mb-1.5 block text-[11px] uppercase tracking-[0.1em] text-white/30";
+
 // ─── Component ─────────────────────────────────────────────────────────────────
 
 /**
  * Inline edit form for a single timeline item.
  *
  * Rendered inside TimelineCard as a slide-in panel below the item row.
- * Fields: title, date, time, note (full raw note).
- *
- * The note field deliberately shows the raw packed note string (which may
- * contain "Route · ends HH:MM · user text") so the user can edit all parts.
- * Dedicated route and end-time fields will appear once those DB columns exist.
+ * The note field shows the full raw packed note (route · ends HH:MM · text)
+ * so the user can edit everything in one place until dedicated DB columns exist.
  */
 export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Props) {
   const [isPending, startTransition] = useTransition();
   const [editState, setEditState] = useState<EditState>("idle");
 
-  // Controlled fields pre-populated from the existing item.
   const [title, setTitle] = useState(item.title);
   const [date, setDate] = useState(item.event_date ?? "");
   const [time, setTime] = useState(item.time);
@@ -64,7 +63,20 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Prop
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pb-1 pt-4">
+    /*
+     * Top border anchors the form visually below the dimmed item row.
+     * The pl-[31px] indentation (applied by TimelineCard's wrapper) aligns
+     * the form content with the item's text column, not the state dot.
+     */
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-3 border-t border-white/[0.07] pt-4 pb-1"
+    >
+
+      {/* ── Context micro-label ─────────────────────────────────────────────── */}
+      <p className="text-[10px] uppercase tracking-[0.12em] text-white/22">
+        Edit action
+      </p>
 
       {/* ── Title ──────────────────────────────────────────────────────────── */}
       <div>
@@ -82,12 +94,15 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Prop
         />
       </div>
 
-      {/* ── When: date + time compound card ────────────────────────────────── */}
+      {/* ── When: compound date + time card ─────────────────────────────────
+           Both rows are locked to h-10 so the card has a predictable height
+           (10 + 1px divider + 10 = ~81px) regardless of the browser's native
+           date/time input rendering. */}
       <div>
         <p className={labelCls}>When</p>
         <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04]">
 
-          {/* Date — full width row */}
+          {/* Date row — h-10, full width */}
           <input
             name="event_date"
             type="date"
@@ -98,11 +113,11 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Prop
             className="h-10 w-full bg-transparent px-3.5 text-[13px] text-white outline-none [color-scheme:dark]"
           />
 
-          {/* Internal divider */}
+          {/* Row divider */}
           <div className="h-px bg-white/[0.06]" />
 
-          {/* Time row */}
-          <div className="flex items-center gap-2 px-3.5 py-2.5">
+          {/* Time row — explicit h-10 wrapper keeps it equal to the date row */}
+          <div className="flex h-10 items-center gap-2 px-3.5">
             <span className="shrink-0 text-[10px] uppercase tracking-[0.1em] text-white/30">
               Time
             </span>
@@ -120,7 +135,10 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Prop
         </div>
       </div>
 
-      {/* ── Note ───────────────────────────────────────────────────────────── */}
+      {/* ── Note ───────────────────────────────────────────────────────────────
+           min-h-[80px] + py-3 gives ~2 lines of space without relying on the
+           browser's interpretation of rows="2", which varies. resize-none keeps
+           the layout stable and intentional. */}
       <div>
         <label htmlFor={`edit-note-${item.id}`} className={labelCls}>
           Note{" "}
@@ -129,11 +147,10 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Prop
         <textarea
           id={`edit-note-${item.id}`}
           name="note"
-          rows={2}
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Route, venue, booking reference…"
-          className="w-full resize-none rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-[13px] text-white placeholder-white/20 transition-colors focus:border-white/[0.15] focus:outline-none"
+          className="min-h-[80px] w-full resize-none rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 py-3 text-[13px] leading-relaxed text-white placeholder-white/20 transition-colors focus:border-white/[0.15] focus:outline-none"
         />
       </div>
 
@@ -144,13 +161,15 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Prop
         </p>
       )}
 
-      {/* ── Actions ────────────────────────────────────────────────────────── */}
-      <div className="flex gap-2 pt-1">
+      {/* ── CTA row ────────────────────────────────────────────────────────────
+           Cancel is fixed-width so the Save button always fills most of the row.
+           Both buttons are h-12 (py-3 + text line) for adequate touch targets. */}
+      <div className="flex gap-2 pt-0.5">
         <button
           type="button"
           onClick={onCancel}
           disabled={isPending}
-          className="rounded-2xl border border-white/[0.07] px-5 py-3 text-[13px] text-white/38 transition-colors hover:text-white/55 disabled:opacity-40"
+          className="w-20 flex-shrink-0 rounded-2xl border border-white/[0.07] py-3 text-[13px] text-white/38 transition-colors hover:text-white/55 disabled:opacity-40"
         >
           Cancel
         </button>
@@ -158,7 +177,7 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Prop
           type="submit"
           whileTap={{ scale: 0.97 }}
           disabled={isPending}
-          className="flex-1 rounded-2xl border border-sky-400/25 bg-sky-500/[0.20] py-3 text-[13px] font-semibold text-sky-200 transition-colors hover:bg-sky-500/[0.27] disabled:opacity-40"
+          className="flex-1 rounded-2xl border border-sky-400/25 bg-sky-500/[0.18] py-3 text-[13px] font-semibold text-sky-200 transition-colors hover:bg-sky-500/[0.25] disabled:opacity-40"
         >
           {isPending ? "Saving…" : "Save changes"}
         </motion.button>
