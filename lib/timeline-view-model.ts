@@ -16,15 +16,20 @@ import type { DbTimelineItem } from "@/lib/timeline-items";
  *
  * Derived purely from the first timeline item (or trip fallback copy).
  * Maps the existing DB fields — time, title, note — to display roles:
- *   title  → the event name / main heading
+ *   title    → the event name / main heading
  *   subtitle → the note field repurposed as route / venue / context
- *   time   → shown as a prominent timestamp badge
+ *   time     → shown as a prominent timestamp badge
+ *
+ * States:
+ *   fromTimeline: true  → first real timeline item (active state)
+ *   fromTimeline: false, isEmpty: false → trip-level fallback copy (guidance state)
+ *   isEmpty: true       → no timeline items AND no fallback copy (empty state)
  */
 export type PrimaryActionView = {
   title: string;
   /** Derived from `note` — the route, venue, or contextual description. */
   subtitle: string;
-  /** Raw time string from the timeline item, e.g. "09:00" or "9:00 AM". */
+  /** Raw time string from the timeline item, e.g. "09:00". */
   time: string | null;
   /**
    * Label for an associated document, e.g. "Boarding pass".
@@ -35,6 +40,12 @@ export type PrimaryActionView = {
   fromTimeline: boolean;
   /** True when the trip has at least one document attached. */
   hasDocuments: boolean;
+  /**
+   * True when there are no timeline items AND the trip has no meaningful fallback
+   * copy set. The card renders a dedicated empty-state prompt in this case rather
+   * than an active hero with a blank title.
+   */
+  isEmpty: boolean;
 };
 
 type TripFallback = {
@@ -46,8 +57,9 @@ type TripFallback = {
  * Builds the PrimaryActionView for a trip.
  *
  * Priority:
- *   1. First timeline item (sort_order ascending)
+ *   1. First timeline item (sorted by time ASC, sort_order ASC NULLS LAST)
  *   2. Trip-level fallback (next_action_title / next_action_description)
+ *   3. Empty state — when neither source has content
  */
 export function buildPrimaryActionView(
   items: DbTimelineItem[],
@@ -56,6 +68,7 @@ export function buildPrimaryActionView(
 ): PrimaryActionView {
   const first = items[0];
 
+  // ── State 1: real timeline item ──────────────────────────────────────────────
   if (first) {
     return {
       title: first.title,
@@ -64,16 +77,36 @@ export function buildPrimaryActionView(
       documentLabel: first.document_label ?? null,
       fromTimeline: true,
       hasDocuments,
+      isEmpty: false,
     };
   }
 
+  const fallbackTitle = fallback.nextActionTitle?.trim() ?? "";
+  const fallbackSubtitle = fallback.nextActionDescription?.trim() ?? "";
+
+  // ── State 3: empty — no timeline items, no fallback copy ─────────────────────
+  // Guards against blank-title sky-blue hero after all items are deleted.
+  if (!fallbackTitle) {
+    return {
+      title: "",
+      subtitle: "",
+      time: null,
+      documentLabel: null,
+      fromTimeline: false,
+      hasDocuments,
+      isEmpty: true,
+    };
+  }
+
+  // ── State 2: trip-level fallback ─────────────────────────────────────────────
   return {
-    title: fallback.nextActionTitle,
-    subtitle: fallback.nextActionDescription,
+    title: fallbackTitle,
+    subtitle: fallbackSubtitle,
     time: null,
     documentLabel: null,
     fromTimeline: false,
     hasDocuments,
+    isEmpty: false,
   };
 }
 
