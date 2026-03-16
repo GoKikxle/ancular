@@ -41,6 +41,35 @@ export async function getDocumentsForTrip(
 }
 
 /**
+ * Removes a document from a specific trip by deleting the trip_documents row.
+ *
+ * Safe by design:
+ *   - Does NOT delete the document from the `documents` table.
+ *   - Does NOT delete the file from Supabase Storage.
+ *   - Only the join row (trip_id, document_id) is removed.
+ *   - The document remains in the vault and can be re-attached at any time.
+ */
+export async function removeDocumentFromTrip(
+  tripId: string,
+  documentId: string
+): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("trip_documents")
+    .delete()
+    .eq("trip_id", tripId)
+    .eq("document_id", documentId);
+
+  if (error) {
+    console.error("[trip-documents] Failed to remove:", error.message);
+    return { error: error.message };
+  }
+
+  return { error: null };
+}
+
+/**
  * Attaches a vault document to a trip.
  * The UNIQUE constraint on (trip_id, document_id) prevents duplicates at the
  * DB level. Postgres error code 23505 = unique_violation; we treat it as a

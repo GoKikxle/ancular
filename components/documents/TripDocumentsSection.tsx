@@ -1,5 +1,5 @@
 import type { DbDocument } from "@/lib/trip-documents";
-import { DocumentCategoryIcon } from "./DocumentCategoryIcon";
+import { TripDocumentList } from "./TripDocumentList";
 import { AttachDocumentPicker } from "./AttachDocumentPicker";
 import { UploadDocumentForm } from "./UploadDocumentForm";
 
@@ -24,30 +24,7 @@ export function TripDocumentsSection({
       </p>
 
       {docs.length > 0 ? (
-        <ul className="space-y-2.5">
-          {docs.map((doc) => (
-            <li key={doc.id} className="flex items-center gap-2.5">
-              <DocumentCategoryIcon category={doc.category} />
-              <span className="min-w-0 flex-1 truncate text-[14px] text-white/60">
-                {doc.title}
-              </span>
-              {doc.file_url ? (
-                <a
-                  href={doc.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-shrink-0 rounded-full border border-white/[0.07] px-2 py-0.5 text-[10px] text-white/28 transition-colors hover:text-white/50"
-                >
-                  View
-                </a>
-              ) : (
-                <span className="flex-shrink-0 rounded-full border border-white/[0.07] px-2 py-0.5 text-[10px] text-white/20">
-                  No file
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
+        <TripDocumentList docs={docs} tripId={tripId} tripSlug={tripSlug} />
       ) : (
         <p className="text-[13px] text-white/28">
           No documents attached to this trip yet.

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { attachDocumentToTrip } from "@/lib/trip-documents";
+import { attachDocumentToTrip, removeDocumentFromTrip } from "@/lib/trip-documents";
 import { uploadToStorage, insertDocument } from "@/lib/documents";
 import { generateItinerary } from "@/lib/ai-itinerary";
 import {
@@ -138,6 +138,23 @@ export async function deleteTimelineItemAction(
   tripSlug: string
 ): Promise<{ error: string | null }> {
   const { error } = await deleteTimelineItem(itemId);
+  if (error) return { error };
+  revalidatePath(`/trips/${tripSlug}`);
+  return { error: null };
+}
+
+/**
+ * Removes a document from a trip (deletes the trip_documents join row only).
+ *
+ * The document and its file in Supabase Storage are untouched — this is NOT
+ * a vault delete. The document remains available for re-attachment.
+ */
+export async function removeDocumentFromTripAction(
+  tripId: string,
+  tripSlug: string,
+  documentId: string
+): Promise<{ error: string | null }> {
+  const { error } = await removeDocumentFromTrip(tripId, documentId);
   if (error) return { error };
   revalidatePath(`/trips/${tripSlug}`);
   return { error: null };
