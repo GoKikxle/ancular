@@ -26,8 +26,10 @@ export type ManualActionInput = {
 /**
  * Inserts a single manually-created action into the trip timeline.
  *
- * Ordering: sort_order is left null so the item sorts purely by time in
- * getTimelineItemsForTrip (which orders by time ASC, sort_order ASC NULLS LAST).
+ * Ordering: sort_order is left null. The canonical sort for getTimelineItemsForTrip is:
+ *   1. event_date ASC NULLS LAST  — items with a date sort before undated rows
+ *   2. time ASC                   — within a day, sort chronologically
+ *   3. sort_order ASC NULLS LAST  — tiebreak for AI-generated items sharing a slot
  *
  * Note encoding: end_time and route are packed into the note column as
  * human-readable text until the schema has dedicated columns for them.
