@@ -278,13 +278,20 @@ export type UpdateTimelineItemInput = {
  *
  * Fields NOT updated here (stable after creation):
  *   trip_id, sort_order, source, source_document_id, created_at
+ *
+ * ── Why .select("id") is required ───────────────────────────────────────────
+ * Supabase JS v2's `.update()` without `.select()` returns
+ * `{ data: null, error: null }` even when ZERO rows are affected — for example
+ * when an RLS policy silently blocks the write, or the id doesn't exist.
+ * Adding `.select("id")` causes PostgREST to return the updated rows so we can
+ * detect a silent no-op and surface it as a real error to the caller.
  */
 export async function updateTimelineItem(
   input: UpdateTimelineItemInput
 ): Promise<{ error: string | null }> {
   const supabase = await createClient();
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("timeline_items")
     .update({
       event_date: input.eventDate,
@@ -292,11 +299,18 @@ export async function updateTimelineItem(
       title: input.title,
       note: input.note,
     })
-    .eq("id", input.id);
+    .eq("id", input.id)
+    .select("id");   // ← returns affected rows; empty array = silent failure
 
   if (error) {
     console.error("[timeline-mutations] Update failed:", error.message);
     return { error: error.message };
+  }
+
+  // No rows returned → the row doesn't exist or an RLS policy blocked the write.
+  if (!data || data.length === 0) {
+    console.error("[timeline-mutations] Update affected 0 rows for id:", input.id);
+    return { error: "Could not save — item not found or permission denied." };
   }
 
   return { error: null };

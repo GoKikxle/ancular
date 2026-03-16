@@ -137,6 +137,12 @@ export async function addManualActionAction(
   return { error: null };
 }
 
+// ISO date format guard — rejects empty / locale-formatted / partial dates
+// before they reach Supabase's DATE column parser.
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+// 24-hour time format guard ("HH:MM")
+const HH_MM_RE = /^\d{2}:\d{2}$/;
+
 /**
  * Updates a single timeline item's editable fields and revalidates the trip page.
  *
@@ -146,18 +152,6 @@ export async function addManualActionAction(
  *   title       — display text  (required)
  *   note        — free text     (optional)
  */
-/**
- * Matches ISO date strings produced by <input type="date">: "YYYY-MM-DD".
- * Rejects empty strings, locale-formatted strings, and partial dates before
- * they reach Supabase's DATE column parser.
- */
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-/**
- * Matches 24-hour time strings produced by <input type="time">: "HH:MM".
- */
-const HH_MM_RE = /^\d{2}:\d{2}$/;
-
 export async function updateTimelineItemAction(
   itemId: string,
   tripSlug: string,
