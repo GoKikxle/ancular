@@ -9,7 +9,9 @@ import {
   appendTimelineItem,
   insertManualTimelineItem,
   deleteTimelineItem,
+  insertDocumentTimelineItems,
 } from "@/lib/timeline-mutations";
+import { generateTimelineItemsFromDocument } from "@/lib/document-to-timeline";
 import type { DocumentCategory } from "@/types/document";
 
 type TripContext = {
@@ -165,49 +167,69 @@ export async function removeDocumentFromTripAction(
 }
 
 /**
- * Attaches an existing vault document to a trip.
- * Duplicate pairs are handled silently by the DB UNIQUE constraint.
+ * Attaches an existing vault document to a trip, then auto-creates timeline
+ * items from the document's category and title.
+ *
+ * Accepts the full document object (not just the ID) so the generation step
+ * has access to `title` and `category` without an extra DB round-trip.
+ *
+ * Duplicate attach pairs are handled silently by the DB UNIQUE constraint.
+ * Duplicate timeline items are filtered by `insertDocumentTimelineItems`.
+ *
+ * Returns { error, timelineItemsCreated } rather than throwing, consistent
+ * with the upload action signature.
  */
 export async function attachDocumentAction(
   tripId: string,
   tripSlug: string,
-  documentId: string
-): Promise<void> {
-  const { error } = await attachDocumentToTrip(tripId, documentId);
-  if (error) throw new Error(error);
+  doc: { id: string; title: string; category: DocumentCategory }
+): Promise<{ error: string | null; timelineItemsCreated: number }> {
+  const { error } = await attachDocumentToTrip(tripId, doc.id);
+  if (error) return { error, timelineItemsCreated: 0 };
+
+  // Auto-create timeline items from the document's category + title.
+  const generated = generateTimelineItemsFromDocument({
+    title: doc.title,
+    category: doc.category,
+  });
+  const { inserted } = await insertDocumentTimelineItems(tripId, generated, doc.id);
+
   revalidatePath(`/trips/${tripSlug}`);
+  return { error: null, timelineItemsCreated: inserted };
 }
 
 /**
- * Uploads a new file to Supabase Storage, creates a documents row, and
- * immediately links it to the trip via trip_documents.
+ * Uploads a new file to Supabase Storage, creates a documents row, links it
+ * to the trip via trip_documents, and auto-creates timeline items from the
+ * document's category and title.
  *
  * Steps:
  *   1. Validate inputs.
- *   2. Upload file → Storage path + public URL.
+ *   2. Upload file → Storage path + signed URL.
  *   3. Insert into documents table.
  *   4. Insert into trip_documents (auto-attach to this trip).
- *   5. Revalidate the trip detail page.
+ *   5. Generate and insert timeline items (deduped by title).
+ *   6. Revalidate the trip detail page.
  *
- * Returns { error: string | null } so the client can display inline feedback
- * without throwing (which would surface as an unhandled error boundary).
+ * Returns { error, timelineItemsCreated } so the client can show a contextual
+ * success message (e.g. "Uploaded · 1 action added to timeline").
  */
 export async function uploadAndAttachDocumentAction(
   tripId: string,
   tripSlug: string,
   formData: FormData
-): Promise<{ error: string | null }> {
+): Promise<{ error: string | null; timelineItemsCreated: number }> {
   const file = formData.get("file") as File | null;
   // The form field is named "name" (HTML convention) but maps to `title` in the DB.
   const title = (formData.get("name") as string | null)?.trim();
   const category = (formData.get("category") as DocumentCategory | null) ?? "other";
 
-  if (!file || file.size === 0) return { error: "Please select a file." };
-  if (!title) return { error: "Please enter a document title." };
+  if (!file || file.size === 0) return { error: "Please select a file.", timelineItemsCreated: 0 };
+  if (!title) return { error: "Please enter a document title.", timelineItemsCreated: 0 };
 
   // 1 — Upload to the bucket that matches the document category
   const { path, bucket, signedUrl, error: storageError } = await uploadToStorage(file, tripId, category);
-  if (storageError) return { error: `Upload failed: ${storageError}` };
+  if (storageError) return { error: `Upload failed: ${storageError}`, timelineItemsCreated: 0 };
 
   // 2 — Insert documents row
   const { document, error: insertError } = await insertDocument({
@@ -219,12 +241,16 @@ export async function uploadAndAttachDocumentAction(
     storage_path: path,
     storage_bucket: bucket,
   });
-  if (insertError || !document) return { error: `Could not save document: ${insertError}` };
+  if (insertError || !document) return { error: `Could not save document: ${insertError}`, timelineItemsCreated: 0 };
 
   // 3 — Attach to trip
   const { error: attachError } = await attachDocumentToTrip(tripId, document.id);
-  if (attachError) return { error: `Uploaded but failed to attach: ${attachError}` };
+  if (attachError) return { error: `Uploaded but failed to attach: ${attachError}`, timelineItemsCreated: 0 };
+
+  // 4 — Auto-create timeline items from category + title (deduped, non-blocking)
+  const generated = generateTimelineItemsFromDocument({ title, category });
+  const { inserted } = await insertDocumentTimelineItems(tripId, generated, document.id);
 
   revalidatePath(`/trips/${tripSlug}`);
-  return { error: null };
+  return { error: null, timelineItemsCreated: inserted };
 }

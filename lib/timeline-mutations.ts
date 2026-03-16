@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { GeneratedItem } from "@/lib/ai-itinerary";
+import type { DocumentGeneratedItem } from "@/lib/document-to-timeline";
 
 /**
  * Input shape for a manually-created timeline action.
@@ -173,4 +174,82 @@ export async function replaceTimelineItems(
   }
 
   return { error: null };
+}
+
+/**
+ * Inserts timeline items generated from a document attachment.
+ *
+ * Deduplication: before inserting, the existing item titles for this trip are
+ * fetched and any generated item whose title already exists is skipped. This
+ * prevents re-attaching the same document (or a document with an identical title)
+ * from creating duplicate timeline rows.
+ *
+ * All inserted items have `event_date: null` so they sort after explicitly-dated
+ * items (NULLS LAST) and the user can fill in the actual date later.
+ *
+ * ── Source metadata ────────────────────────────────────────────────────────────
+ * `documentId` is accepted and intentionally unused until the schema gains a
+ * `source_document_id` column. When that column is available, store it here for
+ * precise per-document deduplication and traceability.
+ *
+ * TODO: run this SQL migration, then store the values below:
+ *   ALTER TABLE timeline_items ADD COLUMN IF NOT EXISTS source TEXT NULL
+ *     CHECK (source IS NULL OR source IN ('manual', 'ai', 'document'));
+ *   ALTER TABLE timeline_items ADD COLUMN IF NOT EXISTS source_document_id UUID NULL
+ *     REFERENCES documents(id) ON DELETE SET NULL;
+ *
+ * Then replace the title-based dedup with:
+ *   SELECT id FROM timeline_items WHERE trip_id = $1 AND source_document_id = $2
+ */
+export async function insertDocumentTimelineItems(
+  tripId: string,
+  items: DocumentGeneratedItem[],
+  /** Prepared for future `source_document_id` column — not yet stored in DB. */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _documentId?: string
+): Promise<{ inserted: number; error: string | null }> {
+  if (items.length === 0) return { inserted: 0, error: null };
+
+  const supabase = await createClient();
+
+  // Fetch existing titles for this trip so we can skip duplicates.
+  const { data: existing, error: fetchError } = await supabase
+    .from("timeline_items")
+    .select("title")
+    .eq("trip_id", tripId);
+
+  if (fetchError) {
+    console.error("[timeline-mutations] Dedup fetch failed:", fetchError.message);
+    return { inserted: 0, error: fetchError.message };
+  }
+
+  const existingTitles = new Set(
+    (existing ?? []).map((row: { title: string }) => row.title.toLowerCase().trim())
+  );
+
+  // Only insert items whose title does not already exist in this trip.
+  const newItems = items.filter(
+    (item) => !existingTitles.has(item.title.toLowerCase().trim())
+  );
+
+  if (newItems.length === 0) return { inserted: 0, error: null };
+
+  const rows = newItems.map((item) => ({
+    trip_id: tripId,
+    event_date: null,    // Unknown until user edits — sorts last (NULLS LAST in getTimelineItemsForTrip)
+    time: item.time,
+    title: item.title,
+    note: item.note,
+    sort_order: null,
+    // TODO: source: "document", source_document_id: documentId — add when columns exist
+  }));
+
+  const { error: insertError } = await supabase.from("timeline_items").insert(rows);
+
+  if (insertError) {
+    console.error("[timeline-mutations] Document timeline insert failed:", insertError.message);
+    return { inserted: 0, error: insertError.message };
+  }
+
+  return { inserted: newItems.length, error: null };
 }

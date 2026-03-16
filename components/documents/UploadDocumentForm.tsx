@@ -10,7 +10,10 @@ type Props = {
   tripSlug: string;
 };
 
-type UploadState = "idle" | "success" | { error: string };
+type UploadState =
+  | "idle"
+  | { success: true; timelineItemsCreated: number }
+  | { error: string };
 
 const CATEGORIES: [DocumentCategory, string][] = [
   ["flight", "Flight"],
@@ -78,16 +81,25 @@ export function UploadDocumentForm({ tripId, tripSlug }: Props) {
       if (result.error) {
         setUploadState({ error: result.error });
       } else {
-        setUploadState("success");
+        setUploadState({ success: true, timelineItemsCreated: result.timelineItemsCreated ?? 0 });
         setTimeout(() => {
           setOpen(false);
           resetForm();
-        }, 1400);
+        }, 1800);
       }
     });
   }
 
-  const errorMessage = typeof uploadState === "object" ? uploadState.error : null;
+  const isSuccess = typeof uploadState === "object" && "success" in uploadState;
+  const errorMessage = typeof uploadState === "object" && "error" in uploadState ? uploadState.error : null;
+
+  function uploadSuccessMessage(): string {
+    if (!isSuccess) return "";
+    const n = (uploadState as { success: true; timelineItemsCreated: number }).timelineItemsCreated;
+    if (n === 0) return "Document uploaded and attached.";
+    if (n === 1) return "Document uploaded · 1 action added to timeline.";
+    return `Document uploaded · ${n} actions added to timeline.`;
+  }
 
   return (
     <div className="mt-2">
@@ -113,7 +125,7 @@ export function UploadDocumentForm({ tripId, tripSlug }: Props) {
             exit="exit"
             className="overflow-hidden"
           >
-            {uploadState === "success" ? (
+            {isSuccess ? (
               <div className="mt-4 flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] px-4 py-3">
                 <svg
                   width="14"
@@ -131,7 +143,7 @@ export function UploadDocumentForm({ tripId, tripSlug }: Props) {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <p className="text-[13px] text-emerald-300">Document uploaded and attached.</p>
+                <p className="text-[13px] text-emerald-300">{uploadSuccessMessage()}</p>
               </div>
             ) : (
               <form
