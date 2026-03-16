@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState, useTransition } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { shouldShowGroupDivider, GROUP_DIVIDER_LABELS } from "@/lib/timeline-view-model";
 import { deleteTimelineItemAction } from "@/app/trips/[tripId]/actions";
 
@@ -20,16 +21,53 @@ type TimelineCardProps = {
   tripSlug: string;
 };
 
+// Trash bin icon — unambiguous "delete" affordance.
+function TrashIcon() {
+  return (
+    <svg width="12" height="13" viewBox="0 0 12 13" fill="none" aria-hidden="true">
+      <path
+        d="M1 3.5h10M4.5 3.5V2.5a.5.5 0 01.5-.5h2a.5.5 0 01.5.5v1"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M2 3.5l.6 7.2a1 1 0 001 .8h4.8a1 1 0 001-.8L10 3.5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M4.5 6.5v3M7.5 6.5v3"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+const confirmSlide = {
+  hidden: { opacity: 0, height: 0 },
+  show: {
+    opacity: 1,
+    height: "auto",
+    transition: { duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] as const },
+  },
+  exit: {
+    opacity: 0,
+    height: 0,
+    transition: { duration: 0.14, ease: [0.55, 0, 1, 0.45] as const },
+  },
+};
+
 export function TimelineCard({ items, tripSlug }: TimelineCardProps) {
-  // ID of the item currently showing the inline "Delete?" confirmation.
-  // Only one item can be in confirm state at a time.
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
-  // ID of the item currently being deleted (used to show pending state).
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function requestConfirm(id: string) {
-    // Tapping a different item's × while another is in confirm: switch focus.
     setConfirmingId(id);
   }
 
@@ -42,8 +80,6 @@ export function TimelineCard({ items, tripSlug }: TimelineCardProps) {
     setConfirmingId(null);
     startTransition(async () => {
       await deleteTimelineItemAction(id, tripSlug);
-      // revalidatePath in the action remounts this component with updated items.
-      // Reset local state defensively in case the component stays mounted.
       setDeletingId(null);
     });
   }
@@ -51,14 +87,13 @@ export function TimelineCard({ items, tripSlug }: TimelineCardProps) {
   if (items.length === 0) return null;
 
   return (
-    // Note: id="timeline" lives on the page wrapper div in page.tsx, not here.
     <section className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5">
       <p className="mb-5 text-[11px] uppercase tracking-[0.1em] text-white/35">
         Itinerary
       </p>
 
       <div className="relative">
-        {/* Vertical connector line — runs behind all items */}
+        {/* Vertical connector line */}
         <div className="absolute bottom-2 left-[7px] top-2 w-px bg-white/[0.07]" />
 
         <div>
@@ -84,10 +119,17 @@ export function TimelineCard({ items, tripSlug }: TimelineCardProps) {
                   </div>
                 )}
 
-                {/* ── Timeline item ──────────────────────────────────────────── */}
+                {/* ── Item row ──────────────────────────────────────────────────
+                     The whole row dims atomically when confirming or deleting,
+                     rather than piecemeal per-element. pointer-events-none while
+                     the delete is in-flight prevents double submissions. */}
                 <div
-                  className={`flex items-start gap-4 transition-opacity ${
-                    isDeleting ? "opacity-40" : "opacity-100"
+                  className={`flex items-start gap-4 transition-opacity duration-150 ${
+                    isDeleting
+                      ? "pointer-events-none opacity-35"
+                      : isConfirming
+                      ? "opacity-55"
+                      : "opacity-100"
                   } ${i > 0 && !divider ? "mt-6" : i > 0 ? "" : ""}`}
                 >
                   {/* Dot */}
@@ -103,7 +145,7 @@ export function TimelineCard({ items, tripSlug }: TimelineCardProps) {
                     />
                   </div>
 
-                  {/* Content — flex-1 so delete affordance never overlaps it */}
+                  {/* Content */}
                   <div className="min-w-0 flex-1 pb-1">
                     <p
                       className={`text-[12px] font-medium tabular-nums ${
@@ -119,8 +161,6 @@ export function TimelineCard({ items, tripSlug }: TimelineCardProps) {
 
                     <h3
                       className={`mt-0.5 font-semibold tracking-[-0.01em] ${
-                        isConfirming ? "text-white/40" : ""
-                      } ${
                         i === 0
                           ? "text-[16px] text-white"
                           : isLater
@@ -134,11 +174,7 @@ export function TimelineCard({ items, tripSlug }: TimelineCardProps) {
                     {item.note && (
                       <p
                         className={`mt-1 text-[13px] leading-relaxed ${
-                          isConfirming
-                            ? "text-white/20"
-                            : isLater
-                            ? "text-white/30"
-                            : "text-white/45"
+                          isLater ? "text-white/30" : "text-white/45"
                         }`}
                       >
                         {item.note}
@@ -159,58 +195,60 @@ export function TimelineCard({ items, tripSlug }: TimelineCardProps) {
                     )}
                   </div>
 
-                  {/* ── Delete affordance ──────────────────────────────────────
-                       Normal state: subtle × icon.
-                       Confirm state: inline Cancel + Delete pill buttons.
-                       Deleting state: spinner-like opacity fade on the whole row. */}
-                  <div className="flex-shrink-0 pt-0.5">
-                    {isConfirming ? (
-                      /* ── Inline confirmation ─────────────────────────────── */
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={cancelConfirm}
-                          disabled={isDeleting}
-                          className="rounded-full border border-white/[0.10] px-2.5 py-1 text-[11px] text-white/35 transition-colors hover:text-white/55 disabled:opacity-40"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(item.id)}
-                          disabled={isDeleting}
-                          className="rounded-full border border-red-500/25 bg-red-500/[0.08] px-2.5 py-1 text-[11px] font-medium text-red-400/70 transition-colors hover:bg-red-500/[0.14] hover:text-red-400 disabled:opacity-40"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    ) : (
-                      /* ── Delete trigger ──────────────────────────────────── */
-                      <button
-                        type="button"
-                        onClick={() => requestConfirm(item.id)}
-                        disabled={isPending}
-                        aria-label={`Delete "${item.title}"`}
-                        className="flex h-7 w-7 items-center justify-center rounded-full text-white/[0.18] transition-colors hover:text-white/40 active:text-red-400/60 disabled:opacity-30"
-                      >
-                        <svg
-                          width="10"
-                          height="10"
-                          viewBox="0 0 10 10"
-                          fill="none"
-                          aria-hidden="true"
-                        >
-                          <path
-                            d="M1.5 1.5L8.5 8.5M8.5 1.5L1.5 8.5"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
+                  {/* ── Delete trigger ────────────────────────────────────────
+                       Hidden while a confirmation or deletion is in progress.
+                       Trash icon is semantically unambiguous as "delete". */}
+                  {!isConfirming && (
+                    <button
+                      type="button"
+                      onClick={() => requestConfirm(item.id)}
+                      disabled={isPending}
+                      aria-label={`Delete "${item.title}"`}
+                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-white/[0.28] transition-colors hover:text-white/50 active:text-red-400/70 disabled:opacity-30"
+                    >
+                      <TrashIcon />
+                    </button>
+                  )}
                 </div>
+
+                {/* ── Confirmation row ──────────────────────────────────────────
+                     Slides in below the item, aligned to the content column
+                     (pl-[31px] = dot 15px + gap 16px). Full-width layout means
+                     buttons have room to breathe and hit adequate touch targets. */}
+                <AnimatePresence initial={false}>
+                  {isConfirming && (
+                    <motion.div
+                      key={`confirm-${item.id}`}
+                      variants={confirmSlide}
+                      initial="hidden"
+                      animate="show"
+                      exit="exit"
+                      className="overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between gap-3 pb-1 pl-[31px] pt-2.5">
+                        <p className="text-[12px] text-white/35">
+                          Remove this action?
+                        </p>
+                        <div className="flex flex-shrink-0 gap-2">
+                          <button
+                            type="button"
+                            onClick={cancelConfirm}
+                            className="rounded-full border border-white/[0.12] px-3 py-1.5 text-[12px] text-white/40 transition-colors hover:text-white/60"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(item.id)}
+                            className="rounded-full border border-red-500/25 bg-red-500/[0.09] px-3 py-1.5 text-[12px] font-medium text-red-400/80 transition-colors hover:bg-red-500/[0.16] hover:text-red-400"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Fragment>
             );
           })}
