@@ -22,6 +22,14 @@ import { createClient } from "@/lib/supabase/server";
  * TODO: extend the schema with these columns when ready:
  *   location        TEXT NULL   -- e.g. "Terminal 2, Gate B14"
  *   document_label  TEXT NULL   -- e.g. "Boarding Pass"
+ *
+ * Source column — activate visual distinction in TimelineCard:
+ *   ALTER TABLE timeline_items
+ *     ADD COLUMN IF NOT EXISTS source TEXT NULL
+ *     CHECK (source IS NULL OR source IN ('manual', 'ai', 'document'));
+ *   Then update insertManualTimelineItem   → source: 'manual'
+ *        update insertDocumentTimelineItems → source: 'document'
+ *        update replaceTimelineItems        → source: 'ai'
  */
 export type DbTimelineItem = {
   id: string;
@@ -35,6 +43,8 @@ export type DbTimelineItem = {
   // Optional — add columns to DB before relying on these:
   location?: string | null;
   document_label?: string | null;
+  /** 'manual' | 'ai' | 'document' — NULL until source column is added to DB. */
+  source?: "manual" | "ai" | "document" | null;
   created_at: string;
 };
 
