@@ -154,17 +154,15 @@ export default async function TripDetailPage({
           />
         </div>
 
-        {/* 4 — Weather: only rendered when real data exists.
-             The placeholder "coming soon" card is omitted so it doesn't occupy
-             visual space and compete with the primary booking-action content. */}
-        {(trip.weather_summary || trip.weather_note) && (
-          <div className="mb-4">
-            <TripWeatherCard
-              summary={trip.weather_summary}
-              note={trip.weather_note}
-            />
-          </div>
-        )}
+        {/* 4 — Weather: always rendered.
+             TripWeatherCard handles its own empty state — shows a "coming soon"
+             placeholder when weather_summary and weather_note are both null. */}
+        <div className="mb-4">
+          <TripWeatherCard
+            summary={trip.weather_summary}
+            note={trip.weather_note}
+          />
+        </div>
 
         {/* 5 — Contextual suggestions.
              Kept for discoverability but visually deprioritized: rendered last,
