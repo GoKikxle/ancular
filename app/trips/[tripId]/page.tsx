@@ -15,6 +15,7 @@ import { getDocumentsForTrip } from "@/lib/trip-documents";
 import { getAllDocuments } from "@/lib/documents";
 import { getSuggestionsForTrip } from "@/lib/trip-suggestions";
 import { buildPrimaryActionView } from "@/lib/timeline-view-model";
+import { getWeatherForDestination } from "@/lib/weather";
 import { notFound } from "next/navigation";
 
 type TripDetailPageProps = {
@@ -34,10 +35,12 @@ export default async function TripDetailPage({
   }
 
   // tripId in the URL is the slug; use trip.id (UUID) for all FK lookups.
-  const [timelineItems, tripDocs, allDocs] = await Promise.all([
+  // Weather is fetched live when destination exists — not stored in DB.
+  const [timelineItems, tripDocs, allDocs, weatherResult] = await Promise.all([
     getTimelineItemsForTrip(trip.id),
     getDocumentsForTrip(trip.id),
     getAllDocuments(),
+    getWeatherForDestination(trip.destination),
   ]);
 
   // Documents in the vault not yet attached to this trip.
@@ -62,12 +65,12 @@ export default async function TripDetailPage({
       ? (tripDocs.find((d) => d.id === primaryAction.documentId)?.file_url ?? null)
       : null;
 
-  // Contextual suggestions — pure, no DB call.
+  // Contextual suggestions — use live weather when available, else fall back to DB fields.
   const suggestions = getSuggestionsForTrip({
     tripTitle: trip.title,
     tripDates: trip.dates,
-    weatherSummary: trip.weather_summary,
-    weatherNote: trip.weather_note,
+    weatherSummary: weatherResult.ok ? weatherResult.summary : trip.weather_summary,
+    weatherNote: weatherResult.ok ? weatherResult.note : trip.weather_note,
   });
 
   return (
@@ -155,15 +158,12 @@ export default async function TripDetailPage({
         </div>
 
         {/* 4 — Weather: always rendered.
-             TripWeatherCard handles all destination states internally:
-             missing → prompt to add destination,
-             weak    → prompt to be more specific,
-             valid   → show weather data or named placeholder. */}
+             Live weather via Open-Meteo when destination exists.
+             Fallbacks for missing destination, geocode failure, or weather fetch failure. */}
         <div className="mb-4">
           <TripWeatherCard
+            weatherResult={weatherResult}
             destination={trip.destination}
-            summary={trip.weather_summary}
-            note={trip.weather_note}
             editHref={`/trips/${trip.slug}/edit`}
           />
         </div>

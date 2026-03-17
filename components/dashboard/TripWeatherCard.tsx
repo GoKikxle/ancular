@@ -1,10 +1,10 @@
 import Link from "next/link";
+import type { LiveWeatherResult } from "@/lib/weather";
 
 type TripWeatherCardProps = {
+  weatherResult: LiveWeatherResult;
   destination?: string | null;
-  summary: string | null;
-  note: string | null;
-  /** href to the trip edit page — used for the "add destination" CTA. */
+  /** href to the trip edit page — used for the "add destination" CTA when no destination. */
   editHref: string;
 };
 
@@ -25,39 +25,36 @@ function PencilIcon({ className }: { className?: string }) {
 /**
  * Weather section on the trip detail page.
  *
- * Three states (in priority order):
+ * Live weather via Open-Meteo when destination exists and geocode + fetch succeed.
  *
- *   1. weather_summary exists → show real weather content (summary + note)
- *   2. destination exists    → destination-aware fallback:
- *      summary: "Destination set: Barcelona, Spain"
- *      note: "Live weather integration coming soon"
- *   3. no destination       → empty state:
- *      summary: "Weather unavailable"
- *      note: "Add a destination to enable weather updates"
- *      + CTA link to edit trip
+ * States:
+ *   - Live data     → summary (e.g. "18°C · Partly cloudy") + note
+ *   - No destination → "Weather unavailable" + "Add a destination..." + CTA
+ *   - Geocode/fetch failed → "Weather unavailable for this destination"
  *
- * Same card layout for all three states — consistent dark premium styling.
+ * Same card layout for all states — consistent dark premium styling.
+ * No trip editing actions inside the card — only a link to edit when destination is missing.
  */
 export function TripWeatherCard({
+  weatherResult,
   destination,
-  summary,
-  note,
   editHref,
 }: TripWeatherCardProps) {
   const hasDestination = Boolean(destination?.trim());
-  const hasRealWeather = Boolean(summary?.trim());
 
-  const displaySummary = hasRealWeather
-    ? summary!
-    : hasDestination
-    ? `Destination set: ${destination!.trim()}`
-    : "Weather unavailable";
+  const displaySummary =
+    weatherResult.ok === true
+      ? weatherResult.summary
+      : weatherResult.reason === "no_destination"
+      ? "Weather unavailable"
+      : "Weather unavailable for this destination";
 
-  const displayNote = hasRealWeather
-    ? note ?? null
-    : hasDestination
-    ? "Live weather integration coming soon"
-    : "Add a destination to enable weather updates";
+  const displayNote =
+    weatherResult.ok === true
+      ? weatherResult.note
+      : weatherResult.reason === "no_destination"
+      ? "Add a destination to enable weather updates"
+      : null;
 
   return (
     <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5">
@@ -71,7 +68,7 @@ export function TripWeatherCard({
           <p className="mt-1.5 text-[13px] leading-relaxed text-white/45">{displayNote}</p>
         )}
 
-        {/* CTA only when no destination — prompt user to add one */}
+        {/* CTA only when no destination — link to edit page to add one */}
         {!hasDestination && (
           <Link
             href={editHref}
