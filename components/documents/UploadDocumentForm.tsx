@@ -15,7 +15,7 @@ type Props = {
 
 type UploadState =
   | "idle"
-  | { success: true; linkedToTimeline: boolean }
+  | { success: true; linkedToTimeline: boolean; linkedItemTitle: string | null }
   | { error: string };
 
 const CATEGORIES: [DocumentCategory, string][] = [
@@ -84,7 +84,11 @@ export function UploadDocumentForm({ tripId, tripSlug, tripDates }: Props) {
       if (result.error) {
         setUploadState({ error: result.error });
       } else {
-        setUploadState({ success: true, linkedToTimeline: result.linkedToTimeline });
+        setUploadState({
+          success: true,
+          linkedToTimeline: result.linkedToTimeline,
+          linkedItemTitle: result.linkedItemTitle,
+        });
         setTimeout(() => {
           setOpen(false);
           resetForm();
@@ -98,11 +102,11 @@ export function UploadDocumentForm({ tripId, tripSlug, tripDates }: Props) {
 
   function uploadSuccessMessage(): string {
     if (!isSuccess) return "";
-    const { linkedToTimeline: linked } =
-      uploadState as { success: true; linkedToTimeline: boolean };
-    return linked
-      ? "Uploaded · linked to timeline action."
-      : "Document uploaded.";
+    const { linkedToTimeline: linked, linkedItemTitle: title } =
+      uploadState as { success: true; linkedToTimeline: boolean; linkedItemTitle: string | null };
+    if (linked && title) return `Uploaded and linked to ${title}.`;
+    if (linked)          return "Uploaded · linked to timeline action.";
+    return "Uploaded successfully. No matching action found yet.";
   }
 
   return (

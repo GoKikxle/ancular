@@ -246,16 +246,17 @@ export async function attachDocumentAction(
   tripId: string,
   tripSlug: string,
   doc: { id: string; title: string; category: DocumentCategory }
-): Promise<{ error: string | null; linkedToTimeline: boolean }> {
+): Promise<{ error: string | null; linkedToTimeline: boolean; linkedItemTitle: string | null }> {
   const { error } = await attachDocumentToTrip(tripId, doc.id);
-  if (error) return { error, linkedToTimeline: false };
+  if (error) return { error, linkedToTimeline: false, linkedItemTitle: null };
 
   // Heuristic auto-link — category-first, keyword-scored, date-aware.
+  // Returns the matched item's title so the UI can show a specific message.
   // Non-fatal: a match failure does not fail the attach itself.
-  const { linked } = await autoLinkDocumentToTimeline(tripId, doc.id, doc.category);
+  const { linked, linkedItemTitle } = await autoLinkDocumentToTimeline(tripId, doc.id, doc.category);
 
   revalidatePath(`/trips/${tripSlug}`);
-  return { error: null, linkedToTimeline: linked };
+  return { error: null, linkedToTimeline: linked, linkedItemTitle };
 }
 
 /**
@@ -292,18 +293,18 @@ export async function uploadAndAttachDocumentAction(
   tripId: string,
   tripSlug: string,
   formData: FormData
-): Promise<{ error: string | null; linkedToTimeline: boolean }> {
+): Promise<{ error: string | null; linkedToTimeline: boolean; linkedItemTitle: string | null }> {
   const file = formData.get("file") as File | null;
   // The form field is named "name" (HTML convention) but maps to `title` in the DB.
   const title = (formData.get("name") as string | null)?.trim();
   const category = (formData.get("category") as DocumentCategory | null) ?? "other";
 
-  if (!file || file.size === 0) return { error: "Please select a file.", linkedToTimeline: false };
-  if (!title) return { error: "Please enter a document title.", linkedToTimeline: false };
+  if (!file || file.size === 0) return { error: "Please select a file.", linkedToTimeline: false, linkedItemTitle: null };
+  if (!title) return { error: "Please enter a document title.", linkedToTimeline: false, linkedItemTitle: null };
 
   // 1 — Upload to the bucket that matches the document category
   const { path, bucket, signedUrl, error: storageError } = await uploadToStorage(file, tripId, category);
-  if (storageError) return { error: `Upload failed: ${storageError}`, linkedToTimeline: false };
+  if (storageError) return { error: `Upload failed: ${storageError}`, linkedToTimeline: false, linkedItemTitle: null };
 
   // 2 — Insert documents row
   const { document, error: insertError } = await insertDocument({
@@ -315,16 +316,17 @@ export async function uploadAndAttachDocumentAction(
     storage_path: path,
     storage_bucket: bucket,
   });
-  if (insertError || !document) return { error: `Could not save document: ${insertError}`, linkedToTimeline: false };
+  if (insertError || !document) return { error: `Could not save document: ${insertError}`, linkedToTimeline: false, linkedItemTitle: null };
 
   // 3 — Attach to trip
   const { error: attachError } = await attachDocumentToTrip(tripId, document.id);
-  if (attachError) return { error: `Uploaded but failed to attach: ${attachError}`, linkedToTimeline: false };
+  if (attachError) return { error: `Uploaded but failed to attach: ${attachError}`, linkedToTimeline: false, linkedItemTitle: null };
 
   // 4 — Heuristic auto-link: only considers items where document_id IS NULL.
   // Category-first matching, keyword-scored, date-aware. Non-fatal.
-  const { linked } = await autoLinkDocumentToTimeline(tripId, document.id, category);
+  // Returns the matched item's title for a specific success message.
+  const { linked, linkedItemTitle } = await autoLinkDocumentToTimeline(tripId, document.id, category);
 
   revalidatePath(`/trips/${tripSlug}`);
-  return { error: null, linkedToTimeline: linked };
+  return { error: null, linkedToTimeline: linked, linkedItemTitle };
 }

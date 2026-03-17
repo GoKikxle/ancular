@@ -17,7 +17,7 @@ type Props = {
 
 type AttachState =
   | "idle"
-  | { success: true; linkedToTimeline: boolean }
+  | { success: true; linkedToTimeline: boolean; linkedItemTitle: string | null }
   | { error: string };
 
 const slideVariants = {
@@ -34,10 +34,10 @@ const slideVariants = {
   },
 };
 
-function successMessage(linked: boolean): string {
-  return linked
-    ? "Attached · linked to timeline action."
-    : "Document attached.";
+function successMessage(linked: boolean, title: string | null): string {
+  if (linked && title) return `Attached and linked to ${title}.`;
+  if (linked)          return "Attached · linked to timeline action.";
+  return "Document attached. No matching action found yet.";
 }
 
 export function AttachDocumentPicker({ tripId, tripSlug, availableDocs, tripDates }: Props) {
@@ -57,7 +57,11 @@ export function AttachDocumentPicker({ tripId, tripSlug, availableDocs, tripDate
       if (result.error) {
         setAttachState({ error: result.error });
       } else {
-        setAttachState({ success: true, linkedToTimeline: result.linkedToTimeline });
+        setAttachState({
+          success: true,
+          linkedToTimeline: result.linkedToTimeline,
+          linkedItemTitle: result.linkedItemTitle,
+        });
         setTimeout(() => {
           setOpen(false);
           setAttachState("idle");
@@ -117,7 +121,8 @@ export function AttachDocumentPicker({ tripId, tripSlug, availableDocs, tripDate
                 </svg>
                 <p className="text-[13px] text-emerald-300">
                   {successMessage(
-                    (attachState as { success: true; linkedToTimeline: boolean }).linkedToTimeline
+                    (attachState as { success: true; linkedToTimeline: boolean; linkedItemTitle: string | null }).linkedToTimeline,
+                    (attachState as { success: true; linkedToTimeline: boolean; linkedItemTitle: string | null }).linkedItemTitle,
                   )}
                 </p>
               </div>

@@ -163,9 +163,9 @@ const CATEGORY_KEYWORDS: Partial<Record<DocumentCategory, WeightedKeyword[]>> = 
 };
 
 /**
- * Minimum score a candidate must reach to be considered a match.
+ * Minimum confidence score a candidate must reach to be considered a match.
  * Prevents single weak-keyword coincidences (e.g. "stay" alone) from
- * creating a link when no real match exists.
+ * producing a link when no real match exists.
  *
  * Examples at threshold 2:
  *   "stay" alone           → score 1 → rejected  ✓
@@ -174,7 +174,7 @@ const CATEGORY_KEYWORDS: Partial<Record<DocumentCategory, WeightedKeyword[]>> = 
  *   "flight" alone         → score 5 → accepted  ✓
  *   "hotel check-in"       → score 9 → accepted  ✓
  */
-const MIN_SCORE = 2;
+export const MIN_SCORE = 2;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -184,6 +184,39 @@ type CandidateItem = {
   note: string;
   event_date: string | null;
   time: string;
+};
+
+/**
+ * Internal result from `findBestAutoLinkTarget`.
+ * Carries the matched item's id, display title, and accumulated score so
+ * callers can surface contextual success messages and future confidence UX.
+ */
+type MatchResult = {
+  id: string;
+  title: string;
+  /** Accumulated keyword score — higher means stronger category signal match. */
+  score: number;
+};
+
+/**
+ * Return type of `autoLinkDocumentToTimeline`.
+ * Exported so server actions and client components can use it as a shared type.
+ */
+export type AutoLinkResult = {
+  /** True when the DB row was successfully updated with document_id. */
+  linked: boolean;
+  /**
+   * Display title of the timeline item that was linked.
+   * Null when `linked` is false.
+   * Use this in success messages: "Uploaded and linked to [linkedItemTitle]."
+   */
+  linkedItemTitle: string | null;
+  /**
+   * Accumulated confidence score of the winning match.
+   * 0 when no match was found or an error occurred.
+   * Exposed for future UX (e.g. "high confidence" vs "suggested" badges).
+   */
+  confidence: number;
 };
 
 // ─── Pure matching logic ──────────────────────────────────────────────────────
@@ -202,21 +235,26 @@ function scoreItem(item: CandidateItem, keywords: WeightedKeyword[]): number {
 
 /**
  * Pure function — given a list of candidate (unlinked) timeline items and a
- * document category, returns the ID of the best item to link, or null if no
+ * document category, returns the best match with its score, or null if no
  * confident match is found.
  *
- * Selection order:
- *   1. Filter to items that reach MIN_SCORE (discards weak coincidences).
- *   2. Sort by accumulated keyword score, highest first.
- *   3. Tiebreak: upcoming items (event_date >= today) before past / undated.
- *   4. Tiebreak: earliest event_date (nulls last), then earliest time.
+ * Matching priority:
+ *   1. Category → selects the keyword set (primary signal).
+ *   2. Keyword score → accumulated weight of matching keywords in title+note
+ *      (medium signal). Only items at or above MIN_SCORE are kept.
+ *   3. Date proximity → upcoming items (event_date >= today) preferred over
+ *      past/undated items among equal-score candidates.
+ *   4. Chronological tiebreak → earliest event_date + time wins.
+ *
+ * Exact title match is NOT a signal here — the match is purely
+ * category-driven so document label variations don't affect linking.
  *
  * Exported for unit-testing; the async runner below is what callers use.
  */
 export function findBestAutoLinkTarget(
   items: CandidateItem[],
   category: DocumentCategory
-): string | null {
+): MatchResult | null {
   const keywords = CATEGORY_KEYWORDS[category];
   if (!keywords || keywords.length === 0) return null;
 
@@ -230,7 +268,7 @@ export function findBestAutoLinkTarget(
   const today = new Date().toISOString().slice(0, 10);
 
   scored.sort((a, b) => {
-    // 1. Higher accumulated score first (most keyword matches / strongest match).
+    // 1. Higher accumulated score first (strongest category keyword match).
     if (b.score !== a.score) return b.score - a.score;
 
     // 2. Upcoming items preferred — they represent the next actionable thing.
@@ -242,8 +280,8 @@ export function findBestAutoLinkTarget(
     if (aUpcoming && !bUpcoming) return -1;
     if (!aUpcoming && bUpcoming) return 1;
 
-    // 3. Among equally-ranked upcoming (or equally past/undated), prefer earliest date.
-    //    Null dates sort last — we prefer dated items for higher confidence.
+    // 3. Among equally-ranked candidates, prefer earliest date.
+    //    Null dates sort last — dated items carry higher location confidence.
     if (aDate !== bDate) {
       if (aDate == null) return 1;
       if (bDate == null) return -1;
@@ -254,34 +292,38 @@ export function findBestAutoLinkTarget(
     return a.item.time < b.item.time ? -1 : 1;
   });
 
-  return scored[0].item.id;
+  const winner = scored[0];
+  return { id: winner.item.id, title: winner.item.title, score: winner.score };
 }
 
 // ─── Async runner ─────────────────────────────────────────────────────────────
 
 /**
- * Fetches all unlinked timeline items for the trip, runs the heuristic matcher,
- * and writes `document_id` onto the best candidate.
+ * Fetches all unlinked timeline items for the trip, runs the confidence-based
+ * heuristic matcher, and writes `document_id` onto the best candidate.
  *
  * Design guarantees:
- *   - Only items with `document_id IS NULL` are considered — no overwrite.
- *   - The UPDATE also guards with `.is("document_id", null)` so a concurrent
- *     request cannot overwrite a link that was just set.
- *   - All errors are logged but non-fatal; the caller always gets a boolean.
+ *   - Only items with `document_id IS NULL` are candidates — no overwrite.
+ *   - The UPDATE uses `.is("document_id", null)` as a conditional guard so a
+ *     concurrent request cannot overwrite a link that was just set.
+ *   - All errors are logged but non-fatal; the caller always gets a result.
+ *   - Does NOT create new timeline items — if no confident match exists the
+ *     document is left attached to the trip but unlinked to any action.
  *
  * @param tripId      The trip whose timeline is searched.
  * @param documentId  The newly attached/uploaded document's UUID.
  * @param category    Document category used to select the keyword set.
- * @returns { linked: true }  when a row was updated,
- *          { linked: false } when no match was found or an error occurred.
+ * @returns AutoLinkResult with linked, linkedItemTitle, and confidence fields.
  */
 export async function autoLinkDocumentToTimeline(
   tripId: string,
   documentId: string,
   category: DocumentCategory
-): Promise<{ linked: boolean }> {
+): Promise<AutoLinkResult> {
+  const noMatch: AutoLinkResult = { linked: false, linkedItemTitle: null, confidence: 0 };
+
   // Fast-exit for categories that have no keyword table (identity, other).
-  if (!(category in CATEGORY_KEYWORDS)) return { linked: false };
+  if (!(category in CATEGORY_KEYWORDS)) return noMatch;
 
   const supabase = await createClient();
 
@@ -296,7 +338,7 @@ export async function autoLinkDocumentToTimeline(
 
   if (fetchError) {
     console.error("[document-auto-link] Fetch failed:", fetchError.message);
-    return { linked: false };
+    return noMatch;
   }
 
   const candidates: CandidateItem[] = (rows ?? []).map((row) => ({
@@ -307,23 +349,33 @@ export async function autoLinkDocumentToTimeline(
     time: (row.time as string) ?? "00:00",
   }));
 
-  const bestId = findBestAutoLinkTarget(candidates, category);
-  if (!bestId) return { linked: false };
+  const match = findBestAutoLinkTarget(candidates, category);
+  if (!match) return noMatch;
 
-  // Conditional update: the `.is("document_id", null)` clause means the write
-  // is a no-op if another request already linked this item. Zero rows affected
-  // returns linked: false, which is accurate — we didn't link anything.
+  // Conditional UPDATE — `.is("document_id", null)` ensures the write is a
+  // no-op if a concurrent request already linked this item.
+  // `.select("id, title")` returns the updated row in a single round-trip so
+  // we can confirm the update succeeded and surface the item title to the UI.
   const { data: updated, error: updateError } = await supabase
     .from("timeline_items")
     .update({ document_id: documentId })
-    .eq("id", bestId)
+    .eq("id", match.id)
     .is("document_id", null)
-    .select("id");
+    .select("id, title");
 
   if (updateError) {
     console.error("[document-auto-link] Link update failed:", updateError.message);
-    return { linked: false };
+    return noMatch;
   }
 
-  return { linked: (updated?.length ?? 0) > 0 };
+  if (!updated || updated.length === 0) {
+    // Race condition: another request linked this item between our fetch and update.
+    return noMatch;
+  }
+
+  return {
+    linked: true,
+    linkedItemTitle: (updated[0].title as string) ?? match.title,
+    confidence: match.score,
+  };
 }
