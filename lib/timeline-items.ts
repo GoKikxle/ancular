@@ -65,6 +65,8 @@ export type DbTimelineItem = {
 export type TripDocOption = {
   id: string;
   title: string;
+  /** Document category (e.g. "flight", "hotel", "booking") displayed alongside the title in selectors. */
+  category: string;
 };
 
 export async function getTimelineItemsForTrip(

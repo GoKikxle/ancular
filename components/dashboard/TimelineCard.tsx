@@ -391,14 +391,18 @@ export function TimelineCard({ items, tripSlug, hasDocuments, tripDocs }: Timeli
                     )}
 
                     {/* Linked document chip — shown when document_id is set.
-                         Looks up the title from tripDocs so no extra DB join is needed.
+                         Looks up the title + category from tripDocs so no extra DB join is needed.
                          Hidden for completed items to keep the timeline clean. */}
                     {!isCompleted && item.document_id && (() => {
                       const linked = tripDocs.find((d) => d.id === item.document_id);
                       return linked ? (
                         <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-white/[0.07] bg-white/[0.03] px-2.5 py-0.5 text-[11px] text-white/35">
                           <DocIcon />
-                          {linked.title}
+                          <span>{linked.title}</span>
+                          <span className="text-white/20">·</span>
+                          <span className="text-white/25">
+                            {linked.category.charAt(0).toUpperCase() + linked.category.slice(1)}
+                          </span>
                         </span>
                       ) : null;
                     })()}

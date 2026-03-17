@@ -180,12 +180,16 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved, tripDo
       </div>
 
       {/* ── Linked document ─────────────────────────────────────────────────── */}
-      {tripDocs.length > 0 && (
-        <div>
-          <label htmlFor={`edit-doc-${item.id}`} className={labelCls}>
-            Linked document{" "}
-            <span className="normal-case text-white/20">(optional)</span>
-          </label>
+      <div>
+        <label htmlFor={`edit-doc-${item.id}`} className={labelCls}>
+          Linked document{" "}
+          <span className="normal-case text-white/20">(optional)</span>
+        </label>
+        {tripDocs.length === 0 ? (
+          <p className="text-[12px] leading-relaxed text-white/22">
+            No documents attached to this trip yet.
+          </p>
+        ) : (
           <div className="relative">
             <select
               id={`edit-doc-${item.id}`}
@@ -197,17 +201,20 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved, tripDo
               {tripDocs.map((doc) => (
                 <option key={doc.id} value={doc.id}>
                   {doc.title}
+                  {" — "}
+                  {doc.category.charAt(0).toUpperCase() + doc.category.slice(1)}
                 </option>
               ))}
             </select>
-            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            {/* Chevron overlay — keeps the control height at h-10 */}
+            <div className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30">
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Inline error ───────────────────────────────────────────────────── */}
       {errorMsg && (
