@@ -15,7 +15,10 @@ type Props = {
   tripDates?: TripDateContext;
 };
 
-type AttachState = "idle" | { success: true; timelineItemsCreated: number } | { error: string };
+type AttachState =
+  | "idle"
+  | { success: true; timelineItemsCreated: number; linkedToTimeline: boolean }
+  | { error: string };
 
 const slideVariants = {
   hidden: { opacity: 0, height: 0 },
@@ -31,10 +34,13 @@ const slideVariants = {
   },
 };
 
-function successMessage(itemsCreated: number): string {
-  if (itemsCreated === 0) return "Document attached.";
-  if (itemsCreated === 1) return "Document attached · 1 action added to timeline.";
-  return `Document attached · ${itemsCreated} actions added to timeline.`;
+function successMessage(itemsCreated: number, linked: boolean): string {
+  if (itemsCreated === 0 && linked)  return "Attached · linked to an existing timeline action.";
+  if (itemsCreated === 0)            return "Document attached.";
+  if (itemsCreated === 1 && linked)  return "Attached · 1 action added and linked to timeline.";
+  if (itemsCreated === 1)            return "Attached · 1 action added to timeline.";
+  if (linked)                        return `Attached · ${itemsCreated} actions added · linked to timeline.`;
+  return `Attached · ${itemsCreated} actions added to timeline.`;
 }
 
 export function AttachDocumentPicker({ tripId, tripSlug, availableDocs, tripDates }: Props) {
@@ -55,7 +61,11 @@ export function AttachDocumentPicker({ tripId, tripSlug, availableDocs, tripDate
       if (result.error) {
         setAttachState({ error: result.error });
       } else {
-        setAttachState({ success: true, timelineItemsCreated: result.timelineItemsCreated });
+        setAttachState({
+          success: true,
+          timelineItemsCreated: result.timelineItemsCreated,
+          linkedToTimeline: result.linkedToTimeline,
+        });
         setTimeout(() => {
           setOpen(false);
           setAttachState("idle");
@@ -115,8 +125,8 @@ export function AttachDocumentPicker({ tripId, tripSlug, availableDocs, tripDate
                 </svg>
                 <p className="text-[13px] text-emerald-300">
                   {successMessage(
-                    (attachState as { success: true; timelineItemsCreated: number })
-                      .timelineItemsCreated
+                    (attachState as { success: true; timelineItemsCreated: number; linkedToTimeline: boolean }).timelineItemsCreated,
+                    (attachState as { success: true; timelineItemsCreated: number; linkedToTimeline: boolean }).linkedToTimeline,
                   )}
                 </p>
               </div>
