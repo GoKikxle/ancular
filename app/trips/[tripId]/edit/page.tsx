@@ -1,8 +1,9 @@
 import { TripEditForm } from "@/components/trips/TripEditForm";
+import { TripActions } from "@/components/trips/TripActions";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { BackButton } from "@/components/layout/BackButton";
 import { getTripBySlug } from "@/lib/trips";
-import { updateTripAction } from "@/app/trips/actions";
+import { updateTripAction, deleteTripAction } from "@/app/trips/actions";
 import { notFound } from "next/navigation";
 
 type EditTripPageProps = {
@@ -33,7 +34,22 @@ export default async function EditTripPage({ params }: EditTripPageProps) {
           <p className="mt-1 text-[14px] text-white/40">{trip.title}</p>
         </header>
 
+        {/* ── Edit fields ────────────────────────────────────────────────────── */}
         <TripEditForm trip={trip} action={updateTripAction} />
+
+        {/* ── Danger zone ────────────────────────────────────────────────────── */}
+        <div className="mt-10">
+          {/* Thin rule + section label */}
+          <div className="mb-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-white/[0.06]" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/20">
+              Danger zone
+            </span>
+            <div className="h-px flex-1 bg-white/[0.06]" />
+          </div>
+
+          <TripActions tripId={trip.id} deleteAction={deleteTripAction} />
+        </div>
       </PageContainer>
     </main>
   );
