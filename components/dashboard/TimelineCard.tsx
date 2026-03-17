@@ -6,6 +6,7 @@ import { computeItemState, getGroupLabel } from "@/lib/timeline-view-model";
 import type { ItemState } from "@/lib/timeline-view-model";
 import { deleteTimelineItemAction } from "@/app/trips/[tripId]/actions";
 import { EditTimelineItemForm } from "./EditTimelineItemForm";
+import type { TripDocOption } from "@/lib/timeline-items";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,12 @@ export type TimelineItem = {
   location?: string | null;
   /** Label for an associated document (e.g. "Boarding Pass"). TODO: backed by `document_label` */
   document_label?: string | null;
+  /**
+   * UUID of the directly linked document. Set via the "Linked document" selector
+   * when creating or editing a timeline item. Requires supabase/add-document-id.sql.
+   * NULL = no document linked.
+   */
+  document_id?: string | null;
   /**
    * Origin of the item. NULL for legacy rows created before the source column existed.
    *   manual   → user added via AddActionForm
@@ -36,8 +43,10 @@ export type TimelineItem = {
 type TimelineCardProps = {
   items: TimelineItem[];
   tripSlug: string;
-  /** When true, the "View document" CTA is shown on the current item. */
+  /** When true, the "View file" CTA is shown on the primary (current/next) item. */
   hasDocuments: boolean;
+  /** Documents attached to this trip. Passed to edit forms and used to render linked-doc chips. */
+  tripDocs: TripDocOption[];
 };
 
 // ─── Icons ─────────────────────────────────────────────────────────────────────
@@ -197,7 +206,7 @@ const confirmSlide = {
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
-export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProps) {
+export function TimelineCard({ items, tripSlug, hasDocuments, tripDocs }: TimelineCardProps) {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -374,12 +383,25 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
                       </p>
                     )}
 
-                    {/* Document label chip */}
+                    {/* Document label chip (legacy text label) */}
                     {!isCompleted && item.document_label && (
                       <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[11px] text-white/38">
                         {item.document_label}
                       </span>
                     )}
+
+                    {/* Linked document chip — shown when document_id is set.
+                         Looks up the title from tripDocs so no extra DB join is needed.
+                         Hidden for completed items to keep the timeline clean. */}
+                    {!isCompleted && item.document_id && (() => {
+                      const linked = tripDocs.find((d) => d.id === item.document_id);
+                      return linked ? (
+                        <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-white/[0.07] bg-white/[0.03] px-2.5 py-0.5 text-[11px] text-white/35">
+                          <DocIcon />
+                          {linked.title}
+                        </span>
+                      ) : null;
+                    })()}
 
                     {/* View file CTA — primary item only (current or first upcoming),
                          only when the trip has at least one attached document. */}
@@ -440,6 +462,7 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
                         tripSlug={tripSlug}
                         onCancel={closeEdit}
                         onSaved={closeEdit}
+                        tripDocs={tripDocs}
                       />
                     </motion.div>
                   )}

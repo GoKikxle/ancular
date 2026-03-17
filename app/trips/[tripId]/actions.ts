@@ -105,6 +105,7 @@ export async function addSuggestionToTimelineAction(
  *   end_time     — HH:MM (optional)
  *   route        — route, venue, or location (optional)
  *   note         — free-text notes (optional)
+ *   document_id  — UUID of a trip-attached document to link (optional, "" = no link)
  */
 export async function addManualActionAction(
   tripId: string,
@@ -117,6 +118,8 @@ export async function addManualActionAction(
   const endTime = (formData.get("end_time") as string | null)?.trim() || undefined;
   const route = (formData.get("route") as string | null)?.trim() || undefined;
   const note = (formData.get("note") as string | null)?.trim() || undefined;
+  // Empty string from the "no document" option is normalised to null.
+  const documentId = (formData.get("document_id") as string | null)?.trim() || null;
 
   if (!eventDate) return { error: "Please select a date for this action." };
   if (!title) return { error: "Please enter a title for this action." };
@@ -129,6 +132,7 @@ export async function addManualActionAction(
     endTime,
     route,
     note,
+    documentId,
   });
 
   if (error) return { error: `Could not save action: ${error}` };
@@ -147,10 +151,11 @@ const HH_MM_RE = /^\d{2}:\d{2}$/;
  * Updates a single timeline item's editable fields and revalidates the trip page.
  *
  * FormData keys:
- *   event_date  — "YYYY-MM-DD" (required)
- *   time        — "HH:MM"      (required)
- *   title       — display text  (required)
- *   note        — free text     (optional)
+ *   event_date   — "YYYY-MM-DD" (required)
+ *   time         — "HH:MM"      (required)
+ *   title        — display text  (required)
+ *   note         — free text     (optional)
+ *   document_id  — UUID to link, "" or absent to clear the link (optional)
  */
 export async function updateTimelineItemAction(
   itemId: string,
@@ -161,6 +166,9 @@ export async function updateTimelineItemAction(
   const time = (formData.get("time") as string | null)?.trim() ?? "";
   const title = (formData.get("title") as string | null)?.trim() ?? "";
   const note = (formData.get("note") as string | null)?.trim() ?? "";
+  // document_id is always present in the edit form (as "" when unlinked).
+  // We normalise "" → null so the mutation can write null to the DB.
+  const documentId = (formData.get("document_id") as string | null)?.trim() || null;
 
   // Validate before hitting Supabase — ISO format guards prevent malformed
   // date strings from reaching the DB's DATE column parser.
@@ -171,7 +179,7 @@ export async function updateTimelineItemAction(
   if (!title)
     return { error: "Please enter a title." };
 
-  const { error } = await updateTimelineItem({ id: itemId, eventDate, time, title, note });
+  const { error } = await updateTimelineItem({ id: itemId, eventDate, time, title, note, documentId });
   if (error) return { error: `Could not update action: ${error}` };
 
   // Invalidate the trip page cache so the next RSC render returns the updated,

@@ -90,17 +90,21 @@ export default async function TripDetailPage({
 
         {/* 2 — Timeline + manual action entry
              id="timeline" lives here so the PrimaryActionCard CTA anchor
-             always resolves, even when TimelineCard renders nothing. */}
+             always resolves, even when TimelineCard renders nothing.
+             tripDocs is passed so document selectors in both forms can show
+             the documents already attached to this trip. */}
         <div id="timeline" className="mb-4 space-y-3">
           <TimelineCard
             items={timelineItems}
             tripSlug={trip.slug}
             hasDocuments={tripDocs.length > 0}
+            tripDocs={tripDocs.map((d) => ({ id: d.id, title: d.title }))}
           />
           <AddActionForm
             tripId={trip.id}
             tripSlug={trip.slug}
             hasExistingItems={timelineItems.length > 0}
+            tripDocs={tripDocs.map((d) => ({ id: d.id, title: d.title }))}
           />
         </div>
 

@@ -15,12 +15,14 @@ import type { DocumentGeneratedItem } from "@/lib/document-to-timeline";
  *   source       TEXT NULL     — 'manual' | 'ai' | 'document'
  */
 export type ManualActionInput = {
-  eventDate: string;    // "YYYY-MM-DD" — from <input type="date">; stored in event_date column
-  time: string;         // "HH:MM" — from <input type="time">
+  eventDate: string;      // "YYYY-MM-DD" — from <input type="date">; stored in event_date column
+  time: string;           // "HH:MM" — from <input type="time">
   title: string;
-  endTime?: string;     // HH:MM, optional
-  route?: string;       // route, venue, or location string
-  note?: string;        // free-text user notes
+  endTime?: string;       // HH:MM, optional
+  route?: string;         // route, venue, or location string
+  note?: string;          // free-text user notes
+  /** UUID of a trip-attached document to link to this action. Stored in document_id column. */
+  documentId?: string | null;
 };
 
 /**
@@ -54,7 +56,8 @@ export async function insertManualTimelineItem(
     time: input.time,
     title: input.title,
     note: noteParts.join(" · "),
-    sort_order: null, // chronological ordering is handled by event_date + time columns
+    sort_order: null,             // chronological ordering is handled by event_date + time columns
+    document_id: input.documentId ?? null,  // requires supabase/add-document-id.sql
     // TODO: source: 'manual', action_type: input.actionType — add when columns exist
   });
 
@@ -268,10 +271,16 @@ export async function insertDocumentTimelineItems(
  */
 export type UpdateTimelineItemInput = {
   id: string;
-  eventDate: string;  // "YYYY-MM-DD"
-  time: string;       // "HH:MM"
+  eventDate: string;    // "YYYY-MM-DD"
+  time: string;         // "HH:MM"
   title: string;
   note: string;
+  /**
+   * UUID of the linked document, or null to unlink.
+   * Undefined means "do not change the existing link".
+   * Pass null explicitly to clear the link.
+   */
+  documentId?: string | null;
 };
 
 /**
@@ -293,14 +302,22 @@ export async function updateTimelineItem(
 ): Promise<{ error: string | null }> {
   const supabase = await createClient();
 
+  // Build the update payload. Always write core fields; only write document_id
+  // when it is explicitly provided (so passing undefined leaves the existing
+  // link untouched, while passing null clears it).
+  const payload: Record<string, unknown> = {
+    event_date: input.eventDate,
+    time: input.time,
+    title: input.title,
+    note: input.note,
+  };
+  if (input.documentId !== undefined) {
+    payload.document_id = input.documentId;   // null = unlink, UUID = link
+  }
+
   const { data, error } = await supabase
     .from("timeline_items")
-    .update({
-      event_date: input.eventDate,
-      time: input.time,
-      title: input.title,
-      note: input.note,
-    })
+    .update(payload)
     .eq("id", input.id)
     .select("id");   // ← returns affected rows; empty array = silent failure
 

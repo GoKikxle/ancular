@@ -4,20 +4,20 @@ import { createClient } from "@/lib/supabase/server";
  * DB shape for a row in the `timeline_items` table.
  *
  * Required columns:
- *   id          UUID PRIMARY KEY DEFAULT gen_random_uuid()
- *   trip_id     UUID NOT NULL REFERENCES trips(id) ON DELETE CASCADE
- *   event_date  DATE NULL              -- "YYYY-MM-DD"; see migration note below
- *   time        TEXT NOT NULL          -- "HH:MM" (24-hour, zero-padded)
- *   title       TEXT NOT NULL
- *   note        TEXT NOT NULL DEFAULT ''
- *   sort_order  INTEGER NULL           -- ascending display order
- *   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+ *   id           UUID PRIMARY KEY DEFAULT gen_random_uuid()
+ *   trip_id      UUID NOT NULL REFERENCES trips(id) ON DELETE CASCADE
+ *   event_date   DATE NULL              -- "YYYY-MM-DD"; see migration note below
+ *   time         TEXT NOT NULL          -- "HH:MM" (24-hour, zero-padded)
+ *   title        TEXT NOT NULL
+ *   note         TEXT NOT NULL DEFAULT ''
+ *   sort_order   INTEGER NULL           -- ascending display order
+ *   document_id  UUID NULL REFERENCES documents(id) ON DELETE SET NULL
+ *                                       -- run supabase/add-document-id.sql
+ *   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
  *
- * ⚠️  Schema migration required for event_date:
- *   Run supabase/add-event-date.sql (or the equivalent Supabase Dashboard SQL):
- *     ALTER TABLE timeline_items ADD COLUMN IF NOT EXISTS event_date DATE NULL;
- *     CREATE INDEX IF NOT EXISTS idx_timeline_items_date_time
- *       ON timeline_items(trip_id, event_date, time);
+ * ⚠️  Schema migrations required:
+ *   event_date:  supabase/add-event-date.sql
+ *   document_id: supabase/add-document-id.sql
  *
  * TODO: extend the schema with these columns when ready:
  *   location        TEXT NULL   -- e.g. "Terminal 2, Gate B14"
@@ -40,12 +40,31 @@ export type DbTimelineItem = {
   title: string;
   note: string;
   sort_order: number | null;
+  /**
+   * UUID of the linked document from the `documents` table.
+   * NULL when no document is associated with this action.
+   * Requires supabase/add-document-id.sql migration.
+   * ON DELETE SET NULL — if the document is deleted from the vault,
+   * this field silently becomes null rather than blocking the delete.
+   */
+  document_id?: string | null;
   // Optional — add columns to DB before relying on these:
   location?: string | null;
   document_label?: string | null;
   /** 'manual' | 'ai' | 'document' — NULL until source column is added to DB. */
   source?: "manual" | "ai" | "document" | null;
   created_at: string;
+};
+
+/**
+ * Minimal document shape passed to timeline forms for the document selector.
+ * Only the fields needed to render the selector and store the FK are included.
+ * Keeping it separate from DbDocument avoids importing the full document type
+ * into every client component that renders a timeline form.
+ */
+export type TripDocOption = {
+  id: string;
+  title: string;
 };
 
 export async function getTimelineItemsForTrip(

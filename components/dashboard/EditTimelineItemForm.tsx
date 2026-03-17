@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { updateTimelineItemAction } from "@/app/trips/[tripId]/actions";
 import type { TimelineItem } from "./TimelineCard";
+import type { TripDocOption } from "@/lib/timeline-items";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -14,6 +15,8 @@ type Props = {
   onCancel: () => void;
   /** Called after a successful save so the parent can close the form. */
   onSaved: () => void;
+  /** Documents already attached to this trip. Empty array hides the selector. */
+  tripDocs: TripDocOption[];
 };
 
 type EditState = "idle" | { error: string };
@@ -37,7 +40,7 @@ const labelCls =
  * The note field shows the full raw packed note (route · ends HH:MM · text)
  * so the user can edit everything in one place until dedicated DB columns exist.
  */
-export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Props) {
+export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved, tripDocs }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [editState, setEditState] = useState<EditState>("idle");
@@ -46,6 +49,8 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Prop
   const [date, setDate] = useState(item.event_date ?? "");
   const [time, setTime] = useState(item.time);
   const [note, setNote] = useState(item.note ?? "");
+  // null = no linked document; "" (empty string) also means no link.
+  const [documentId, setDocumentId] = useState<string>(item.document_id ?? "");
 
   const errorMsg = typeof editState === "object" ? editState.error : null;
 
@@ -63,6 +68,9 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Prop
     formData.set("time", time);
     formData.set("title", title);
     formData.set("note", note);
+    // Always include document_id so the action can write null when unlinked.
+    // Empty string is normalised to null in the action.
+    formData.set("document_id", documentId);
 
     startTransition(async () => {
       const result = await updateTimelineItemAction(item.id, tripSlug, formData);
@@ -170,6 +178,36 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved }: Prop
           className="min-h-[80px] w-full resize-none rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 py-3 text-[13px] leading-relaxed text-white placeholder-white/20 transition-colors focus:border-white/[0.15] focus:outline-none"
         />
       </div>
+
+      {/* ── Linked document ─────────────────────────────────────────────────── */}
+      {tripDocs.length > 0 && (
+        <div>
+          <label htmlFor={`edit-doc-${item.id}`} className={labelCls}>
+            Linked document{" "}
+            <span className="normal-case text-white/20">(optional)</span>
+          </label>
+          <div className="relative">
+            <select
+              id={`edit-doc-${item.id}`}
+              value={documentId}
+              onChange={(e) => setDocumentId(e.target.value)}
+              className="h-10 w-full appearance-none rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 pr-9 text-[13px] text-white [color-scheme:dark] transition-colors focus:border-white/[0.15] focus:outline-none"
+            >
+              <option value="">— None —</option>
+              {tripDocs.map((doc) => (
+                <option key={doc.id} value={doc.id}>
+                  {doc.title}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Inline error ───────────────────────────────────────────────────── */}
       {errorMsg && (

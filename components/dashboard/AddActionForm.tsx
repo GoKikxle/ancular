@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { addManualActionAction } from "@/app/trips/[tripId]/actions";
+import type { TripDocOption } from "@/lib/timeline-items";
 
 // ── Action type config ────────────────────────────────────────────────────────
 
@@ -105,11 +106,13 @@ type Props = {
   tripId: string;
   tripSlug: string;
   hasExistingItems: boolean;
+  /** Documents already attached to this trip. Used to populate the document selector. */
+  tripDocs: TripDocOption[];
 };
 
 type FormState = "idle" | "success" | { error: string };
 
-export function AddActionForm({ tripId, tripSlug, hasExistingItems }: Props) {
+export function AddActionForm({ tripId, tripSlug, hasExistingItems, tripDocs }: Props) {
   const [open, setOpen] = useState(!hasExistingItems);
   const [selectedType, setSelectedType] = useState<ActionTypeValue>("train");
   const [formState, setFormState] = useState<FormState>("idle");
@@ -365,6 +368,41 @@ export function AddActionForm({ tripId, tripSlug, hasExistingItems }: Props) {
                     placeholder="Details, reminders, or booking references"
                     className={`${inputCls} resize-none`}
                   />
+                </div>
+
+                {/* ── Linked document ───────────────────────────────────────── */}
+                <div>
+                  <label htmlFor="action-document" className={labelCls}>
+                    Linked document{" "}
+                    <span className="normal-case text-white/20">(optional)</span>
+                  </label>
+                  {tripDocs.length === 0 ? (
+                    <p className="text-[12px] text-white/25">
+                      No documents attached to this trip yet.
+                    </p>
+                  ) : (
+                    <div className="relative">
+                      <select
+                        id="action-document"
+                        name="document_id"
+                        defaultValue=""
+                        className="h-10 w-full appearance-none rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 pr-9 text-[13px] text-white [color-scheme:dark] transition-colors focus:border-white/[0.15] focus:outline-none"
+                      >
+                        <option value="">— None —</option>
+                        {tripDocs.map((doc) => (
+                          <option key={doc.id} value={doc.id}>
+                            {doc.title}
+                          </option>
+                        ))}
+                      </select>
+                      {/* Dropdown chevron */}
+                      <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                          <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* ── Inline error ─────────────────────────────────────────── */}
