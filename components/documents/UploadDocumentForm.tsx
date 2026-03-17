@@ -15,7 +15,7 @@ type Props = {
 
 type UploadState =
   | "idle"
-  | { success: true; timelineItemsCreated: number; linkedToTimeline: boolean }
+  | { success: true; linkedToTimeline: boolean }
   | { error: string };
 
 const CATEGORIES: [DocumentCategory, string][] = [
@@ -80,15 +80,11 @@ export function UploadDocumentForm({ tripId, tripSlug, tripDates }: Props) {
     setUploadState("idle");
 
     startTransition(async () => {
-      const result = await uploadAndAttachDocumentAction(tripId, tripSlug, formData, tripDates);
+      const result = await uploadAndAttachDocumentAction(tripId, tripSlug, formData);
       if (result.error) {
         setUploadState({ error: result.error });
       } else {
-        setUploadState({
-          success: true,
-          timelineItemsCreated: result.timelineItemsCreated ?? 0,
-          linkedToTimeline: result.linkedToTimeline ?? false,
-        });
+        setUploadState({ success: true, linkedToTimeline: result.linkedToTimeline });
         setTimeout(() => {
           setOpen(false);
           resetForm();
@@ -102,14 +98,11 @@ export function UploadDocumentForm({ tripId, tripSlug, tripDates }: Props) {
 
   function uploadSuccessMessage(): string {
     if (!isSuccess) return "";
-    const { timelineItemsCreated: n, linkedToTimeline: linked } =
-      uploadState as { success: true; timelineItemsCreated: number; linkedToTimeline: boolean };
-    if (n === 0 && linked)  return "Uploaded · linked to an existing timeline action.";
-    if (n === 0)            return "Document uploaded.";
-    if (n === 1 && linked)  return "Uploaded · 1 action added and linked to timeline.";
-    if (n === 1)            return "Uploaded · 1 action added to timeline.";
-    if (linked)             return `Uploaded · ${n} actions added · linked to timeline.`;
-    return `Uploaded · ${n} actions added to timeline.`;
+    const { linkedToTimeline: linked } =
+      uploadState as { success: true; linkedToTimeline: boolean };
+    return linked
+      ? "Uploaded · linked to timeline action."
+      : "Document uploaded.";
   }
 
   return (
