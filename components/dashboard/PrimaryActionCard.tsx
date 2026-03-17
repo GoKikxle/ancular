@@ -47,8 +47,10 @@ function FileIcon() {
  *
  *   1. Active   (fromTimeline: true)
  *      First real timeline item (current or next upcoming). Sky-blue hero with
- *      date+time badge, title, subtitle. CTA is "View file" → #documents when
- *      trip has attached documents, or a muted "See timeline" otherwise.
+ *      date+time badge, title, subtitle.
+ *      CTA: "View file" (opens linked file in a new tab) when fileUrl is set,
+ *           "See timeline" → #timeline when no file is linked,
+ *           never a fake "View file" that just scrolls to the documents list.
  *
  *   2. Guidance (fromTimeline: false, isEmpty: false)
  *      No timeline items, but the trip has fallback copy. Sky-blue hero with
@@ -57,6 +59,10 @@ function FileIcon() {
  *   3. Empty    (isEmpty: true)
  *      No timeline items AND no fallback copy. Muted placeholder card so the
  *      hero slot never shows a blank sky-blue card with an empty title.
+ *
+ * fileUrl (optional) — the signed URL for the document linked to the primary
+ * timeline item. When set, "View file" opens it in a new tab. When null/absent,
+ * the "View file" CTA is suppressed entirely.
  */
 export function PrimaryActionCard({
   title,
@@ -67,7 +73,8 @@ export function PrimaryActionCard({
   fromTimeline,
   hasDocuments,
   isEmpty,
-}: PrimaryActionView) {
+  fileUrl,
+}: PrimaryActionView & { fileUrl?: string | null }) {
 
   // ── State 3: empty ──────────────────────────────────────────────────────────
   if (isEmpty) {
@@ -96,16 +103,18 @@ export function PrimaryActionCard({
   const label = fromTimeline ? "Next action" : "Up next";
 
   // CTA logic:
-  //   real timeline item + documents exist  → "View file"   → #documents
-  //   real timeline item + no documents     → "See timeline" → #timeline
-  //   guidance fallback (no items)          → "Add action"   → #timeline
-  const showViewFile = fromTimeline && hasDocuments;
-  const ctaHref = showViewFile ? "#documents" : "#timeline";
+  //   real timeline item + fileUrl → "View file" opens the actual document
+  //   real timeline item + no file  → "See timeline" (no fake CTA)
+  //   guidance fallback             → "Add action" → #timeline
+  const showViewFile = fromTimeline && !!fileUrl;
   const ctaLabel = showViewFile
     ? "View file"
     : fromTimeline
     ? "See timeline"
     : "Add action";
+
+  // Unused by current CTA logic — kept for potential future use.
+  void hasDocuments;
 
   return (
     <section className="mb-4 rounded-3xl bg-sky-500 px-5 pb-5 pt-5">
@@ -154,19 +163,28 @@ export function PrimaryActionCard({
       )}
 
       {/* ── Row 5: CTA ──────────────────────────────────────────────────────── */}
-      <motion.a
-        href={ctaHref}
-        whileTap={{ scale: 0.97 }}
-        className={`mt-5 flex w-full items-center justify-center gap-2 rounded-2xl py-3 text-[14px] font-semibold ${
-          showViewFile
-            ? "bg-sky-950/90 text-white"
-            : "bg-sky-950/[0.13] text-sky-950/70"
-        }`}
-      >
-        {showViewFile && <FileIcon />}
-        {ctaLabel}
-        {!showViewFile && <ArrowRightIcon />}
-      </motion.a>
+      {showViewFile ? (
+        // Opens the linked document in a new tab — real file, not a scroll anchor.
+        <motion.a
+          href={fileUrl!}
+          target="_blank"
+          rel="noopener noreferrer"
+          whileTap={{ scale: 0.97 }}
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-950/90 py-3 text-[14px] font-semibold text-white"
+        >
+          <FileIcon />
+          {ctaLabel}
+        </motion.a>
+      ) : (
+        <motion.a
+          href="#timeline"
+          whileTap={{ scale: 0.97 }}
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-950/[0.13] py-3 text-[14px] font-semibold text-sky-950/70"
+        >
+          {ctaLabel}
+          <ArrowRightIcon />
+        </motion.a>
+      )}
 
     </section>
   );

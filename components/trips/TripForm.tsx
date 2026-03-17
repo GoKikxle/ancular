@@ -106,24 +106,10 @@ export function TripForm({ action }: TripFormProps) {
         />
       </motion.div>
 
-      {/* ── Status ───────────────────────────────────────────────────────────── */}
-      <motion.div {...fadeUp(0.20)}>
-        <label className={labelClass}>Status</label>
-        <select name="status" defaultValue="Upcoming" className={fieldClass}>
-          <option value="Upcoming" className="bg-neutral-900">
-            Upcoming
-          </option>
-          <option value="Active" className="bg-neutral-900">
-            Active
-          </option>
-          <option value="Past" className="bg-neutral-900">
-            Past
-          </option>
-        </select>
-      </motion.div>
+      {/* Status is computed automatically from the dates above — no field needed. */}
 
       {/* ── Submit ───────────────────────────────────────────────────────────── */}
-      <motion.div {...fadeUp(0.25)} className="pt-2">
+      <motion.div {...fadeUp(0.20)} className="pt-2">
         <motion.button
           type="submit"
           whileTap={{ scale: 0.98 }}

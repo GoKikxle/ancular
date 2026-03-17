@@ -137,6 +137,12 @@ export type PrimaryActionView = {
    * Backed by the optional `document_label` column — null until the column exists.
    */
   documentLabel: string | null;
+  /**
+   * UUID of the document linked to this timeline item.
+   * Used by the trip detail page to look up the file_url for the "View file" CTA.
+   * Null when no document is linked.
+   */
+  documentId: string | null;
   /** True when built from a real timeline item (vs. trip-level fallback copy). */
   fromTimeline: boolean;
   /** True when the trip has at least one document attached. */
@@ -186,6 +192,7 @@ export function buildPrimaryActionView(
       time: primaryItem.time,
       eventDate: primaryItem.event_date ?? null,
       documentLabel: primaryItem.document_label ?? null,
+      documentId: primaryItem.document_id ?? null,
       fromTimeline: true,
       hasDocuments,
       isEmpty: false,
@@ -203,6 +210,7 @@ export function buildPrimaryActionView(
       time: null,
       eventDate: null,
       documentLabel: null,
+      documentId: null,
       fromTimeline: false,
       hasDocuments,
       isEmpty: true,
@@ -216,6 +224,7 @@ export function buildPrimaryActionView(
     time: null,
     eventDate: null,
     documentLabel: null,
+    documentId: null,
     fromTimeline: false,
     hasDocuments,
     isEmpty: false,

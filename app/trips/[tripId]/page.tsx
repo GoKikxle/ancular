@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PrimaryActionCard } from "@/components/dashboard/PrimaryActionCard";
 import { TimelineCard } from "@/components/dashboard/TimelineCard";
 import { AddActionForm } from "@/components/dashboard/AddActionForm";
@@ -53,6 +54,14 @@ export default async function TripDetailPage({
     tripDocs.length > 0
   );
 
+  // Resolve the file URL for the "View file" CTA.
+  // Only populated when the primary timeline item has a document_id that matches
+  // a document currently attached to this trip (has a stored signed URL).
+  const primaryActionFileUrl =
+    primaryAction.documentId
+      ? (tripDocs.find((d) => d.id === primaryAction.documentId)?.file_url ?? null)
+      : null;
+
   // Contextual suggestions — pure, no DB call.
   const suggestions = getSuggestionsForTrip({
     tripTitle: trip.title,
@@ -71,22 +80,33 @@ export default async function TripDetailPage({
 
         {/* Trip header */}
         <header className="mb-6">
-          <p className="text-[11px] uppercase tracking-[0.1em] text-white/35">
-            {trip.status}
-          </p>
-          <h1 className="mt-1 text-[28px] font-semibold tracking-[-0.02em]">
-            {trip.title}
-          </h1>
-          <p className="mt-1.5 text-[13px] text-white/50">
-            {trip.dates}
-            {trip.travelers ? ` · ${trip.travelers}` : ""}
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-[0.1em] text-white/35">
+                {trip.status}
+              </p>
+              <h1 className="mt-1 text-[28px] font-semibold tracking-[-0.02em]">
+                {trip.title}
+              </h1>
+              <p className="mt-1.5 text-[13px] text-white/50">
+                {trip.dates}
+                {trip.travelers ? ` · ${trip.travelers}` : ""}
+              </p>
+            </div>
+            {/* Edit link — subtle but reachable */}
+            <Link
+              href={`/trips/${trip.slug}/edit`}
+              className="mt-1 shrink-0 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-[12px] font-medium text-white/40 transition-colors hover:border-white/[0.14] hover:text-white/65"
+            >
+              Edit
+            </Link>
+          </div>
         </header>
 
         {/* 1 — Primary action hero
              Answers: what next, when, which document.
              CTA scrolls to #documents when documents exist. */}
-        <PrimaryActionCard {...primaryAction} />
+        <PrimaryActionCard {...primaryAction} fileUrl={primaryActionFileUrl} />
 
         {/* 2 — Timeline + manual action entry
              id="timeline" lives here so the PrimaryActionCard CTA anchor

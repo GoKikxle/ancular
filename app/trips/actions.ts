@@ -1,36 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createTrip, deleteTripById } from "@/lib/trip-mutations";
-
-/**
- * Formats two "YYYY-MM-DD" date strings into a human-readable range like
- * "Jun 10 → Jun 17, 2025". Used to populate the `dates` display column on trips.
- *
- * Parsing is done in local-time noon to avoid any UTC midnight timezone shifts
- * that can cause off-by-one-day errors with `new Date("YYYY-MM-DD")`.
- */
-function formatTripDates(start: string, end: string): string {
-  const parse = (d: string) => {
-    const [y, m, day] = d.split("-").map(Number);
-    return new Date(y, m - 1, day);
-  };
-
-  const startFmt = parse(start).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-
-  if (!end) return startFmt;
-
-  const endFmt = parse(end).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-
-  return `${startFmt} → ${endFmt}`;
-}
+import { createTrip, updateTrip, deleteTripById } from "@/lib/trip-mutations";
+import { formatTripDates } from "@/lib/trip-status";
 
 export async function createTripAction(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
@@ -38,26 +10,21 @@ export async function createTripAction(formData: FormData) {
   const startDate = String(formData.get("start_date") ?? "").trim();
   const endDate = String(formData.get("end_date") ?? "").trim();
   const travelers = String(formData.get("travelers") ?? "").trim();
-  const status = String(formData.get("status") ?? "Upcoming").trim() as
-    | "Active"
-    | "Upcoming"
-    | "Past";
 
-  if (!title || !slug || !startDate || !travelers) {
+  if (!title || !slug || !startDate) {
     throw new Error("Missing required fields.");
   }
 
-  // Format start/end dates into the human-readable `dates` column value.
-  const dates = formatTripDates(startDate, endDate);
+  // Status is computed automatically from dates inside createTrip().
+  const dates = formatTripDates(startDate, endDate || null);
 
   const trip = await createTrip({
     title,
     slug,
     dates,
-    startDate: startDate,
+    startDate,
     endDate: endDate || null,
     travelers,
-    status,
     nextActionTitle: "Add your next action",
     nextActionDescription: "Set the next important step for this trip.",
     weatherSummary: "",
@@ -65,6 +32,36 @@ export async function createTripAction(formData: FormData) {
   });
 
   redirect(`/trips/${trip.slug}`);
+}
+
+/**
+ * Updates a trip's title, dates, and travelers.
+ * Status is recomputed automatically from the new dates.
+ *
+ * The trip's slug is unchanged — redirect back to the same trip URL.
+ * trip_id and trip_slug are passed as hidden inputs from TripEditForm.
+ */
+export async function updateTripAction(formData: FormData) {
+  const tripId = String(formData.get("trip_id") ?? "").trim();
+  const tripSlug = String(formData.get("trip_slug") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim();
+  const startDate = String(formData.get("start_date") ?? "").trim();
+  const endDate = String(formData.get("end_date") ?? "").trim();
+  const travelers = String(formData.get("travelers") ?? "").trim();
+
+  if (!tripId || !tripSlug || !title || !startDate) {
+    throw new Error("Missing required fields.");
+  }
+
+  await updateTrip({
+    id: tripId,
+    title,
+    startDate,
+    endDate: endDate || null,
+    travelers,
+  });
+
+  redirect(`/trips/${tripSlug}`);
 }
 
 export async function deleteTripAction(formData: FormData) {
