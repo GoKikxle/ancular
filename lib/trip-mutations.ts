@@ -11,6 +11,8 @@ type CreateTripInput = {
   /** ISO date "YYYY-MM-DD" — stored in the structured end_date column. Null if open-ended. */
   endDate: string | null;
   travelers: string;
+  /** Human-readable destination, e.g. "Barcelona, Spain". Single source of truth for weather + context. */
+  destination?: string | null;
   nextActionTitle: string;
   nextActionDescription: string;
   weatherSummary?: string;
@@ -25,6 +27,8 @@ export type UpdateTripInput = {
   /** ISO date "YYYY-MM-DD" — null if open-ended. */
   endDate: string | null;
   travelers: string;
+  /** Human-readable destination, e.g. "Barcelona, Spain". */
+  destination?: string | null;
 };
 
 export async function createTrip(input: CreateTripInput) {
@@ -42,6 +46,7 @@ export async function createTrip(input: CreateTripInput) {
       start_date: input.startDate,
       end_date: input.endDate ?? null,
       travelers: input.travelers,
+      destination: input.destination ?? null,
       status,
       next_action_title: input.nextActionTitle,
       next_action_description: input.nextActionDescription,
@@ -77,6 +82,7 @@ export async function updateTrip(input: UpdateTripInput) {
       dates,
       status,
       travelers: input.travelers,
+      destination: input.destination ?? null,
     })
     .eq("id", input.id)
     .select()

@@ -43,9 +43,25 @@ export function TripEditForm({ trip, action }: TripEditFormProps) {
         />
       </motion.div>
 
+      {/* ── Destination ──────────────────────────────────────────────────────── */}
+      <motion.div {...fadeUp(0.05)}>
+        <label className={labelClass}>
+          Destination{" "}
+          <span className="ml-1.5 normal-case tracking-normal text-white/20">
+            used for weather &amp; insights
+          </span>
+        </label>
+        <input
+          name="destination"
+          defaultValue={trip.destination ?? ""}
+          placeholder="e.g. Barcelona, Spain"
+          className={fieldClass}
+        />
+      </motion.div>
+
       {/* ── Trip dates: start + end — compound card ───────────────────────────
            Same layout as TripForm for visual consistency across create / edit. */}
-      <motion.div {...fadeUp(0.05)}>
+      <motion.div {...fadeUp(0.10)}>
         <label className={labelClass}>Trip dates</label>
         <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04]">
           <div className="grid grid-cols-2 divide-x divide-white/[0.06]">
@@ -85,7 +101,7 @@ export function TripEditForm({ trip, action }: TripEditFormProps) {
       </motion.div>
 
       {/* ── Travelers ────────────────────────────────────────────────────────── */}
-      <motion.div {...fadeUp(0.10)}>
+      <motion.div {...fadeUp(0.15)}>
         <label className={labelClass}>Travelers</label>
         <input
           name="travelers"
@@ -96,7 +112,7 @@ export function TripEditForm({ trip, action }: TripEditFormProps) {
       </motion.div>
 
       {/* ── Auto-status note — compact info row ──────────────────────────────── */}
-      <motion.div {...fadeUp(0.15)}>
+      <motion.div {...fadeUp(0.20)}>
         <div className="flex items-start gap-2.5 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3.5">
           {/* Info circle icon */}
           <svg
@@ -119,7 +135,7 @@ export function TripEditForm({ trip, action }: TripEditFormProps) {
       </motion.div>
 
       {/* ── Submit ───────────────────────────────────────────────────────────── */}
-      <motion.div {...fadeUp(0.20)} className="pt-1">
+      <motion.div {...fadeUp(0.25)} className="pt-1">
         <motion.button
           type="submit"
           whileTap={{ scale: 0.98 }}

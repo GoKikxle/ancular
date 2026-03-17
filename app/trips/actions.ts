@@ -10,6 +10,7 @@ export async function createTripAction(formData: FormData) {
   const startDate = String(formData.get("start_date") ?? "").trim();
   const endDate = String(formData.get("end_date") ?? "").trim();
   const travelers = String(formData.get("travelers") ?? "").trim();
+  const destination = String(formData.get("destination") ?? "").trim() || null;
 
   if (!title || !slug || !startDate) {
     throw new Error("Missing required fields.");
@@ -25,6 +26,7 @@ export async function createTripAction(formData: FormData) {
     startDate,
     endDate: endDate || null,
     travelers,
+    destination,
     nextActionTitle: "Add your next action",
     nextActionDescription: "Set the next important step for this trip.",
     weatherSummary: "",
@@ -48,6 +50,7 @@ export async function updateTripAction(formData: FormData) {
   const startDate = String(formData.get("start_date") ?? "").trim();
   const endDate = String(formData.get("end_date") ?? "").trim();
   const travelers = String(formData.get("travelers") ?? "").trim();
+  const destination = String(formData.get("destination") ?? "").trim() || null;
 
   if (!tripId || !tripSlug || !title || !startDate) {
     throw new Error("Missing required fields.");
@@ -59,6 +62,7 @@ export async function updateTripAction(formData: FormData) {
     startDate,
     endDate: endDate || null,
     travelers,
+    destination,
   });
 
   redirect(`/trips/${tripSlug}`);

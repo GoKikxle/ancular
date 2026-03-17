@@ -155,12 +155,16 @@ export default async function TripDetailPage({
         </div>
 
         {/* 4 — Weather: always rendered.
-             TripWeatherCard handles its own empty state — shows a "coming soon"
-             placeholder when weather_summary and weather_note are both null. */}
+             TripWeatherCard handles all destination states internally:
+             missing → prompt to add destination,
+             weak    → prompt to be more specific,
+             valid   → show weather data or named placeholder. */}
         <div className="mb-4">
           <TripWeatherCard
+            destination={trip.destination}
             summary={trip.weather_summary}
             note={trip.weather_note}
+            editHref={`/trips/${trip.slug}/edit`}
           />
         </div>
 

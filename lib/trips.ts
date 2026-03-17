@@ -7,6 +7,12 @@ export type DbTrip = {
   dates: string;
   travelers: string;
   status: "Active" | "Upcoming" | "Past";
+  /**
+   * Human-readable destination, e.g. "Barcelona, Spain".
+   * Used as the single source of truth for weather and trip context.
+   * Requires: ALTER TABLE trips ADD COLUMN IF NOT EXISTS destination TEXT NULL;
+   */
+  destination?: string | null;
   next_action_title: string;
   next_action_description: string;
   weather_summary: string | null;
