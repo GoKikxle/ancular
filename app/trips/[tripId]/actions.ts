@@ -250,13 +250,15 @@ export async function attachDocumentAction(
   const { error } = await attachDocumentToTrip(tripId, doc.id);
   if (error) return { error, linkedToTimeline: false, linkedItemTitle: null };
 
-  // Heuristic auto-link — category-first, keyword-scored, date-aware.
+  // Confidence-scored auto-link — category + keyword + date + title overlap.
   // Returns the matched item's title so the UI can show a specific message.
-  // Non-fatal: a match failure does not fail the attach itself.
-  const { linked, linkedItemTitle } = await autoLinkDocumentToTimeline(tripId, doc.id, doc.category);
+  // Non-fatal: a score below threshold leaves the document attached but unlinked.
+  const { matched, linkedItemTitle } = await autoLinkDocumentToTimeline(
+    tripId, doc.id, doc.category, doc.title
+  );
 
   revalidatePath(`/trips/${tripSlug}`);
-  return { error: null, linkedToTimeline: linked, linkedItemTitle };
+  return { error: null, linkedToTimeline: matched, linkedItemTitle };
 }
 
 /**
@@ -322,11 +324,13 @@ export async function uploadAndAttachDocumentAction(
   const { error: attachError } = await attachDocumentToTrip(tripId, document.id);
   if (attachError) return { error: `Uploaded but failed to attach: ${attachError}`, linkedToTimeline: false, linkedItemTitle: null };
 
-  // 4 — Heuristic auto-link: only considers items where document_id IS NULL.
-  // Category-first matching, keyword-scored, date-aware. Non-fatal.
-  // Returns the matched item's title for a specific success message.
-  const { linked, linkedItemTitle } = await autoLinkDocumentToTimeline(tripId, document.id, category);
+  // 4 — Confidence-scored auto-link. Only links when score ≥ AUTO_LINK_THRESHOLD.
+  // Passes the document title for the title-overlap bonus component.
+  // Non-fatal: below-threshold docs are attached to the trip but left unlinked.
+  const { matched, linkedItemTitle } = await autoLinkDocumentToTimeline(
+    tripId, document.id, category, title
+  );
 
   revalidatePath(`/trips/${tripSlug}`);
-  return { error: null, linkedToTimeline: linked, linkedItemTitle };
+  return { error: null, linkedToTimeline: matched, linkedItemTitle };
 }

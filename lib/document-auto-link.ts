@@ -1,69 +1,90 @@
 /**
  * Document → Timeline Auto-Linking
  *
- * When a document is uploaded or attached to a trip, this module finds the
- * most relevant unlinked timeline item and sets its `document_id` field.
+ * Finds the most relevant unlinked timeline item for a newly uploaded or
+ * attached document and sets its `document_id` field.
  *
- * ── Matching strategy ────────────────────────────────────────────────────────
+ * ── Confidence scoring model (0 – 100) ──────────────────────────────────────
  *
- *   Priority 1 — Date phase (outer loop, checked in order):
- *     Phase A: items happening today    → most actionable; document likely for now
- *     Phase B: upcoming items           → common case: uploading before a trip
- *     Phase C: undated items            → user hasn't set a date yet; still live
- *     Phase D: past items               → last resort for retrospective uploads
+ *   Component         Range   Notes
+ *   ──────────────    ─────   ─────────────────────────────────────────────────
+ *   Category base      30     Always awarded for passing the category filter.
+ *                             Document label is irrelevant — only category counts.
+ *   Keyword match    0 – 40   min(rawKeywordScore × 8, 40).  Raw score is the
+ *                             sum of weights of all keywords that appear in the
+ *                             timeline item's title + note text.
+ *   Date proximity   0 – 20   How soon the item's event_date is relative to
+ *                             today (see dateProximityPts below).
+ *   Title overlap    0 – 10   Bonus if the document title shares a meaningful
+ *                             word (> 3 chars, non-stop-word) with the item.
+ *   ──────────────    ─────
+ *   Total              100
  *
- *   Past completed items are only matched when NO item in phases A–C qualifies.
- *   This prevents a past "Flight to Barcelona" from beating an upcoming flight.
+ *   AUTO_LINK_THRESHOLD = 70
+ *     ≥ 70  → document is auto-linked to that timeline item
+ *     < 70  → document is attached to the trip only (no link, no new item)
  *
- *   Priority 2 — Keyword score (within each phase):
- *     Each timeline item is scored by summing the weights of all matching
- *     keywords for the document's category. Higher = stronger category match.
- *     Items below MIN_SCORE are discarded.
+ * ── Date proximity points ────────────────────────────────────────────────────
  *
- *   Priority 3 — Chronological tiebreak (within equal score + phase):
- *     Upcoming: earliest date wins (next nearest flight/hotel).
- *     Past:     most recent date wins (closest retrospective match).
- *     Undated:  earlier time wins.
+ *   Today              20    Document most likely relates to today's action
+ *   Upcoming ≤ 7 d     15    Very near — linking is highly actionable
+ *   Upcoming ≤ 30 d    10    Within the trip window
+ *   Upcoming > 30 d     5    Further out but still future
+ *   Undated             3    No date set yet; still live/actionable
+ *   Past                0    Completed — never blocks a future match from winning
  *
  * ── Keyword design ───────────────────────────────────────────────────────────
- *   • Pure alphabetic tokens use \b word boundaries — prevents false positives:
- *       "inn"  → \binn\b  — won't match "dinner"
- *       "fly"  → \bfly\b  — won't match "butterfly"
- *       "stay" → \bstay\b — won't match "stayover"
- *   • Phrases / hyphenated tokens (e.g. "check-in", "pick-up") are literal
- *     substrings — the phrase is already specific enough without boundaries.
- *   • "check-in" is weight 1 in flight (shared signal) so hotel items don't
- *     win when matching a flight document.
+ *   • Pure alphabetic tokens get \b word boundaries:
+ *       "inn"  → /\binn\b/  — won't match "dinner"
+ *       "fly"  → /\bfly\b/  — won't match "butterfly"
+ *       "stay" → /\bstay\b/ — won't match "stayover"
+ *   • Phrases / hyphenated tokens ("check-in", "pick-up") are literal — the
+ *     phrase is specific enough without boundaries.
+ *   • "check-in" is weight 1 in the flight table (shared with hotel) so that a
+ *     hotel "check-in" item never wins over a genuine flight item.
  *
  * ── Supported categories ────────────────────────────────────────────────────
- *   flight  → strong: flight, boarding, airport, departure, arrival, airline,
- *                     outbound
- *             medium: depart, terminal, gate, fly, flying, takeoff, landing,
- *                     passenger
- *             weak:   check-in (shared with hotel — kept low on purpose)
- *   hotel   → strong: hotel, hostel, check-in, checkout, accommodation,
- *                     airbnb, guesthouse
- *             medium: resort, inn, motel, lodge, villa, bed and breakfast,
- *                     guest house, overnight
- *             weak:   stay
- *   booking → strong: reservation, reserved, dinner, restaurant
- *             medium: lunch, brunch, booking, transport, pickup, train, tour,
- *                     excursion, theatre, theater, concert, spa, table, transfer
- *             weak:   activity, ride, show
+ *   flight  → strong (5): flight, boarding, airport, departure, arrival,
+ *                         airline, outbound
+ *             medium (3-4): depart, terminal, takeoff, landing, passenger,
+ *                           gate, fly, flying
+ *             weak   (1): check-in (shared with hotel — deliberately low)
+ *   hotel   → strong (5): hotel, hostel, airbnb, guesthouse
+ *             strong (4): check-in, check in, checkout, check-out, check out,
+ *                         accommodation
+ *             medium (2-3): resort, inn, motel, lodge, villa, guest house,
+ *                           bed and breakfast, overnight
+ *             weak   (1): stay
+ *   booking → strong (4-5): reservation, reserved, dinner, restaurant
+ *             medium (3-4): table, lunch, brunch, booking, spa, transport,
+ *                           transfer, pickup, pick-up, train, tour, excursion,
+ *                           theatre, theater, concert
+ *             weak   (2): activity, show, ride
  *   identity → no linking
  *   other    → no linking
  *
  * ── Architecture upgrade path (OCR / AI) ────────────────────────────────────
  * `findBestAutoLinkTarget` is the single decision boundary.
- * To upgrade to AI/OCR ranking:
- *   1. Accept `extractedText?: string` alongside `items` and `category`.
- *   2. Pass it to an embedding / LLM scorer.
- *   3. Replace or augment `scoreItem` / `bestInPartition` with the AI score.
+ * To upgrade:
+ *   1. Accept `extractedText?: string` alongside `items`, `category`, `docTitle`.
+ *   2. Add an AI/embedding scorer that returns an additional score component.
+ *   3. Blend it into the existing component sum (e.g. aiScore * 0-20).
  * The async runner (`autoLinkDocumentToTimeline`) stays unchanged.
  */
 
 import { createClient } from "@/lib/supabase/server";
 import type { DocumentCategory } from "@/types/document";
+
+// ─── Scoring constants ────────────────────────────────────────────────────────
+
+const CATEGORY_BASE     = 30;   // points for passing the category filter
+const MAX_KEYWORD_PTS   = 40;   // keyword points cap
+const KEYWORD_MULT      = 8;    // raw keyword score × this = keyword points (capped)
+const MAX_DATE_PTS      = 20;   // date proximity cap
+const TITLE_BONUS_PTS   = 10;   // bonus for doc-title ↔ item-title word overlap
+
+/** Score must reach this value for the document to be auto-linked. */
+export const AUTO_LINK_THRESHOLD = 70;
 
 // ─── Weighted keyword types and builder ──────────────────────────────────────
 
@@ -72,19 +93,13 @@ type WeightedKeyword = {
   re: RegExp;
   /** Score contribution when this pattern matches. */
   weight: number;
+  /** Human-readable name used in the `reason` string. */
+  label: string;
 };
 
 /**
- * Builds a WeightedKeyword from a human-readable string.
- *
- * Pure alphabetic tokens get `\b` word-boundary anchors so they only match
- * whole words. Tokens that contain spaces, hyphens, or other non-word characters
- * are matched as literal phrases — the phrase itself prevents false positives.
- *
- * Examples:
- *   kw("inn",      4) → /\binn\b/i    — matches "inn" but NOT "dinner"
- *   kw("check-in", 4) → /check\-in/i  — phrase match, specific enough
- *   kw("fly",      2) → /\bfly\b/i    — matches "fly" but NOT "butterfly"
+ * Builds a WeightedKeyword.
+ * Pure alphabetic tokens get `\b` anchors; phrases are matched literally.
  */
 function kw(keyword: string, weight: number): WeightedKeyword {
   const isPlainWord = /^[a-z]+$/i.test(keyword);
@@ -92,114 +107,93 @@ function kw(keyword: string, weight: number): WeightedKeyword {
   const re = isPlainWord
     ? new RegExp(`\\b${escaped}\\b`, "i")
     : new RegExp(escaped, "i");
-  return { re, weight };
+  return { re, weight, label: keyword };
 }
 
 // ─── Keyword tables ───────────────────────────────────────────────────────────
 
-/**
- * Per-category keyword tables. Weights reflect confidence that a keyword
- * uniquely identifies that action type in a travel context.
- *
- * Cross-contamination note:
- *   "check-in" appears in BOTH flight (weight 1) and hotel (weight 4) tables.
- *   For a hotel doc, a timeline item titled "Hotel check-in" scores 5+4 = 9.
- *   For a flight doc, the same item scores only 1 — any flight-specific item
- *   ("Flight to X", "Boarding pass") will outscore it at weight 5.
- */
 const CATEGORY_KEYWORDS: Partial<Record<DocumentCategory, WeightedKeyword[]>> = {
   flight: [
-    // ── Strong signals ─────────────────────────────────────────────────────
+    // Strong (5)
     kw("flight",    5),
     kw("boarding",  5),
-    kw("airport",   4),
+    kw("airport",   5),
+    // Strong (4)
     kw("departure", 4),
     kw("arrival",   4),
     kw("airline",   4),
-    kw("outbound",  4),  // "Outbound flight", "outbound journey"
-    // ── Medium signals ─────────────────────────────────────────────────────
+    kw("outbound",  4),
+    // Medium (3-4)
     kw("depart",    3),
     kw("terminal",  3),
-    kw("takeoff",   3),  // "Takeoff at 14:30"
-    kw("landing",   3),  // "Landing at 16:00"
-    kw("passenger", 3),  // "Passenger details"
+    kw("takeoff",   3),
+    kw("landing",   3),
+    kw("passenger", 3),
+    kw("fly",       4),     // "Fly to Rome" should match — bumped from 2
+    kw("flying",    4),     // same
     kw("gate",      2),
-    kw("fly",       2),
-    kw("flying",    2),
-    // ── Weak / shared signal — kept at 1 so hotel items never win ──────────
+    // Weak / shared — low weight prevents hotel "check-in" items winning
     kw("check-in",  1),
   ],
 
   hotel: [
-    // ── Strong signals ─────────────────────────────────────────────────────
+    // Strong (5)
     kw("hotel",           5),
     kw("hostel",          5),
-    kw("airbnb",          5),  // extremely common accommodation type
+    kw("airbnb",          5),
     kw("guesthouse",      5),
+    // Strong (4)
     kw("check-in",        4),
     kw("check in",        4),
     kw("checkout",        4),
     kw("check-out",       4),
     kw("check out",       4),
     kw("accommodation",   4),
-    // ── Medium signals ─────────────────────────────────────────────────────
+    // Medium (3)
     kw("resort",          3),
-    kw("inn",             3),   // \binn\b — safe, won't match "dinner"
+    kw("inn",             3),    // \binn\b — safe, won't match "dinner"
     kw("motel",           3),
     kw("lodge",           3),
     kw("villa",           3),
     kw("guest house",     3),
     kw("bed and breakfast", 3),
-    kw("overnight",       2),   // "overnight stay", "overnight at hotel"
-    // ── Weak signal ────────────────────────────────────────────────────────
-    kw("stay",            1),   // \bstay\b — common but ambiguous
+    // Medium (2)
+    kw("overnight",       2),
+    // Weak (1) — ambiguous; acts as a tiny tiebreaker only
+    kw("stay",            1),
   ],
 
   booking: [
-    // ── Strong signals ─────────────────────────────────────────────────────
+    // Strong (5)
     kw("reservation",  5),
+    // Strong (4)
     kw("reserved",     4),
     kw("dinner",       4),
     kw("restaurant",   4),
-    // ── Medium signals ─────────────────────────────────────────────────────
-    kw("table",        3),  // "Table for 2", "table reservation" (\btable\b — safe)
+    kw("pickup",       4),     // "Pickup from hotel" — bumped from 3
+    kw("pick-up",      4),
+    kw("train",        4),     // "Train to London" — bumped from 3
+    // Medium (3)
+    kw("table",        3),     // "Table for 2", \btable\b won't match "timetable"
     kw("lunch",        3),
     kw("brunch",       3),
     kw("booking",      3),
-    kw("spa",          3),  // "Spa booking", "spa treatment"
+    kw("spa",          3),
     kw("transport",    3),
-    kw("transfer",     3),  // "Airport transfer", "hotel transfer"
-    kw("pickup",       3),
-    kw("pick-up",      3),
-    kw("train",        3),
+    kw("transfer",     3),
     kw("tour",         3),
     kw("excursion",    3),
     kw("theatre",      3),
     kw("theater",      3),
     kw("concert",      3),
-    // ── Weak signals ───────────────────────────────────────────────────────
+    // Weak (2)
     kw("activity",     2),
-    kw("show",         2),  // \bshow\b — "West End show" (won't match "shower")
-    kw("ride",         2),  // "Uber ride", "cab ride"
+    kw("show",         2),     // \bshow\b won't match "shower"
+    kw("ride",         2),
   ],
 
   // identity and other intentionally omitted — no auto-linking for those.
 };
-
-/**
- * Minimum confidence score a candidate must reach to be considered a match.
- * Prevents single weak-keyword coincidences from producing a link.
- *
- * Score examples:
- *   "stay" alone              → 1  → rejected  ✓
- *   "check-in" (flight doc)   → 1  → rejected  ✓  (avoids hotel items winning)
- *   "show tonight"            → 2  → accepted  ✓  (weak booking signal)
- *   "gate B14"  (flight doc)  → 2  → accepted  ✓
- *   "Flight to Barcelona"     → 5  → accepted  ✓
- *   "Hotel check-in"          → 9  → accepted  ✓
- *   "Airbnb check-in"         → 9  → accepted  ✓
- */
-export const MIN_SCORE = 2;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -211,124 +205,157 @@ type CandidateItem = {
   time: string;
 };
 
-/**
- * Internal result from `findBestAutoLinkTarget`.
- * Carries the matched item's id, display title, and accumulated score so
- * callers can surface contextual success messages and future confidence UX.
- */
+/** Internal result from `findBestAutoLinkTarget`. */
 type MatchResult = {
   id: string;
   title: string;
-  /** Accumulated keyword score — higher means stronger category signal match. */
   score: number;
+  reason: string;
 };
 
 /**
  * Return type of `autoLinkDocumentToTimeline`.
- * Exported so server actions and client components can use it as a shared type.
+ * Exported so server actions can forward the fields to UI components.
  */
 export type AutoLinkResult = {
-  /** True when the DB row was successfully updated with document_id. */
-  linked: boolean;
+  /** True when a confident match was found and document_id was written. */
+  matched: boolean;
+  /** 0 – 100 confidence score of the best candidate. 0 if no match. */
+  score: number;
+  /** UUID of the linked timeline item. Null when matched is false. */
+  timelineItemId: string | null;
   /**
-   * Display title of the timeline item that was linked.
-   * Null when `linked` is false.
+   * Display title of the linked timeline item.
    * Use this in success messages: "Uploaded and linked to [linkedItemTitle]."
    */
   linkedItemTitle: string | null;
   /**
-   * Accumulated confidence score of the winning match.
-   * 0 when no match was found or an error occurred.
-   * Exposed for future UX (e.g. "high confidence" vs "suggested" badges).
+   * Human-readable explanation of the result.
+   * E.g. "score 85 · keywords: flight · upcoming in 3 days"
+   *      "score 45 below threshold 70"
+   *      "no unlinked timeline items found"
    */
-  confidence: number;
+  reason: string;
 };
 
-// ─── Pure matching logic ──────────────────────────────────────────────────────
+// ─── Scoring helpers ──────────────────────────────────────────────────────────
 
 /**
- * Accumulates the weights of all matching keywords found in the item's
- * concatenated title + note text (case-insensitive).
+ * Returns 0 – MAX_DATE_PTS based on how far the event is from today.
+ * Past items always return 0 so they never beat upcoming items at equal score.
  */
-function scoreItem(item: CandidateItem, keywords: WeightedKeyword[]): number {
-  const text = `${item.title} ${item.note}`.toLowerCase();
-  return keywords.reduce(
-    (sum, { re, weight }) => sum + (re.test(text) ? weight : 0),
-    0
-  );
+function dateProximityPts(eventDate: string | null, today: string): number {
+  if (eventDate == null)     return 3;           // undated — slight nudge
+  if (eventDate < today)     return 0;           // past — no boost
+  if (eventDate === today)   return MAX_DATE_PTS; // today — maximum urgency
+  const msPerDay = 86_400_000;
+  const daysAway = Math.round((Date.parse(eventDate) - Date.parse(today)) / msPerDay);
+  if (daysAway <= 7)         return 15;
+  if (daysAway <= 30)        return 10;
+  return 5;
 }
 
+/** Stop words excluded from title-overlap bonus scoring. */
+const STOP_WORDS = new Set([
+  "to", "at", "for", "and", "the", "in", "on", "from", "with",
+  "via", "of", "a", "an", "my", "our", "its", "by", "up", "out",
+]);
+
 /**
- * Within a pre-filtered partition of items, returns the highest-scoring
- * match at or above MIN_SCORE, or null if none qualify.
+ * Returns TITLE_BONUS_PTS if the document title shares at least one meaningful
+ * word (> 3 chars, non-stop-word) with the timeline item's title + note.
+ * Returns 0 otherwise.
  *
- * Sort within partition: score desc → dated before undated → earlier date →
- * earlier time. The partition itself controls date-phase preference; this
- * function only cares about ranking within that group.
+ * This is an additive bonus only — it never drives the decision on its own.
  */
-function bestInPartition(
-  partition: CandidateItem[],
-  keywords: WeightedKeyword[]
-): MatchResult | null {
-  const scored = partition
-    .map((item) => ({ item, score: scoreItem(item, keywords) }))
-    .filter(({ score }) => score >= MIN_SCORE);
+function titleOverlapBonus(itemText: string, docTitle: string): number {
+  if (!docTitle) return 0;
+  const meaningful = (s: string): string[] =>
+    s.toLowerCase().split(/\W+/).filter((w) => w.length > 3 && !STOP_WORDS.has(w));
+  const itemWords = new Set(meaningful(itemText));
+  return meaningful(docTitle).some((w) => itemWords.has(w)) ? TITLE_BONUS_PTS : 0;
+}
 
-  if (scored.length === 0) return null;
+// ─── Core matcher ─────────────────────────────────────────────────────────────
 
-  scored.sort((a, b) => {
-    // 1. Higher score first.
-    if (b.score !== a.score) return b.score - a.score;
-    // 2. Dated items before undated (more confident match).
-    const aDate = a.item.event_date;
-    const bDate = b.item.event_date;
-    if (aDate !== bDate) {
-      if (aDate == null) return 1;
-      if (bDate == null) return -1;
-      return aDate < bDate ? -1 : 1;
+/**
+ * Scores a single candidate item against the keyword set and date/title signals.
+ * Returns `{ score, reason, matchedLabels }`.
+ */
+function scoreCandidate(
+  item: CandidateItem,
+  keywords: WeightedKeyword[],
+  docTitle: string,
+  today: string
+): { score: number; reason: string } {
+  const itemText = `${item.title} ${item.note}`;
+  const itemTextLower = itemText.toLowerCase();
+
+  // ── Keyword component ─────────────────────────────────────────────────────
+  const matchedLabels: string[] = [];
+  let rawKw = 0;
+  for (const { re, weight, label } of keywords) {
+    if (re.test(itemTextLower)) {
+      rawKw += weight;
+      matchedLabels.push(label);
     }
-    // 3. Earlier time slot.
-    return a.item.time < b.item.time ? -1 : 1;
-  });
+  }
+  const keywordPts = Math.min(rawKw * KEYWORD_MULT, MAX_KEYWORD_PTS);
 
-  const w = scored[0];
-  return { id: w.item.id, title: w.item.title, score: w.score };
+  // ── Date component ────────────────────────────────────────────────────────
+  const datePts = dateProximityPts(item.event_date, today);
+
+  // ── Title overlap bonus ───────────────────────────────────────────────────
+  const titleBonus = titleOverlapBonus(itemText, docTitle);
+
+  // ── Total ─────────────────────────────────────────────────────────────────
+  const score = CATEGORY_BASE + keywordPts + datePts + titleBonus;
+
+  // ── Reason string ─────────────────────────────────────────────────────────
+  const parts: string[] = [];
+  if (matchedLabels.length > 0) {
+    parts.push(`keywords: ${matchedLabels.slice(0, 3).join(", ")}`);
+  }
+  if (datePts >= MAX_DATE_PTS)   parts.push("today");
+  else if (datePts >= 15)        parts.push("upcoming ≤7 days");
+  else if (datePts >= 10)        parts.push("upcoming ≤30 days");
+  else if (datePts >= 5)         parts.push("upcoming");
+  else if (datePts === 3)        parts.push("undated");
+  else                           parts.push("past");
+  if (titleBonus > 0)            parts.push("title overlap");
+
+  const reason =
+    parts.length > 0
+      ? `score ${score} · ${parts.join(" · ")}`
+      : `score ${score} · category base only`;
+
+  return { score, reason };
 }
 
 /**
- * Pure function — given a list of candidate (unlinked) timeline items and a
- * document category, returns the best match, or null if no confident match.
+ * Pure function — scores every candidate, filters to those at or above
+ * AUTO_LINK_THRESHOLD, and returns the highest-scoring match (or null).
  *
- * Matching priority
- * ─────────────────
- * 1. Date phase  (outer priority — checked in order, stopping at first hit)
+ * Scoring priority (all embedded in the single 0-100 score):
+ *   1. Category base (30 pts) — always present; document label is irrelevant.
+ *   2. Keyword match (0-40 pts) — specific travel keywords in item title/note.
+ *   3. Date proximity (0-20 pts) — upcoming items naturally score higher than past.
+ *   4. Title overlap (0-10 pts) — bonus if doc title shares a word with the item.
  *
- *    Phase A — today's items:   document most likely relates to today's action.
- *    Phase B — upcoming items:  most common case — uploading before the trip.
- *                               Sorted by earliest date first so the next
- *                               nearest flight/hotel/booking wins.
- *    Phase C — undated items:   user hasn't set a date; still live/actionable.
- *    Phase D — past items:      last resort for retrospective uploads only.
- *                               Sorted by most-recent date first.
+ * Because date proximity is embedded in the score, upcoming items will naturally
+ * outscore past items with equal keyword matches. Past items are only matched
+ * when no upcoming item reaches the threshold.
  *
- *    Past items are ONLY reached when phases A–C produce no qualified match.
- *    This prevents a completed "Flight to Barcelona" (past) from beating an
- *    upcoming "Fly to New York" when uploading a new boarding pass.
+ * Exported for unit-testing; `autoLinkDocumentToTimeline` is what callers use.
  *
- * 2. Keyword score  (within each phase — higher accumulated weight wins)
- *    Only items scoring ≥ MIN_SCORE are considered.
- *
- * 3. Chronological tiebreak  (within equal score inside a phase)
- *    Upcoming: earliest date → Undated: earlier time → Past: most-recent date.
- *
- * Exact document title is NOT a signal — matching is purely category-driven
- * so variations in how the user names the document never affect linking.
- *
- * Exported for unit-testing; the async runner below is what callers use.
+ * @param items     Unlinked timeline items to score.
+ * @param category  Document category — selects the keyword table.
+ * @param docTitle  Document title — enables the title-overlap bonus.
  */
 export function findBestAutoLinkTarget(
   items: CandidateItem[],
-  category: DocumentCategory
+  category: DocumentCategory,
+  docTitle = ""
 ): MatchResult | null {
   const keywords = CATEGORY_KEYWORDS[category];
   if (!keywords || keywords.length === 0) return null;
@@ -336,66 +363,73 @@ export function findBestAutoLinkTarget(
 
   const today = new Date().toISOString().slice(0, 10);
 
-  // ── Partition items by date phase ────────────────────────────────────────
-  // Pre-sorting within each partition so ties inside bestInPartition are
-  // already in the correct direction for that phase.
+  // Score every item and discard those below the threshold.
+  const qualified = items
+    .map((item) => {
+      const { score, reason } = scoreCandidate(item, keywords, docTitle, today);
+      return { item, score, reason };
+    })
+    .filter(({ score }) => score >= AUTO_LINK_THRESHOLD);
 
-  const todayItems = items.filter(
-    (i) => i.event_date != null && i.event_date === today
-  );
+  if (qualified.length === 0) return null;
 
-  const upcomingItems = items
-    .filter((i) => i.event_date != null && i.event_date > today)
-    .sort((a, b) => a.event_date!.localeCompare(b.event_date!)); // nearest first
+  // Sort: highest score first; ties broken by date (earlier upcoming / more recent
+  // past) then time (earlier slot first).
+  qualified.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    const aDate = a.item.event_date;
+    const bDate = b.item.event_date;
+    if (aDate !== bDate) {
+      if (aDate == null) return 1;
+      if (bDate == null) return -1;
+      return aDate < bDate ? -1 : 1;
+    }
+    return a.item.time < b.item.time ? -1 : 1;
+  });
 
-  const undatedItems = items.filter((i) => i.event_date == null);
-
-  const pastItems = items
-    .filter((i) => i.event_date != null && i.event_date < today)
-    .sort((a, b) => b.event_date!.localeCompare(a.event_date!)); // most-recent first
-
-  // ── Four-phase match — stops at the first phase that yields a result ─────
-  return (
-    bestInPartition(todayItems, keywords) ??
-    bestInPartition(upcomingItems, keywords) ??
-    bestInPartition(undatedItems, keywords) ??
-    bestInPartition(pastItems, keywords) ??
-    null
-  );
+  const w = qualified[0];
+  return { id: w.item.id, title: w.item.title, score: w.score, reason: w.reason };
 }
 
 // ─── Async runner ─────────────────────────────────────────────────────────────
 
 /**
- * Fetches all unlinked timeline items for the trip, runs the confidence-based
- * heuristic matcher, and writes `document_id` onto the best candidate.
+ * Fetches all unlinked timeline items for the trip, runs the confidence scorer,
+ * and writes `document_id` onto the best candidate if it meets the threshold.
  *
- * Design guarantees:
+ * Guarantees:
  *   - Only items with `document_id IS NULL` are candidates — no overwrite.
- *   - The UPDATE uses `.is("document_id", null)` as a conditional guard so a
- *     concurrent request cannot overwrite a link that was just set.
- *   - All errors are logged but non-fatal; the caller always gets a result.
- *   - Does NOT create new timeline items — if no confident match exists the
- *     document is left attached to the trip but unlinked to any action.
+ *   - UPDATE uses `.is("document_id", null)` to guard against race conditions.
+ *   - Does NOT create new timeline items — no match → document attached only.
+ *   - All errors are logged but non-fatal; caller always receives an AutoLinkResult.
  *
- * @param tripId      The trip whose timeline is searched.
- * @param documentId  The newly attached/uploaded document's UUID.
- * @param category    Document category used to select the keyword set.
- * @returns AutoLinkResult with linked, linkedItemTitle, and confidence fields.
+ * @param tripId      Trip whose timeline items are searched.
+ * @param documentId  UUID of the newly uploaded/attached document.
+ * @param category    Document category (selects keyword table).
+ * @param docTitle    Document display title (enables title-overlap bonus).
  */
 export async function autoLinkDocumentToTimeline(
   tripId: string,
   documentId: string,
-  category: DocumentCategory
+  category: DocumentCategory,
+  docTitle = ""
 ): Promise<AutoLinkResult> {
-  const noMatch: AutoLinkResult = { linked: false, linkedItemTitle: null, confidence: 0 };
+  const noMatch = (reason: string): AutoLinkResult => ({
+    matched: false,
+    score: 0,
+    timelineItemId: null,
+    linkedItemTitle: null,
+    reason,
+  });
 
-  // Fast-exit for categories that have no keyword table (identity, other).
-  if (!(category in CATEGORY_KEYWORDS)) return noMatch;
+  // Fast-exit for categories with no keyword table (identity, other).
+  if (!(category in CATEGORY_KEYWORDS)) {
+    return noMatch(`category "${category}" has no keyword table — skipped`);
+  }
 
   const supabase = await createClient();
 
-  // Fetch only unlinked items — already-linked items are never candidates.
+  // Fetch unlinked timeline items only.
   const { data: rows, error: fetchError } = await supabase
     .from("timeline_items")
     .select("id, title, note, event_date, time")
@@ -406,10 +440,14 @@ export async function autoLinkDocumentToTimeline(
 
   if (fetchError) {
     console.error("[document-auto-link] Fetch failed:", fetchError.message);
-    return noMatch;
+    return noMatch("fetch error — see server logs");
   }
 
-  const candidates: CandidateItem[] = (rows ?? []).map((row) => ({
+  if (!rows || rows.length === 0) {
+    return noMatch("no unlinked timeline items found");
+  }
+
+  const candidates: CandidateItem[] = rows.map((row) => ({
     id: row.id as string,
     title: (row.title as string) ?? "",
     note: (row.note as string) ?? "",
@@ -417,13 +455,26 @@ export async function autoLinkDocumentToTimeline(
     time: (row.time as string) ?? "00:00",
   }));
 
-  const match = findBestAutoLinkTarget(candidates, category);
-  if (!match) return noMatch;
+  const match = findBestAutoLinkTarget(candidates, category, docTitle);
 
-  // Conditional UPDATE — `.is("document_id", null)` ensures the write is a
-  // no-op if a concurrent request already linked this item.
-  // `.select("id, title")` returns the updated row in a single round-trip so
-  // we can confirm the update succeeded and surface the item title to the UI.
+  if (!match) {
+    // Compute the best score achieved (even if below threshold) for a useful reason.
+    const today = new Date().toISOString().slice(0, 10);
+    const keywords = CATEGORY_KEYWORDS[category]!;
+    const bestScore = Math.max(
+      0,
+      ...candidates.map(
+        (item) => scoreCandidate(item, keywords, docTitle, today).score
+      )
+    );
+    return noMatch(
+      `best candidate scored ${bestScore}, below threshold ${AUTO_LINK_THRESHOLD}`
+    );
+  }
+
+  // Conditional UPDATE — `.is("document_id", null)` makes the write a no-op
+  // if a concurrent request already linked this item.
+  // `.select("id, title")` retrieves the linked item's title in one round-trip.
   const { data: updated, error: updateError } = await supabase
     .from("timeline_items")
     .update({ document_id: documentId })
@@ -433,17 +484,19 @@ export async function autoLinkDocumentToTimeline(
 
   if (updateError) {
     console.error("[document-auto-link] Link update failed:", updateError.message);
-    return noMatch;
+    return noMatch("update error — see server logs");
   }
 
   if (!updated || updated.length === 0) {
-    // Race condition: another request linked this item between our fetch and update.
-    return noMatch;
+    // Race condition: another request linked this item between fetch and update.
+    return noMatch("item was linked by a concurrent request");
   }
 
   return {
-    linked: true,
+    matched: true,
+    score: match.score,
+    timelineItemId: match.id,
     linkedItemTitle: (updated[0].title as string) ?? match.title,
-    confidence: match.score,
+    reason: match.reason,
   };
 }
