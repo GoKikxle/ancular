@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { classifyDestination } from "@/lib/trip-destination";
 
 type TripWeatherCardProps = {
   destination?: string | null;
@@ -8,26 +7,6 @@ type TripWeatherCardProps = {
   /** href to the trip edit page — used for the "add destination" CTA. */
   editHref: string;
 };
-
-function CloudIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      width="20"
-      height="16"
-      viewBox="0 0 20 16"
-      fill="none"
-      aria-hidden="true"
-      className={className}
-    >
-      <path
-        d="M15 8a4 4 0 00-7.87-.9A3.5 3.5 0 105 15h10a3 3 0 000-6z"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 function PencilIcon({ className }: { className?: string }) {
   return (
@@ -46,22 +25,18 @@ function PencilIcon({ className }: { className?: string }) {
 /**
  * Weather section on the trip detail page.
  *
- * Three destination-driven states:
+ * Three states (in priority order):
  *
- *   missing   — no destination set.
- *               Prompt: "Add a destination to enable weather and trip insights"
- *               CTA: link to edit trip.
+ *   1. weather_summary exists → show real weather content (summary + note)
+ *   2. destination exists    → destination-aware fallback:
+ *      summary: "Destination set: Barcelona, Spain"
+ *      note: "Live weather integration coming soon"
+ *   3. no destination       → empty state:
+ *      summary: "Weather unavailable"
+ *      note: "Add a destination to enable weather updates"
+ *      + CTA link to edit trip
  *
- *   weak      — destination too short or too generic (e.g. "trip", "home").
- *               Prompt: "Add a more specific destination (e.g. Barcelona, Spain)…"
- *               CTA: link to edit trip.
- *
- *   valid     — destination looks like a real place.
- *               • If weather_summary is set: show real summary + note.
- *               • Otherwise: show a named placeholder for this destination.
- *
- * Backward-compat rule: if destination is null but weather_summary exists
- * (seeded/legacy trips), the real weather data is still shown.
+ * Same card layout for all three states — consistent dark premium styling.
  */
 export function TripWeatherCard({
   destination,
@@ -69,11 +44,20 @@ export function TripWeatherCard({
   note,
   editHref,
 }: TripWeatherCardProps) {
-  const strength = classifyDestination(destination);
+  const hasDestination = Boolean(destination?.trim());
+  const hasRealWeather = Boolean(summary?.trim());
 
-  // Backward-compat: seeded trips may have weather data but no destination yet.
-  // In that case, show the data rather than the missing-destination prompt.
-  const hasLegacyWeather = !destination && summary;
+  const displaySummary = hasRealWeather
+    ? summary!
+    : hasDestination
+    ? `Destination set: ${destination!.trim()}`
+    : "Weather unavailable";
+
+  const displayNote = hasRealWeather
+    ? note ?? null
+    : hasDestination
+    ? "Live weather integration coming soon"
+    : "Add a destination to enable weather updates";
 
   return (
     <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5">
@@ -81,82 +65,23 @@ export function TripWeatherCard({
         Weather
       </p>
 
-      {/* ── State: real weather data (valid destination OR legacy seeded data) ── */}
-      {(strength === "valid" || hasLegacyWeather) && summary ? (
-        <div>
-          <p className="text-[26px] font-semibold tracking-[-0.02em]">{summary}</p>
-          {note && (
-            <p className="mt-1.5 text-[13px] leading-relaxed text-white/45">{note}</p>
-          )}
-        </div>
+      <div>
+        <p className="text-[26px] font-semibold tracking-[-0.02em]">{displaySummary}</p>
+        {displayNote && (
+          <p className="mt-1.5 text-[13px] leading-relaxed text-white/45">{displayNote}</p>
+        )}
 
-      ) : strength === "valid" ? (
-        // ── Valid destination but no live data yet ──────────────────────────────
-        <div className="flex items-center gap-3.5">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-white/[0.07] bg-white/[0.03]">
-            <CloudIcon className="text-white/25" />
-          </div>
-          <div>
-            <p className="text-[14px] font-medium text-white/55">
-              {destination}
-            </p>
-            <p className="mt-0.5 text-[12px] text-white/30">
-              Live forecast coming soon
-            </p>
-          </div>
-        </div>
-
-      ) : strength === "weak" ? (
-        // ── Weak / ambiguous destination ────────────────────────────────────────
-        <div className="space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.03]">
-              <CloudIcon className="text-white/20" />
-            </div>
-            <div>
-              <p className="text-[13px] font-medium leading-snug text-white/50">
-                Add a more specific destination
-              </p>
-              <p className="mt-0.5 text-[12px] leading-relaxed text-white/30">
-                Try something like &ldquo;Barcelona, Spain&rdquo; or &ldquo;Tokyo, Japan&rdquo; to
-                see weather updates.
-              </p>
-            </div>
-          </div>
+        {/* CTA only when no destination — prompt user to add one */}
+        {!hasDestination && (
           <Link
             href={editHref}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.10] bg-white/[0.05] px-3 py-2 text-[12px] font-medium text-white/45 transition-colors hover:border-white/[0.18] hover:text-white/70"
-          >
-            <PencilIcon />
-            Edit destination
-          </Link>
-        </div>
-
-      ) : (
-        // ── Missing destination ─────────────────────────────────────────────────
-        <div className="space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.03]">
-              <CloudIcon className="text-white/15" />
-            </div>
-            <div>
-              <p className="text-[13px] font-medium leading-snug text-white/45">
-                Add a destination
-              </p>
-              <p className="mt-0.5 text-[12px] leading-relaxed text-white/28">
-                Set a destination to enable weather forecasts and trip insights.
-              </p>
-            </div>
-          </div>
-          <Link
-            href={editHref}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.10] bg-white/[0.05] px-3 py-2 text-[12px] font-medium text-white/45 transition-colors hover:border-white/[0.18] hover:text-white/70"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-white/[0.10] bg-white/[0.05] px-3 py-2 text-[12px] font-medium text-white/45 transition-colors hover:border-white/[0.18] hover:text-white/70"
           >
             <PencilIcon />
             Add destination
           </Link>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
