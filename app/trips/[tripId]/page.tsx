@@ -93,11 +93,22 @@ export default async function TripDetailPage({
                 {trip.travelers ? ` · ${trip.travelers}` : ""}
               </p>
             </div>
-            {/* Edit link — subtle but reachable */}
+
+            {/* Edit button — pencil icon + label for easy tap target on mobile */}
             <Link
               href={`/trips/${trip.slug}/edit`}
-              className="mt-1 shrink-0 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-[12px] font-medium text-white/40 transition-colors hover:border-white/[0.14] hover:text-white/65"
+              className="mt-1.5 inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/[0.10] bg-white/[0.05] px-3 py-2 text-[12px] font-medium text-white/50 transition-colors hover:border-white/[0.18] hover:bg-white/[0.08] hover:text-white/75"
             >
+              {/* Pencil icon */}
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                <path
+                  d="M7.8 1.2a1.13 1.13 0 011.6 1.6L3.6 8.6 1 9.5 1.9 7 7.8 1.2z"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
               Edit
             </Link>
           </div>

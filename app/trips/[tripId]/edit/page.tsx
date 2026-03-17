@@ -22,11 +22,15 @@ export default async function EditTripPage({ params }: EditTripPageProps) {
           <BackButton href={`/trips/${trip.slug}`} label="Back to trip" />
         </div>
 
-        <header className="mb-6">
-          <h1 className="text-[22px] font-semibold tracking-[-0.02em]">
+        <header className="mb-7">
+          {/* Status badge — shows what was computed from the stored dates */}
+          <span className="inline-block rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.1em] text-white/35">
+            {trip.status}
+          </span>
+          <h1 className="mt-3 text-[26px] font-semibold tracking-[-0.02em]">
             Edit trip
           </h1>
-          <p className="mt-1 text-[13px] text-white/40">{trip.title}</p>
+          <p className="mt-1 text-[14px] text-white/40">{trip.title}</p>
         </header>
 
         <TripEditForm trip={trip} action={updateTripAction} />

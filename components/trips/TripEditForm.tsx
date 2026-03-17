@@ -8,7 +8,7 @@ type TripEditFormProps = {
   action: (formData: FormData) => Promise<void>;
 };
 
-// Same height token as TripForm — locks all controls to a consistent 48px row.
+// Same height token as TripForm — locks all standalone controls to 48px.
 const fieldClass =
   "h-12 w-full rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 text-[14px] text-white placeholder-white/20 focus:border-white/[0.16] focus:bg-white/[0.06] focus:outline-none transition-colors";
 
@@ -44,15 +44,15 @@ export function TripEditForm({ trip, action }: TripEditFormProps) {
       </motion.div>
 
       {/* ── Trip dates: start + end — compound card ───────────────────────────
-           Same compound layout as TripForm for visual consistency. */}
+           Same layout as TripForm for visual consistency across create / edit. */}
       <motion.div {...fadeUp(0.05)}>
         <label className={labelClass}>Trip dates</label>
         <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04]">
           <div className="grid grid-cols-2 divide-x divide-white/[0.06]">
 
             {/* Start date */}
-            <div className="px-4 py-3">
-              <p className="mb-1 text-[10px] uppercase tracking-[0.1em] text-white/30">
+            <div className="px-4 py-3.5">
+              <p className="mb-1.5 text-[10px] uppercase tracking-[0.1em] text-white/30">
                 From
               </p>
               <input
@@ -66,8 +66,8 @@ export function TripEditForm({ trip, action }: TripEditFormProps) {
             </div>
 
             {/* End date */}
-            <div className="px-4 py-3">
-              <p className="mb-1 text-[10px] uppercase tracking-[0.1em] text-white/30">
+            <div className="px-4 py-3.5">
+              <p className="mb-1.5 text-[10px] uppercase tracking-[0.1em] text-white/30">
                 To{" "}
                 <span className="normal-case text-white/20">opt.</span>
               </p>
@@ -76,7 +76,7 @@ export function TripEditForm({ trip, action }: TripEditFormProps) {
                 type="date"
                 defaultValue={trip.end_date ?? ""}
                 aria-label="End date (optional)"
-                className="h-6 w-full bg-transparent text-[14px] text-white/50 outline-none [color-scheme:dark]"
+                className="h-6 w-full bg-transparent text-[14px] text-white/60 outline-none [color-scheme:dark]"
               />
             </div>
 
@@ -95,20 +95,35 @@ export function TripEditForm({ trip, action }: TripEditFormProps) {
         />
       </motion.div>
 
-      {/* Status is recomputed automatically from dates — no field needed. */}
+      {/* ── Auto-status note — compact info row ──────────────────────────────── */}
       <motion.div {...fadeUp(0.15)}>
-        <p className="text-[12px] leading-relaxed text-white/25">
-          Trip status (Upcoming / Active / Past) updates automatically based on
-          the dates above.
-        </p>
+        <div className="flex items-start gap-2.5 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3.5">
+          {/* Info circle icon */}
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            className="mt-px shrink-0 text-white/25"
+            aria-hidden="true"
+          >
+            <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2" />
+            <path d="M7 6.5v3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+            <circle cx="7" cy="4.5" r="0.75" fill="currentColor" />
+          </svg>
+          <p className="text-[12px] leading-relaxed text-white/30">
+            Trip status (Upcoming · Active · Past) is computed automatically
+            from the dates above — no need to set it manually.
+          </p>
+        </div>
       </motion.div>
 
       {/* ── Submit ───────────────────────────────────────────────────────────── */}
-      <motion.div {...fadeUp(0.20)} className="pt-2">
+      <motion.div {...fadeUp(0.20)} className="pt-1">
         <motion.button
           type="submit"
           whileTap={{ scale: 0.98 }}
-          className="w-full rounded-2xl bg-white px-4 py-3.5 text-[14px] font-semibold text-neutral-950 transition-colors hover:bg-white/90"
+          className="w-full rounded-2xl bg-white px-4 py-4 text-[15px] font-semibold text-neutral-950 transition-colors hover:bg-white/90"
         >
           Save changes
         </motion.button>
