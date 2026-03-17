@@ -4,41 +4,52 @@
  * When a document is uploaded or attached to a trip, this module finds the
  * most relevant unlinked timeline item and sets its `document_id` field.
  *
- * ── How it works ────────────────────────────────────────────────────────────
- *   1. Only considers timeline items where `document_id IS NULL`.
- *      Items already linked are never overwritten.
- *   2. Each timeline item is scored by summing the weights of all matching
- *      keywords for the document's category (weighted regex matching).
- *   3. Items below MIN_SCORE_THRESHOLD are discarded — only confident matches
- *      produce a link.
- *   4. Among remaining candidates, picks the one with:
- *        a. Highest accumulated keyword score.
- *        b. Upcoming date (event_date >= today) preferred over past/undated.
- *        c. Earliest event_date + time as final tiebreaker.
- *   5. Updates exactly one row in a single conditional UPDATE
- *      (.is("document_id", null)) so a race condition can never overwrite
- *      a link that another request just created.
+ * ── Matching strategy ────────────────────────────────────────────────────────
+ *
+ *   Priority 1 — Date phase (outer loop, checked in order):
+ *     Phase A: items happening today    → most actionable; document likely for now
+ *     Phase B: upcoming items           → common case: uploading before a trip
+ *     Phase C: undated items            → user hasn't set a date yet; still live
+ *     Phase D: past items               → last resort for retrospective uploads
+ *
+ *   Past completed items are only matched when NO item in phases A–C qualifies.
+ *   This prevents a past "Flight to Barcelona" from beating an upcoming flight.
+ *
+ *   Priority 2 — Keyword score (within each phase):
+ *     Each timeline item is scored by summing the weights of all matching
+ *     keywords for the document's category. Higher = stronger category match.
+ *     Items below MIN_SCORE are discarded.
+ *
+ *   Priority 3 — Chronological tiebreak (within equal score + phase):
+ *     Upcoming: earliest date wins (next nearest flight/hotel).
+ *     Past:     most recent date wins (closest retrospective match).
+ *     Undated:  earlier time wins.
  *
  * ── Keyword design ───────────────────────────────────────────────────────────
- *   • Pure alphabetic tokens use \b word boundaries to prevent false positives:
+ *   • Pure alphabetic tokens use \b word boundaries — prevents false positives:
  *       "inn"  → \binn\b  — won't match "dinner"
- *       "fly"  → \bfly\b  — won't match "butterfly" or "flyover"
- *       "stay" → \bstay\b — won't match "staying"
- *   • Phrases / hyphenated tokens (e.g. "check-in", "check out") are matched
- *     as literal substrings — the phrase itself is already specific enough.
- *   • "check-in" is deliberately low-weight (1) in the flight table because it
- *     also appears in hotel item titles; high-weight hotel keywords dominate.
+ *       "fly"  → \bfly\b  — won't match "butterfly"
+ *       "stay" → \bstay\b — won't match "stayover"
+ *   • Phrases / hyphenated tokens (e.g. "check-in", "pick-up") are literal
+ *     substrings — the phrase is already specific enough without boundaries.
+ *   • "check-in" is weight 1 in flight (shared signal) so hotel items don't
+ *     win when matching a flight document.
  *
  * ── Supported categories ────────────────────────────────────────────────────
- *   flight  → strong: flight, boarding, airport, departure, arrival, airline
- *             medium: depart, terminal, gate, fly, flying
- *             weak:   check-in (to avoid hotel items winning)
- *   hotel   → strong: hotel, hostel, check-in, checkout, accommodation
- *             medium: resort, inn, motel, lodge, villa, bed and breakfast
+ *   flight  → strong: flight, boarding, airport, departure, arrival, airline,
+ *                     outbound
+ *             medium: depart, terminal, gate, fly, flying, takeoff, landing,
+ *                     passenger
+ *             weak:   check-in (shared with hotel — kept low on purpose)
+ *   hotel   → strong: hotel, hostel, check-in, checkout, accommodation,
+ *                     airbnb, guesthouse
+ *             medium: resort, inn, motel, lodge, villa, bed and breakfast,
+ *                     guest house, overnight
  *             weak:   stay
  *   booking → strong: reservation, reserved, dinner, restaurant
  *             medium: lunch, brunch, booking, transport, pickup, train, tour,
- *                     excursion, theatre, theater, concert, activity
+ *                     excursion, theatre, theater, concert, spa, table, transfer
+ *             weak:   activity, ride, show
  *   identity → no linking
  *   other    → no linking
  *
@@ -47,7 +58,7 @@
  * To upgrade to AI/OCR ranking:
  *   1. Accept `extractedText?: string` alongside `items` and `category`.
  *   2. Pass it to an embedding / LLM scorer.
- *   3. Replace or augment `scoreItem` with the AI score.
+ *   3. Replace or augment `scoreItem` / `bestInPartition` with the AI score.
  * The async runner (`autoLinkDocumentToTimeline`) stays unchanged.
  */
 
@@ -105,13 +116,17 @@ const CATEGORY_KEYWORDS: Partial<Record<DocumentCategory, WeightedKeyword[]>> = 
     kw("departure", 4),
     kw("arrival",   4),
     kw("airline",   4),
+    kw("outbound",  4),  // "Outbound flight", "outbound journey"
     // ── Medium signals ─────────────────────────────────────────────────────
     kw("depart",    3),
     kw("terminal",  3),
+    kw("takeoff",   3),  // "Takeoff at 14:30"
+    kw("landing",   3),  // "Landing at 16:00"
+    kw("passenger", 3),  // "Passenger details"
     kw("gate",      2),
     kw("fly",       2),
     kw("flying",    2),
-    // ── Weak / shared signal — kept low to avoid matching hotel items ──────
+    // ── Weak / shared signal — kept at 1 so hotel items never win ──────────
     kw("check-in",  1),
   ],
 
@@ -119,6 +134,8 @@ const CATEGORY_KEYWORDS: Partial<Record<DocumentCategory, WeightedKeyword[]>> = 
     // ── Strong signals ─────────────────────────────────────────────────────
     kw("hotel",           5),
     kw("hostel",          5),
+    kw("airbnb",          5),  // extremely common accommodation type
+    kw("guesthouse",      5),
     kw("check-in",        4),
     kw("check in",        4),
     kw("checkout",        4),
@@ -131,7 +148,9 @@ const CATEGORY_KEYWORDS: Partial<Record<DocumentCategory, WeightedKeyword[]>> = 
     kw("motel",           3),
     kw("lodge",           3),
     kw("villa",           3),
+    kw("guest house",     3),
     kw("bed and breakfast", 3),
+    kw("overnight",       2),   // "overnight stay", "overnight at hotel"
     // ── Weak signal ────────────────────────────────────────────────────────
     kw("stay",            1),   // \bstay\b — common but ambiguous
   ],
@@ -143,10 +162,13 @@ const CATEGORY_KEYWORDS: Partial<Record<DocumentCategory, WeightedKeyword[]>> = 
     kw("dinner",       4),
     kw("restaurant",   4),
     // ── Medium signals ─────────────────────────────────────────────────────
+    kw("table",        3),  // "Table for 2", "table reservation" (\btable\b — safe)
     kw("lunch",        3),
     kw("brunch",       3),
     kw("booking",      3),
+    kw("spa",          3),  // "Spa booking", "spa treatment"
     kw("transport",    3),
+    kw("transfer",     3),  // "Airport transfer", "hotel transfer"
     kw("pickup",       3),
     kw("pick-up",      3),
     kw("train",        3),
@@ -155,8 +177,10 @@ const CATEGORY_KEYWORDS: Partial<Record<DocumentCategory, WeightedKeyword[]>> = 
     kw("theatre",      3),
     kw("theater",      3),
     kw("concert",      3),
-    // ── Weak signal ────────────────────────────────────────────────────────
+    // ── Weak signals ───────────────────────────────────────────────────────
     kw("activity",     2),
+    kw("show",         2),  // \bshow\b — "West End show" (won't match "shower")
+    kw("ride",         2),  // "Uber ride", "cab ride"
   ],
 
   // identity and other intentionally omitted — no auto-linking for those.
@@ -164,15 +188,16 @@ const CATEGORY_KEYWORDS: Partial<Record<DocumentCategory, WeightedKeyword[]>> = 
 
 /**
  * Minimum confidence score a candidate must reach to be considered a match.
- * Prevents single weak-keyword coincidences (e.g. "stay" alone) from
- * producing a link when no real match exists.
+ * Prevents single weak-keyword coincidences from producing a link.
  *
- * Examples at threshold 2:
- *   "stay" alone           → score 1 → rejected  ✓
- *   "check-in" (flight)    → score 1 → rejected  ✓ (avoids hotel items winning for flight docs)
- *   "gate B14" (flight)    → score 2 → accepted  ✓
- *   "flight" alone         → score 5 → accepted  ✓
- *   "hotel check-in"       → score 9 → accepted  ✓
+ * Score examples:
+ *   "stay" alone              → 1  → rejected  ✓
+ *   "check-in" (flight doc)   → 1  → rejected  ✓  (avoids hotel items winning)
+ *   "show tonight"            → 2  → accepted  ✓  (weak booking signal)
+ *   "gate B14"  (flight doc)  → 2  → accepted  ✓
+ *   "Flight to Barcelona"     → 5  → accepted  ✓
+ *   "Hotel check-in"          → 9  → accepted  ✓
+ *   "Airbnb check-in"         → 9  → accepted  ✓
  */
 export const MIN_SCORE = 2;
 
@@ -223,7 +248,7 @@ export type AutoLinkResult = {
 
 /**
  * Accumulates the weights of all matching keywords found in the item's
- * concatenated title + note text.
+ * concatenated title + note text (case-insensitive).
  */
 function scoreItem(item: CandidateItem, keywords: WeightedKeyword[]): number {
   const text = `${item.title} ${item.note}`.toLowerCase();
@@ -234,20 +259,70 @@ function scoreItem(item: CandidateItem, keywords: WeightedKeyword[]): number {
 }
 
 /**
+ * Within a pre-filtered partition of items, returns the highest-scoring
+ * match at or above MIN_SCORE, or null if none qualify.
+ *
+ * Sort within partition: score desc → dated before undated → earlier date →
+ * earlier time. The partition itself controls date-phase preference; this
+ * function only cares about ranking within that group.
+ */
+function bestInPartition(
+  partition: CandidateItem[],
+  keywords: WeightedKeyword[]
+): MatchResult | null {
+  const scored = partition
+    .map((item) => ({ item, score: scoreItem(item, keywords) }))
+    .filter(({ score }) => score >= MIN_SCORE);
+
+  if (scored.length === 0) return null;
+
+  scored.sort((a, b) => {
+    // 1. Higher score first.
+    if (b.score !== a.score) return b.score - a.score;
+    // 2. Dated items before undated (more confident match).
+    const aDate = a.item.event_date;
+    const bDate = b.item.event_date;
+    if (aDate !== bDate) {
+      if (aDate == null) return 1;
+      if (bDate == null) return -1;
+      return aDate < bDate ? -1 : 1;
+    }
+    // 3. Earlier time slot.
+    return a.item.time < b.item.time ? -1 : 1;
+  });
+
+  const w = scored[0];
+  return { id: w.item.id, title: w.item.title, score: w.score };
+}
+
+/**
  * Pure function — given a list of candidate (unlinked) timeline items and a
- * document category, returns the best match with its score, or null if no
- * confident match is found.
+ * document category, returns the best match, or null if no confident match.
  *
- * Matching priority:
- *   1. Category → selects the keyword set (primary signal).
- *   2. Keyword score → accumulated weight of matching keywords in title+note
- *      (medium signal). Only items at or above MIN_SCORE are kept.
- *   3. Date proximity → upcoming items (event_date >= today) preferred over
- *      past/undated items among equal-score candidates.
- *   4. Chronological tiebreak → earliest event_date + time wins.
+ * Matching priority
+ * ─────────────────
+ * 1. Date phase  (outer priority — checked in order, stopping at first hit)
  *
- * Exact title match is NOT a signal here — the match is purely
- * category-driven so document label variations don't affect linking.
+ *    Phase A — today's items:   document most likely relates to today's action.
+ *    Phase B — upcoming items:  most common case — uploading before the trip.
+ *                               Sorted by earliest date first so the next
+ *                               nearest flight/hotel/booking wins.
+ *    Phase C — undated items:   user hasn't set a date; still live/actionable.
+ *    Phase D — past items:      last resort for retrospective uploads only.
+ *                               Sorted by most-recent date first.
+ *
+ *    Past items are ONLY reached when phases A–C produce no qualified match.
+ *    This prevents a completed "Flight to Barcelona" (past) from beating an
+ *    upcoming "Fly to New York" when uploading a new boarding pass.
+ *
+ * 2. Keyword score  (within each phase — higher accumulated weight wins)
+ *    Only items scoring ≥ MIN_SCORE are considered.
+ *
+ * 3. Chronological tiebreak  (within equal score inside a phase)
+ *    Upcoming: earliest date → Undated: earlier time → Past: most-recent date.
+ *
+ * Exact document title is NOT a signal — matching is purely category-driven
+ * so variations in how the user names the document never affect linking.
  *
  * Exported for unit-testing; the async runner below is what callers use.
  */
@@ -257,43 +332,36 @@ export function findBestAutoLinkTarget(
 ): MatchResult | null {
   const keywords = CATEGORY_KEYWORDS[category];
   if (!keywords || keywords.length === 0) return null;
-
-  // Score every item and drop those below the confidence threshold.
-  const scored = items
-    .map((item) => ({ item, score: scoreItem(item, keywords) }))
-    .filter(({ score }) => score >= MIN_SCORE);
-
-  if (scored.length === 0) return null;
+  if (items.length === 0) return null;
 
   const today = new Date().toISOString().slice(0, 10);
 
-  scored.sort((a, b) => {
-    // 1. Higher accumulated score first (strongest category keyword match).
-    if (b.score !== a.score) return b.score - a.score;
+  // ── Partition items by date phase ────────────────────────────────────────
+  // Pre-sorting within each partition so ties inside bestInPartition are
+  // already in the correct direction for that phase.
 
-    // 2. Upcoming items preferred — they represent the next actionable thing.
-    //    "upcoming" = event_date is set AND is on or after today.
-    const aDate = a.item.event_date;
-    const bDate = b.item.event_date;
-    const aUpcoming = aDate != null && aDate >= today;
-    const bUpcoming = bDate != null && bDate >= today;
-    if (aUpcoming && !bUpcoming) return -1;
-    if (!aUpcoming && bUpcoming) return 1;
+  const todayItems = items.filter(
+    (i) => i.event_date != null && i.event_date === today
+  );
 
-    // 3. Among equally-ranked candidates, prefer earliest date.
-    //    Null dates sort last — dated items carry higher location confidence.
-    if (aDate !== bDate) {
-      if (aDate == null) return 1;
-      if (bDate == null) return -1;
-      return aDate < bDate ? -1 : 1;
-    }
+  const upcomingItems = items
+    .filter((i) => i.event_date != null && i.event_date > today)
+    .sort((a, b) => a.event_date!.localeCompare(b.event_date!)); // nearest first
 
-    // 4. Same date: prefer the earlier time slot.
-    return a.item.time < b.item.time ? -1 : 1;
-  });
+  const undatedItems = items.filter((i) => i.event_date == null);
 
-  const winner = scored[0];
-  return { id: winner.item.id, title: winner.item.title, score: winner.score };
+  const pastItems = items
+    .filter((i) => i.event_date != null && i.event_date < today)
+    .sort((a, b) => b.event_date!.localeCompare(a.event_date!)); // most-recent first
+
+  // ── Four-phase match — stops at the first phase that yields a result ─────
+  return (
+    bestInPartition(todayItems, keywords) ??
+    bestInPartition(upcomingItems, keywords) ??
+    bestInPartition(undatedItems, keywords) ??
+    bestInPartition(pastItems, keywords) ??
+    null
+  );
 }
 
 // ─── Async runner ─────────────────────────────────────────────────────────────
