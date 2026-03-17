@@ -213,6 +213,16 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
     [items, now]
   );
 
+  // The "primary" item is the one the View file CTA belongs to.
+  // Priority: first current → first upcoming → -1 (nothing qualifies).
+  // Mirrors the logic in buildPrimaryActionView so both surfaces agree on
+  // which item is "the next actionable one".
+  const primaryIndex = useMemo(() => {
+    const ci = states.findIndex((s) => s === "current");
+    if (ci !== -1) return ci;
+    return states.findIndex((s) => s === "upcoming");
+  }, [states]);
+
   // Ref attached to the current item — used for the auto-scroll on mount.
   const currentItemRef = useRef<HTMLDivElement>(null);
 
@@ -257,7 +267,7 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
   return (
     <section className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5">
       <p className="mb-5 text-[11px] uppercase tracking-[0.1em] text-white/35">
-        Itinerary
+        Timeline
       </p>
 
       <div className="relative">
@@ -274,6 +284,8 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
             const isCurrent = state === "current";
             const isCompleted = state === "completed";
             const isEditing = editingId === item.id;
+            // "View file" CTA belongs to exactly one item: the primary one.
+            const isPrimary = i === primaryIndex;
 
             return (
               <Fragment key={item.id}>
@@ -369,15 +381,16 @@ export function TimelineCard({ items, tripSlug, hasDocuments }: TimelineCardProp
                       </span>
                     )}
 
-                    {/* View document CTA — current item only, when documents exist */}
-                    {isCurrent && hasDocuments && (
+                    {/* View file CTA — primary item only (current or first upcoming),
+                         only when the trip has at least one attached document. */}
+                    {isPrimary && hasDocuments && (
                       <motion.a
                         href="#documents"
                         whileTap={{ scale: 0.97 }}
                         className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-sky-400/25 bg-sky-500/[0.12] px-3 py-1.5 text-[12px] font-medium text-sky-300 transition-colors hover:bg-sky-500/[0.18]"
                       >
                         <DocIcon />
-                        View document
+                        View file
                       </motion.a>
                     )}
 

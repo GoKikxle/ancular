@@ -128,6 +128,11 @@ export type PrimaryActionView = {
   /** Raw time string from the timeline item, e.g. "09:00". */
   time: string | null;
   /**
+   * ISO date "YYYY-MM-DD" of the primary timeline item, null for legacy/fallback.
+   * Displayed as a formatted date chip alongside the time badge.
+   */
+  eventDate: string | null;
+  /**
    * Label for an associated document, e.g. "Boarding pass".
    * Backed by the optional `document_label` column — null until the column exists.
    */
@@ -179,6 +184,7 @@ export function buildPrimaryActionView(
       title: primaryItem.title,
       subtitle: primaryItem.note,
       time: primaryItem.time,
+      eventDate: primaryItem.event_date ?? null,
       documentLabel: primaryItem.document_label ?? null,
       fromTimeline: true,
       hasDocuments,
@@ -195,6 +201,7 @@ export function buildPrimaryActionView(
       title: "",
       subtitle: "",
       time: null,
+      eventDate: null,
       documentLabel: null,
       fromTimeline: false,
       hasDocuments,
@@ -207,6 +214,7 @@ export function buildPrimaryActionView(
     title: fallbackTitle,
     subtitle: fallbackSubtitle,
     time: null,
+    eventDate: null,
     documentLabel: null,
     fromTimeline: false,
     hasDocuments,

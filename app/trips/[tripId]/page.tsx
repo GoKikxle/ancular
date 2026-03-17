@@ -119,15 +119,22 @@ export default async function TripDetailPage({
           />
         </div>
 
-        {/* 4 — Weather */}
-        <div className="mb-4">
-          <TripWeatherCard
-            summary={trip.weather_summary}
-            note={trip.weather_note}
-          />
-        </div>
+        {/* 4 — Weather: only rendered when real data exists.
+             The placeholder "coming soon" card is omitted so it doesn't occupy
+             visual space and compete with the primary booking-action content. */}
+        {(trip.weather_summary || trip.weather_note) && (
+          <div className="mb-4">
+            <TripWeatherCard
+              summary={trip.weather_summary}
+              note={trip.weather_note}
+            />
+          </div>
+        )}
 
-        {/* 5 — Contextual suggestions (visually deprioritized — secondary read) */}
+        {/* 5 — Contextual suggestions.
+             Kept for discoverability but visually deprioritized: rendered last,
+             no mb-4 wrapper (tighter top gap), and the component itself already
+             uses very low-opacity text tokens so it reads as secondary. */}
         <TripSuggestionsCard
           suggestions={suggestions}
           tripId={trip.id}
