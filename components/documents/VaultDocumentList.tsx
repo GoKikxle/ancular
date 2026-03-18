@@ -265,17 +265,24 @@ export function VaultDocumentList({ docs }: Props) {
           </>
         );
 
-        const baseClassName = `rounded-3xl border border-white/[0.08] bg-white/[0.04] p-4 transition-all duration-150 ${
+        const isClickable = doc.file_url && !isConfirming;
+        const baseClassName = `rounded-3xl border bg-white/[0.04] p-4 transition-all duration-200 ease-out ${
           isDeleting
-            ? "pointer-events-none opacity-35"
+            ? "pointer-events-none opacity-35 border-white/[0.08]"
             : isConfirming
-            ? "opacity-65"
+            ? "opacity-65 border-white/[0.08]"
             : "opacity-100"
         }`;
 
-        const interactiveClassName = doc.file_url && !isConfirming
-          ? "cursor-pointer hover:border-white/[0.12] hover:bg-white/[0.06] active:scale-[0.995]"
-          : "";
+        const interactiveClassName = isClickable
+          ? [
+              "cursor-pointer",
+              "border-white/[0.11]",
+              "hover:border-white/[0.18] hover:bg-white/[0.07]",
+              "active:scale-[0.998] active:bg-white/[0.09]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
+            ].join(" ")
+          : "border-white/[0.08]";
 
         return (
           <motion.div key={doc.id} variants={cardVariants}>
@@ -289,7 +296,7 @@ export function VaultDocumentList({ docs }: Props) {
                 {cardContent}
               </a>
             ) : (
-              <div className={baseClassName}>
+              <div className={`${baseClassName} ${interactiveClassName}`}>
                 {cardContent}
               </div>
             )}
