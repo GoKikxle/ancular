@@ -8,9 +8,11 @@ type Mode = "login" | "signup";
 
 type AuthFormProps = {
   mode: Mode;
+  /** Canonical site URL for auth redirects (from getURL()). Never use window.location in production. */
+  redirectUrl: string;
 };
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({ mode, redirectUrl }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,7 +38,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         const { data, error: err } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+          options: { emailRedirectTo: redirectUrl },
         });
         if (err) throw err;
         // If email confirmation is required, session may be null
@@ -65,9 +67,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     try {
       const { error: err } = await supabase.auth.signInWithOtp({
         email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+        options: { emailRedirectTo: redirectUrl },
       });
       if (err) throw err;
       setMagicLinkSent(true);

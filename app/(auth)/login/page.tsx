@@ -1,7 +1,10 @@
 import { AuthForm } from "@/components/auth/AuthForm";
+import { getURL } from "@/lib/url";
 import Link from "next/link";
 
 export default function LoginPage() {
+  const redirectUrl = `${getURL()}/auth/callback`;
+
   return (
     <div className="space-y-8">
       <header className="text-center">
@@ -16,7 +19,7 @@ export default function LoginPage() {
         </p>
       </header>
 
-      <AuthForm mode="login" />
+      <AuthForm mode="login" redirectUrl={redirectUrl} />
     </div>
   );
 }
