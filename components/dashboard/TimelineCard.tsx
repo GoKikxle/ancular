@@ -324,7 +324,7 @@ export function TimelineCard({ items, tripSlug, hasDocuments, tripDocs }: Timeli
                       : isConfirming || isEditing
                       ? "opacity-55"
                       : isCompleted
-                      ? "opacity-40"
+                      ? "opacity-75"
                       : "opacity-100"
                   } ${i > 0 && !label ? "mt-6" : i > 0 ? "" : ""}`}
                 >
@@ -342,7 +342,7 @@ export function TimelineCard({ items, tripSlug, hasDocuments, tripDocs }: Timeli
                           isCurrent
                             ? "text-sky-400"
                             : isCompleted
-                            ? "text-white/28"
+                            ? "text-white/50"
                             : "text-sky-400/60"
                         }`}
                       >
@@ -357,7 +357,7 @@ export function TimelineCard({ items, tripSlug, hasDocuments, tripDocs }: Timeli
                         isCurrent
                           ? "text-[16px] text-white"
                           : isCompleted
-                          ? "text-[14px] text-white/45"
+                          ? "text-[14px] text-white/70"
                           : "text-[15px] text-white/90"
                       }`}
                     >
