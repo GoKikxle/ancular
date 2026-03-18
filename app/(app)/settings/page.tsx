@@ -1,14 +1,17 @@
 import { redirect } from "next/navigation";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { ProfileForm } from "@/components/settings/ProfileForm";
+import { getUser } from "@/lib/auth";
 import { getCurrentProfile } from "@/lib/profile";
 
 export default async function SettingsPage() {
-  const profile = await getCurrentProfile();
+  const user = await getUser();
+  if (!user) redirect("/login");
 
-  if (!profile) {
-    redirect("/login");
-  }
+  const profile = await getCurrentProfile();
+  const fullName = profile?.full_name ?? null;
+  const avatarId = profile?.avatar_id ?? "avatar_1";
+  const email = profile?.email ?? user.email ?? "";
 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
@@ -26,9 +29,9 @@ export default async function SettingsPage() {
         </header>
 
         <ProfileForm
-          fullName={profile.full_name}
-          avatarId={profile.avatar_id}
-          email={profile.email ?? ""}
+          fullName={fullName}
+          avatarId={avatarId}
+          email={email}
         />
       </PageContainer>
     </main>
