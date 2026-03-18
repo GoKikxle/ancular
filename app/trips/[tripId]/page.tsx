@@ -168,14 +168,11 @@ export default async function TripDetailPage({
           />
         </div>
 
-        {/* 5 — Contextual suggestions.
-             Kept for discoverability but visually deprioritized: rendered last,
-             no mb-4 wrapper (tighter top gap), and the component itself already
-             uses very low-opacity text tokens so it reads as secondary. */}
+        {/* 5 — Good to Know: supportive travel context (tips, reminders, local awareness).
+             Informational only — no add-to-timeline. Tap card to read full text.
+             Visually secondary: rendered last, low-opacity styling. */}
         <TripSuggestionsCard
           suggestions={suggestions}
-          tripId={trip.id}
-          tripSlug={trip.slug}
           tripTitle={trip.title}
         />
       </PageContainer>
