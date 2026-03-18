@@ -1,21 +1,47 @@
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { UserAvatar } from "@/components/ui/UserAvatar";
+import { getCurrentProfile } from "@/lib/profile";
 import { getTrips } from "@/lib/trips";
 
+function getGreetingName(fullName: string | null): string {
+  if (!fullName?.trim()) return "there";
+  const first = fullName.trim().split(/\s+/)[0];
+  return first || "there";
+}
+
 export default async function Home() {
-  const trips = await getTrips();
+  const [profile, trips] = await Promise.all([getCurrentProfile(), getTrips()]);
+  const name = getGreetingName(profile?.full_name ?? null);
 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <PageContainer>
+        {/* Personalized header */}
+        <header className="mb-8 flex items-center justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-[22px] font-semibold leading-[1.3] tracking-[-0.02em] text-white">
+              Hello {name}, where are we off to today?
+            </h1>
+          </div>
+          <Link
+            href="/settings"
+            className="flex-shrink-0 rounded-full transition-opacity active:scale-95 active:opacity-90"
+            aria-label="Open settings"
+          >
+            <UserAvatar avatarId={profile?.avatar_id ?? null} size="medium" />
+          </Link>
+        </header>
+
+        {/* Trips section */}
         <header className="mb-8 flex items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-white/35">
-              Home
+              Trips
             </p>
-            <h1 className="mt-1 text-[28px] font-semibold tracking-[-0.02em]">
+            <h2 className="mt-1 text-[20px] font-semibold tracking-[-0.02em] text-white/90">
               Your Trips
-            </h1>
+            </h2>
             <p className="mt-1.5 text-[14px] text-white/40">
               Upcoming and active trips
             </p>
