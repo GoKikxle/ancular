@@ -8,7 +8,7 @@ type LoginPageProps = {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { error } = await searchParams;
-  const redirectUrl = `${getURL()}/auth/callback`;
+  const redirectUrl = `${getURL()}auth/callback`;
 
   return (
     <div className="space-y-8">

@@ -3,7 +3,7 @@ import { getURL } from "@/lib/url";
 import Link from "next/link";
 
 export default function SignupPage() {
-  const redirectUrl = `${getURL()}/auth/callback`;
+  const redirectUrl = `${getURL()}auth/callback`;
 
   return (
     <div className="space-y-8">

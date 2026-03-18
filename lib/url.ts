@@ -6,6 +6,8 @@
  * 1. NEXT_PUBLIC_SITE_URL (explicit config)
  * 2. NEXT_PUBLIC_VERCEL_URL (Vercel automatic, add https)
  * 3. http://localhost:3000 (local dev)
+ *
+ * Always returns URL with protocol and trailing slash for path concatenation.
  */
 export function getURL(): string {
   let url =
@@ -18,5 +20,5 @@ export function getURL(): string {
   if (!url.startsWith("http://") && !url.startsWith("https://")) {
     url = `https://${url}`;
   }
-  return url.replace(/\/+$/, "");
+  return url.replace(/\/+$/, "") + "/";
 }
