@@ -65,10 +65,42 @@ https://*.vercel.app/**
 
 ---
 
+---
+
+## Resend SMTP configuration (Supabase dashboard)
+
+**Path:** [Supabase Dashboard](https://supabase.com/dashboard) → Your project → **Authentication** → **SMTP Settings**
+
+Enable **Custom SMTP** and fill in:
+
+| Setting | Value |
+|--------|--------|
+| **SMTP host** | `smtp.resend.com` |
+| **SMTP port** | `465` (SMTPS) or `587` (STARTTLS) |
+| **SMTP username** | `resend` |
+| **SMTP password** | Your [Resend API key](https://resend.com/api-keys) |
+| **Sender email** | `onboarding@resend.dev` (test) or `no-reply@yourdomain.com` (verified domain) |
+| **Sender name** | `Ancular` (or your app name) |
+
+### Resend prerequisites
+
+1. [Verify your domain](https://resend.com/domains) at Resend (for production)
+2. [Create an API key](https://resend.com/api-keys) — use this as the SMTP password
+3. For testing: use `onboarding@resend.dev` (sends to your Resend account email only)
+4. For production: use `no-reply@yourdomain.com` where `yourdomain.com` is verified
+
+### After enabling custom SMTP
+
+- [Auth > Rate Limits](https://supabase.com/dashboard/project/_/auth/rate-limits): increase from default 30/hour if needed
+- Emails are sent via Resend; delivery appears in [Resend dashboard](https://resend.com/emails)
+
+---
+
 ## Checklist
 
 - [ ] `NEXT_PUBLIC_SITE_URL` set to your production URL on Vercel
 - [ ] Supabase **Site URL** matches your app URL
 - [ ] Supabase **Redirect URLs** include `*/auth/callback` and `*/**` for your domains
-- [ ] Email provider enabled in Supabase (Authentication → Providers → Email)
+- [ ] Email provider enabled (Authentication → Providers → Email)
 - [ ] Magic link enabled if using passwordless login
+- [ ] **Custom SMTP** enabled with Resend credentials (Authentication → SMTP Settings)

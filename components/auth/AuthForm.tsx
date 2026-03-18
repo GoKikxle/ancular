@@ -10,13 +10,15 @@ type AuthFormProps = {
   mode: Mode;
   /** Canonical site URL for auth redirects (from getURL()). Never use window.location in production. */
   redirectUrl: string;
+  /** Pre-set error (e.g. from ?error=auth_callback_error on login page) */
+  initialError?: string;
 };
 
-export function AuthForm({ mode, redirectUrl }: AuthFormProps) {
+export function AuthForm({ mode, redirectUrl, initialError }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError ?? null);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const supabase = createClient();
 
@@ -100,6 +102,9 @@ export function AuthForm({ mode, redirectUrl }: AuthFormProps) {
         </p>
         <p className="mt-2 text-[13px] leading-relaxed text-white/50">
           We sent a magic link to <span className="text-white/70">{email}</span>
+        </p>
+        <p className="mt-3 text-[12px] text-white/35">
+          Check your spam folder if you don’t see it.
         </p>
         <button
           type="button"

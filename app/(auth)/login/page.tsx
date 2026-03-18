@@ -2,7 +2,12 @@ import { AuthForm } from "@/components/auth/AuthForm";
 import { getURL } from "@/lib/url";
 import Link from "next/link";
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{ error?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const { error } = await searchParams;
   const redirectUrl = `${getURL()}/auth/callback`;
 
   return (
@@ -19,7 +24,15 @@ export default function LoginPage() {
         </p>
       </header>
 
-      <AuthForm mode="login" redirectUrl={redirectUrl} />
+      <AuthForm
+        mode="login"
+        redirectUrl={redirectUrl}
+        initialError={
+          error === "auth_callback_error"
+            ? "Login link expired or invalid. Please try again."
+            : undefined
+        }
+      />
     </div>
   );
 }
