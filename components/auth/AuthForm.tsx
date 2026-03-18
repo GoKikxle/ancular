@@ -59,6 +59,18 @@ export function AuthForm({ mode, redirectUrl }: AuthFormProps) {
     window.location.href = "/";
   }
 
+  const RATE_LIMIT_MESSAGE =
+    "Too many email login attempts. Please wait a minute and try again, or use password login.";
+
+  function isRateLimitError(err: unknown): boolean {
+    const authErr = err as { status?: number; code?: string };
+    return (
+      authErr?.status === 429 ||
+      (typeof authErr?.code === "string" &&
+        authErr.code.toLowerCase().includes("rate_limit"))
+    );
+  }
+
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -72,7 +84,9 @@ export function AuthForm({ mode, redirectUrl }: AuthFormProps) {
       if (err) throw err;
       setMagicLinkSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(
+        isRateLimitError(err) ? RATE_LIMIT_MESSAGE : err instanceof Error ? err.message : "Something went wrong"
+      );
     }
 
     setLoading(false);
