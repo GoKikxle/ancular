@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { DbDocument } from "@/lib/documents";
 import type { TripDateContext } from "@/lib/document-to-timeline";
 import { DocumentCategoryIcon } from "./DocumentCategoryIcon";
-import { attachDocumentAction } from "@/app/trips/[tripId]/actions";
+import { attachDocumentAction } from "@/app/(app)/trips/[tripId]/actions";
 
 type Props = {
   tripId: string;

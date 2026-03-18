@@ -4,7 +4,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, useTransition } from "r
 import { AnimatePresence, motion } from "framer-motion";
 import { computeItemState, getGroupLabel } from "@/lib/timeline-view-model";
 import type { ItemState } from "@/lib/timeline-view-model";
-import { deleteTimelineItemAction } from "@/app/trips/[tripId]/actions";
+import { deleteTimelineItemAction } from "@/app/(app)/trips/[tripId]/actions";
 import { EditTimelineItemForm } from "./EditTimelineItemForm";
 import type { TripDocOption } from "@/lib/timeline-items";
 

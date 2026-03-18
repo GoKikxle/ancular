@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { DbDocument } from "@/lib/documents";
 import { DocumentCategoryIcon, categoryLabel } from "./DocumentCategoryIcon";
-import { deleteDocumentAction } from "@/app/documents/actions";
+import { deleteDocumentAction } from "@/app/(app)/documents/actions";
 
 // ── Local helpers (mirrors page.tsx originals) ────────────────────────────────
 

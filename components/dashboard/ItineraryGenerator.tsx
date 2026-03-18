@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { generateItineraryAction } from "@/app/trips/[tripId]/actions";
+import { generateItineraryAction } from "@/app/(app)/trips/[tripId]/actions";
 
 type Props = {
   tripId: string;

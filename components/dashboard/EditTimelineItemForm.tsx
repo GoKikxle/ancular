@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { updateTimelineItemAction } from "@/app/trips/[tripId]/actions";
+import { updateTimelineItemAction } from "@/app/(app)/trips/[tripId]/actions";
 import type { TimelineItem } from "./TimelineCard";
 import type { TripDocOption } from "@/lib/timeline-items";
 

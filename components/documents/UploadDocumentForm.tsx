@@ -4,7 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { DocumentCategory } from "@/types/document";
 import type { TripDateContext } from "@/lib/document-to-timeline";
-import { uploadAndAttachDocumentAction } from "@/app/trips/[tripId]/actions";
+import { uploadAndAttachDocumentAction } from "@/app/(app)/trips/[tripId]/actions";
 
 type Props = {
   tripId: string;

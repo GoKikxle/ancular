@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { addManualActionAction } from "@/app/trips/[tripId]/actions";
+import { addManualActionAction } from "@/app/(app)/trips/[tripId]/actions";
 import type { TripDocOption } from "@/lib/timeline-items";
 
 // ── Action type config ────────────────────────────────────────────────────────

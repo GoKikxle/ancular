@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { DbDocument } from "@/lib/documents";
 import { DocumentCategoryIcon } from "./DocumentCategoryIcon";
-import { removeDocumentFromTripAction } from "@/app/trips/[tripId]/actions";
+import { removeDocumentFromTripAction } from "@/app/(app)/trips/[tripId]/actions";
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
