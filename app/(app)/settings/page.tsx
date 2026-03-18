@@ -20,11 +20,11 @@ export default function SettingsPage() {
 
         <div className="space-y-3">
           <Link
-            href="/"
+            href="/settings/profile"
             className="flex items-center justify-between rounded-2xl border border-white/[0.08] bg-white/[0.04] px-5 py-4 text-[15px] text-white/85 transition-colors hover:bg-white/[0.06]"
           >
             <span>Profile</span>
-            <span className="text-[13px] text-white/35">Coming soon</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/35"><path d="M9 18l6-6-6-6"/></svg>
           </Link>
           <Link
             href="/"
