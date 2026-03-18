@@ -76,17 +76,17 @@ export function TripSuggestionsCard({
 
   return (
     <>
-      <div className="rounded-3xl border border-white/[0.05] bg-white/[0.02] p-5">
+      <div className="rounded-3xl border border-white/[0.05] bg-white/[0.02] px-6 py-6">
         {/* ── Section header ───────────────────────────────────────────────── */}
-        <div className="mb-5">
-          <p className="text-[11px] uppercase tracking-[0.1em] text-white/22">
+        <div className="mb-6">
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-white/25">
             Good to Know
           </p>
-          <p className="mt-0.5 text-[12px] text-white/18">{tripTitle}</p>
+          <p className="mt-1.5 text-[13px] text-white/30">{tripTitle}</p>
         </div>
 
         {/* ── Info cards — tappable for full text ───────────────────────────── */}
-        <ul className="space-y-3">
+        <ul className="space-y-4">
           {suggestions.map((s) => {
             const { dot, text, label } = CATEGORY_STYLES[s.category];
 
@@ -95,10 +95,10 @@ export function TripSuggestionsCard({
                 <button
                   type="button"
                   onClick={() => setExpandedId(s.id)}
-                  className="w-full rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-4 text-left transition-colors hover:border-white/[0.10] hover:bg-white/[0.04] active:scale-[0.99]"
+                  className="w-full rounded-2xl border border-white/[0.06] bg-white/[0.03] px-5 py-5 text-left transition-all duration-200 hover:border-white/[0.09] hover:bg-white/[0.045] active:scale-[0.995]"
                 >
                   {/* Meta row: category dot + label · best_time */}
-                  <div className="mb-2.5 flex items-center gap-2">
+                  <div className="mb-3 flex items-center gap-2.5">
                     <span
                       className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${dot}`}
                       aria-hidden="true"
@@ -107,24 +107,35 @@ export function TripSuggestionsCard({
                       {label}
                     </span>
                     {s.best_time && (
-                      <span className="text-[11px] text-white/20">
+                      <span className="text-[11px] text-white/22">
                         · {s.best_time}
                       </span>
                     )}
                   </div>
 
-                  {/* Title */}
-                  <p className="text-[14px] font-semibold leading-snug tracking-[-0.01em] text-white/90">
+                  {/* Title — primary hierarchy */}
+                  <p className="text-[15px] font-semibold leading-snug tracking-[-0.015em] text-white/92">
                     {s.title}
                   </p>
 
-                  {/* Concise preview — full text available on tap */}
-                  <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-white/43">
+                  {/* Preview — clean, readable, invites expansion */}
+                  <p className="mt-2.5 line-clamp-2 text-[13px] leading-[1.5] text-white/45">
                     {s.description}
                   </p>
 
-                  {/* Hint that it's tappable */}
-                  <p className="mt-3 text-[11px] text-white/25">Tap to read more</p>
+                  {/* Subtle affordance */}
+                  <span className="mt-4 inline-flex items-center gap-1.5 text-[11px] text-white/28">
+                    Read full tip
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                      <path
+                        d="M3.5 2.5l3 2.5-3 2.5"
+                        stroke="currentColor"
+                        strokeWidth="1.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
                 </button>
               </li>
             );
