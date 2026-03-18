@@ -166,123 +166,133 @@ export function VaultDocumentList({ docs }: Props) {
         const fileType = fileTypeLabel(doc.mime_type);
         const displayName = doc.file_name ?? null;
 
-        return (
-          <motion.div key={doc.id} variants={cardVariants}>
-            <div
-              className={`rounded-3xl border border-white/[0.08] bg-white/[0.04] p-4 transition-opacity duration-150 ${
-                isDeleting
-                  ? "pointer-events-none opacity-35"
-                  : isConfirming
-                  ? "opacity-65"
-                  : "opacity-100"
-              }`}
-            >
-              {/* ── Header row ─────────────────────────────────────────────── */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-2.5">
-                  <DocumentCategoryIcon category={doc.category} />
-                  <div className="min-w-0">
-                    <p className="truncate text-[15px] font-medium text-white/80">
-                      {doc.title}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-white/30">
-                      {categoryLabel(doc.category)}
-                      {doc.uploaded_at
-                        ? ` · ${formatDate(doc.uploaded_at)}`
-                        : ""}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Right: file type chip + trash trigger */}
-                <div className="flex flex-shrink-0 items-center gap-1.5">
-                  <span className="rounded-full border border-white/[0.07] px-2 py-0.5 text-[10px] text-white/28">
-                    {fileType ?? (doc.file_url ? "File" : "No file")}
-                  </span>
-
-                  {/* Trash trigger — hidden while confirmation is open */}
-                  {!isConfirming && (
-                    <button
-                      type="button"
-                      onClick={() => requestConfirm(doc.id)}
-                      disabled={isPending}
-                      aria-label={`Delete "${doc.title}" from vault`}
-                      className="flex h-8 w-8 items-center justify-center rounded-full text-white/[0.28] transition-colors hover:text-white/50 active:text-red-400/70 disabled:opacity-30"
-                    >
-                      <TrashIcon />
-                    </button>
-                  )}
+        const cardContent = (
+          <>
+            {/* ── Header row ─────────────────────────────────────────────── */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <DocumentCategoryIcon category={doc.category} />
+                <div className="min-w-0">
+                  <p className="truncate text-[15px] font-medium text-white/80">
+                    {doc.title}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-white/30">
+                    {categoryLabel(doc.category)}
+                    {doc.uploaded_at
+                      ? ` · ${formatDate(doc.uploaded_at)}`
+                      : ""}
+                  </p>
                 </div>
               </div>
 
-              {/* ── Filename row ─────────────────────────────────────────────
-                   Only shown when the OS filename differs from the user title. */}
-              {displayName && displayName !== doc.title && (
-                <p className="mt-2 truncate pl-[21px] text-[12px] text-white/25">
-                  {displayName}
-                </p>
-              )}
+              {/* Right: file type chip + trash trigger */}
+              <div
+                className="flex flex-shrink-0 items-center gap-1.5"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="rounded-full border border-white/[0.07] px-2 py-0.5 text-[10px] text-white/28">
+                  {fileType ?? (doc.file_url ? "File" : "No file")}
+                </span>
 
-              {/* ── View link — hidden during confirmation ────────────────── */}
-              {!isConfirming && doc.file_url && (
-                <div className="mt-3 border-t border-white/[0.06] pt-3">
-                  <a
-                    href={doc.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[12px] text-white/35 transition-colors hover:text-white/60"
+                {!isConfirming && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      requestConfirm(doc.id);
+                    }}
+                    disabled={isPending}
+                    aria-label={`Delete "${doc.title}" from vault`}
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-white/[0.28] transition-colors hover:text-white/50 active:text-red-400/70 disabled:opacity-30"
                   >
-                    View file →
-                  </a>
-                </div>
-              )}
-
-              {/* ── Inline error ──────────────────────────────────────────── */}
-              {errorMsg && (
-                <p className="mt-3 rounded-2xl border border-red-500/20 bg-red-500/[0.07] px-3 py-2 text-[12px] text-red-300">
-                  {errorMsg}
-                </p>
-              )}
-
-              {/* ── Confirmation row ──────────────────────────────────────────
-                   Slides in below the card content. "Delete permanently?" wording
-                   distinguishes this from "Remove from trip?" in TripDocumentList.
-                   The border-t separator visually groups it with the card footer. */}
-              <AnimatePresence initial={false}>
-                {isConfirming && (
-                  <motion.div
-                    key={`confirm-${doc.id}`}
-                    variants={confirmSlide}
-                    initial="hidden"
-                    animate="show"
-                    exit="exit"
-                    className="overflow-hidden"
-                  >
-                    <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3 mt-3">
-                      <p className="text-[12px] text-white/35">
-                        Delete permanently?
-                      </p>
-                      <div className="flex flex-shrink-0 gap-2">
-                        <button
-                          type="button"
-                          onClick={cancelConfirm}
-                          className="rounded-full border border-white/[0.12] px-3 py-1.5 text-[12px] text-white/40 transition-colors hover:text-white/60"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(doc)}
-                          className="rounded-full border border-red-500/25 bg-red-500/[0.09] px-3 py-1.5 text-[12px] font-medium text-red-400/80 transition-colors hover:bg-red-500/[0.16] hover:text-red-400"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
+                    <TrashIcon />
+                  </button>
                 )}
-              </AnimatePresence>
+              </div>
             </div>
+
+            {/* ── Filename row ───────────────────────────────────────────── */}
+            {displayName && displayName !== doc.title && (
+              <p className="mt-2 truncate pl-[21px] text-[12px] text-white/25">
+                {displayName}
+              </p>
+            )}
+
+            {/* ── Inline error ──────────────────────────────────────────── */}
+            {errorMsg && (
+              <p className="mt-3 rounded-2xl border border-red-500/20 bg-red-500/[0.07] px-3 py-2 text-[12px] text-red-300">
+                {errorMsg}
+              </p>
+            )}
+
+            {/* ── Confirmation row — stopPropagation so it doesn't open file ─ */}
+            <AnimatePresence initial={false}>
+              {isConfirming && (
+                <motion.div
+                  key={`confirm-${doc.id}`}
+                  variants={confirmSlide}
+                  initial="hidden"
+                  animate="show"
+                  exit="exit"
+                  className="overflow-hidden"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3">
+                    <p className="text-[12px] text-white/35">
+                      Delete permanently?
+                    </p>
+                    <div className="flex flex-shrink-0 gap-2">
+                      <button
+                        type="button"
+                        onClick={cancelConfirm}
+                        className="rounded-full border border-white/[0.12] px-3 py-1.5 text-[12px] text-white/40 transition-colors hover:text-white/60"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(doc)}
+                        className="rounded-full border border-red-500/25 bg-red-500/[0.09] px-3 py-1.5 text-[12px] font-medium text-red-400/80 transition-colors hover:bg-red-500/[0.16] hover:text-red-400"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        );
+
+        const baseClassName = `rounded-3xl border border-white/[0.08] bg-white/[0.04] p-4 transition-all duration-150 ${
+          isDeleting
+            ? "pointer-events-none opacity-35"
+            : isConfirming
+            ? "opacity-65"
+            : "opacity-100"
+        }`;
+
+        const interactiveClassName = doc.file_url && !isConfirming
+          ? "cursor-pointer hover:border-white/[0.12] hover:bg-white/[0.06] active:scale-[0.995]"
+          : "";
+
+        return (
+          <motion.div key={doc.id} variants={cardVariants}>
+            {doc.file_url && !isConfirming ? (
+              <a
+                href={doc.file_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`block ${baseClassName} ${interactiveClassName}`}
+              >
+                {cardContent}
+              </a>
+            ) : (
+              <div className={baseClassName}>
+                {cardContent}
+              </div>
+            )}
           </motion.div>
         );
       })}
