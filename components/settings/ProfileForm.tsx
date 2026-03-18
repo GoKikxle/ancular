@@ -29,20 +29,24 @@ export function ProfileForm({
     setError(null);
     setLoading(true);
 
-    const formData = new FormData();
-    formData.set("full_name", name);
-    formData.set("avatar_id", avatar);
+    try {
+      const formData = new FormData();
+      formData.set("full_name", name);
+      formData.set("avatar_id", avatar);
 
-    const result = await updateProfileAction(formData);
+      const result = await updateProfileAction(formData);
 
-    if (result?.error) {
-      setError(result.error);
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.refresh();
-    setLoading(false);
   }
 
   return (

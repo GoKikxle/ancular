@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { upsertProfile } from "@/lib/profile";
 
 export async function updateProfileAction(formData: FormData) {
@@ -16,5 +15,5 @@ export async function updateProfileAction(formData: FormData) {
     return { error };
   }
 
-  redirect("/settings");
+  return {};
 }

@@ -58,7 +58,12 @@ export async function upsertProfile(updates: {
       full_name: updates.full_name ?? null,
       avatar_id: updates.avatar_id ?? "avatar_1",
     });
-    return { error: error?.message ?? null };
+
+    if (error) {
+      console.error("[profiles] INSERT response:", { error, userId: user.id });
+      return { error: error.message };
+    }
+    return { error: null };
   }
 
   const { error } = await supabase
@@ -71,7 +76,11 @@ export async function upsertProfile(updates: {
     })
     .eq("id", user.id);
 
-  return { error: error?.message ?? null };
+  if (error) {
+    console.error("[profiles] UPDATE response:", { error, userId: user.id });
+    return { error: error.message };
+  }
+  return { error: null };
 }
 
 /** Get avatar info for display. Re-export for convenience. */
