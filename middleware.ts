@@ -12,10 +12,17 @@ function isAuthRoute(pathname: string) {
   return AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`));
 }
 
-export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request,
+/** Copy Set-Cookie headers from the session response so redirects preserve refreshed tokens */
+function redirectWithCookies(url: URL, response: NextResponse) {
+  const redirectResponse = NextResponse.redirect(url);
+  response.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie.name, cookie.value);
   });
+  return redirectResponse;
+}
+
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,16 +41,17 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims() validates JWT locally (JWKS cache) and triggers session refresh when needed.
+  // Prefer over getUser() for middleware — faster and properly refreshes expired tokens.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const isAuthenticated = !!claimsData?.claims;
 
-  if (!user && !isPublic(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  if (!isAuthenticated && !isPublic(request.nextUrl.pathname)) {
+    return redirectWithCookies(new URL("/login", request.url), response);
   }
 
-  if (user && isAuthRoute(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL("/", request.url));
+  if (isAuthenticated && isAuthRoute(request.nextUrl.pathname)) {
+    return redirectWithCookies(new URL("/", request.url), response);
   }
 
   return response;
