@@ -5,7 +5,7 @@ export default function NotificationsPage() {
     <main className="min-h-screen bg-neutral-950 text-white">
       <PageContainer>
         <header className="mb-8">
-          <p className="text-[11px] uppercase tracking-[0.1em] text-white/35">
+          <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-white/35">
             Notifications
           </p>
           <h1 className="mt-1 text-[28px] font-semibold tracking-[-0.02em]">
@@ -16,11 +16,11 @@ export default function NotificationsPage() {
           </p>
         </header>
 
-        <div className="rounded-3xl border border-white/[0.07] bg-white/[0.03] p-10 text-center">
+        <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-10 text-center">
           <p className="text-[15px] font-medium text-white/50">
             No notifications yet
           </p>
-          <p className="mt-2 text-[13px] leading-relaxed text-white/30">
+          <p className="mt-2 text-[13px] leading-relaxed text-white/35">
             When your trips have reminders or updates, they&apos;ll appear here.
           </p>
         </div>
