@@ -37,7 +37,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
   } as Profile;
 }
 
-/** Create or update profile. Ensures row exists before updating. */
+/** Create or update profile. */
 export async function upsertProfile(updates: {
   full_name?: string;
   avatar_id?: string;
@@ -49,38 +49,32 @@ export async function upsertProfile(updates: {
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
-  const existing = await getCurrentProfile();
+  const payload = {
+    id: user.id,
+    email: user.email ?? null,
+    full_name: updates.full_name ?? null,
+    avatar_id: updates.avatar_id ?? "avatar_1",
+    updated_at: new Date().toISOString(),
+  };
+  console.log("[profiles] upsert payload:", payload);
 
-  if (!existing) {
-    const { error } = await supabase.from("profiles").insert({
-      id: user.id,
-      email: updates.email ?? user.email ?? null,
-      full_name: updates.full_name ?? null,
-      avatar_id: updates.avatar_id ?? "avatar_1",
-    });
+  const upsertPromise = supabase.from("profiles").upsert(payload, { onConflict: "id" });
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Profile save timed out after 10 seconds")), 10_000)
+  );
 
-    if (error) {
-      console.error("[profiles] INSERT response:", { error, userId: user.id });
-      return { error: error.message };
+  try {
+    const result = await Promise.race([upsertPromise, timeoutPromise]);
+    if (result.error) {
+      console.error("[profiles] Supabase error:", result.error);
+      return { error: result.error.message };
     }
     return { error: null };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Profile save failed";
+    if (msg.includes("timed out")) console.error("[profiles]", msg);
+    return { error: msg };
   }
-
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      ...(updates.full_name !== undefined && { full_name: updates.full_name }),
-      ...(updates.avatar_id !== undefined && { avatar_id: updates.avatar_id }),
-      ...(updates.email !== undefined && { email: updates.email }),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", user.id);
-
-  if (error) {
-    console.error("[profiles] UPDATE response:", { error, userId: user.id });
-    return { error: error.message };
-  }
-  return { error: null };
 }
 
 /** Get avatar info for display. Re-export for convenience. */
