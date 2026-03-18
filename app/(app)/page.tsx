@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { NowCard } from "@/components/dashboard/NowCard";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 import { getCurrentProfile } from "@/lib/profile";
 import { getTrips } from "@/lib/trips";
+import { getUpcomingNowItem } from "@/lib/now-card";
 
 function getGreetingName(fullName: string | null): string {
   if (!fullName?.trim()) return "there";
@@ -11,7 +13,11 @@ function getGreetingName(fullName: string | null): string {
 }
 
 export default async function Home() {
-  const [profile, trips] = await Promise.all([getCurrentProfile(), getTrips()]);
+  const [profile, trips, nowItem] = await Promise.all([
+    getCurrentProfile(),
+    getTrips(),
+    getUpcomingNowItem(),
+  ]);
   const name = getGreetingName(profile?.full_name ?? null);
 
   return (
@@ -32,6 +38,8 @@ export default async function Home() {
             <UserAvatar avatarId={profile?.avatar_id ?? null} size="medium" />
           </Link>
         </header>
+
+        {nowItem && <NowCard item={nowItem} />}
 
         {/* Trips section */}
         <header className="mb-8 flex items-start justify-between gap-4">
