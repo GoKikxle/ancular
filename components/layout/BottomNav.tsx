@@ -70,14 +70,15 @@ function isTabActive(pathname: string, tab: Tab): boolean {
 
 /**
  * Persistent bottom tab navigation for the mobile app shell.
- * Safe-area aware, touch-friendly, dark premium styling.
+ * Safe-area aware, touch-friendly, premium iOS/Android-style hierarchy.
  */
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
     <nav
-      className="flex items-center justify-around border-t border-white/[0.06] bg-neutral-950/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-sm"
+      className="flex items-center justify-around border-t border-white/[0.08] bg-neutral-950 px-1 pt-3 backdrop-blur-xl"
+      style={{ paddingBottom: "max(12px, var(--safe-area-bottom))" }}
       role="navigation"
       aria-label="Main navigation"
     >
@@ -88,18 +89,27 @@ export function BottomNav() {
           <Link
             key={tab.href}
             href={tab.href}
-            className="flex min-w-0 flex-1 flex-col items-center gap-1 py-2 transition-colors active:scale-95"
+            className={`flex min-w-0 flex-1 flex-col items-center gap-1.5 px-2 py-2.5 transition-all duration-200 active:scale-95 ${
+              active ? "opacity-100" : "opacity-70"
+            }`}
           >
+            {/* Icon container — active gets subtle pill background */}
             <span
-              className={`transition-colors ${
-                active ? "text-white" : "text-white/40"
+              className={`flex items-center justify-center rounded-xl transition-all duration-200 ${
+                active ? "bg-white/[0.08] px-4 py-2" : "px-4 py-2"
               }`}
             >
-              {tab.icon}
+              <span
+                className={`block transition-colors ${
+                  active ? "text-white" : "text-white/50"
+                }`}
+              >
+                {tab.icon}
+              </span>
             </span>
             <span
-              className={`text-[10px] font-medium transition-colors ${
-                active ? "text-white/90" : "text-white/35"
+              className={`text-[11px] font-medium transition-colors ${
+                active ? "text-white" : "text-white/40"
               }`}
             >
               {tab.label}
