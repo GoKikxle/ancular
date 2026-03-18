@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AppShell } from "@/components/layout/AppShell";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,17 +18,24 @@ export const metadata: Metadata = {
   description: "Your mobile-first travel command center.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="bg-neutral-950">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
