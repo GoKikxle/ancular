@@ -33,6 +33,8 @@ export type UpdateTripInput = {
 
 export async function createTrip(input: CreateTripInput) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
 
   // Status is always derived from dates — never accepted from user input.
   const status = computeTripStatus(input.startDate, input.endDate);
@@ -40,6 +42,7 @@ export async function createTrip(input: CreateTripInput) {
   const { data, error } = await supabase
     .from("trips")
     .insert({
+      user_id: user.id,
       slug: input.slug,
       title: input.title,
       dates: input.dates,

@@ -172,10 +172,13 @@ export async function insertDocument(
   input: InsertDocumentInput
 ): Promise<{ document: DbDocument | null; error: string | null }> {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { document: null, error: "Not authenticated" };
 
   const { data, error } = await supabase
     .from("documents")
     .insert({
+      user_id: user.id,
       title: input.title,
       name: input.title, // mirror for backward compat — remove if `name` column does not exist
       category: input.category,
