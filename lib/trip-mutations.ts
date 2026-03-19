@@ -91,7 +91,10 @@ export async function updateTrip(input: UpdateTripInput) {
     .select()
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("[updateTrip] Supabase error:", error.message, error.code, error.details);
+    throw new Error(error.message);
+  }
   return data;
 }
 

@@ -8,10 +8,12 @@ import { notFound } from "next/navigation";
 
 type EditTripPageProps = {
   params: Promise<{ tripId: string }>;
+  searchParams: Promise<{ error?: string }>;
 };
 
-export default async function EditTripPage({ params }: EditTripPageProps) {
+export default async function EditTripPage({ params, searchParams }: EditTripPageProps) {
   const { tripId } = await params;
+  const { error } = await searchParams;
   const trip = await getTripBySlug(tripId);
 
   if (!trip) notFound();
@@ -33,6 +35,12 @@ export default async function EditTripPage({ params }: EditTripPageProps) {
           </h1>
           <p className="mt-1 text-[14px] text-white/40">{trip.title}</p>
         </header>
+
+        {error && (
+          <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-[14px] text-red-300">
+            {decodeURIComponent(error)}
+          </div>
+        )}
 
         {/* ── Edit fields ────────────────────────────────────────────────────── */}
         <TripEditForm trip={trip} action={updateTripAction} />

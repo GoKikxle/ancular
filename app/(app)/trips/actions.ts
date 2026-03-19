@@ -53,17 +53,25 @@ export async function updateTripAction(formData: FormData) {
   const destination = String(formData.get("destination") ?? "").trim() || null;
 
   if (!tripId || !tripSlug || !title || !startDate) {
-    throw new Error("Missing required fields.");
+    redirect(`/trips/${tripSlug}/edit?error=${encodeURIComponent("Missing required fields.")}`);
+    return;
   }
 
-  await updateTrip({
-    id: tripId,
-    title,
-    startDate,
-    endDate: endDate || null,
-    travelers,
-    destination,
-  });
+  try {
+    await updateTrip({
+      id: tripId,
+      title,
+      startDate,
+      endDate: endDate || null,
+      travelers,
+      destination,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to save trip.";
+    console.error("[updateTripAction]", message, err);
+    redirect(`/trips/${tripSlug}/edit?error=${encodeURIComponent(message)}`);
+    return;
+  }
 
   redirect(`/trips/${tripSlug}`);
 }
