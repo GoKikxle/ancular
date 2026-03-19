@@ -24,12 +24,14 @@ function parseEndTime(note: string): string | null {
 
 /**
  * Builds a local-time Date from an ISO date string ("YYYY-MM-DD") and a
- * 24-hour time string ("HH:MM"). Avoids UTC-midnight timezone shifts.
+ * 24-hour time string ("HH:MM" or "HH:MM:SS"). Avoids UTC-midnight timezone shifts.
+ * Handles date strings with "T" suffix (e.g. "2025-03-14T00:00:00.000Z").
  */
 function toLocalDateTime(date: string, time: string): Date {
-  const [y, mo, d] = date.split("-").map(Number);
+  const ymd = date.split("T")[0] ?? date;
+  const [y, mo, d] = ymd.split("-").map(Number);
   const [h, mi] = time.split(":").map(Number);
-  return new Date(y, mo - 1, d, h, mi, 0, 0);
+  return new Date(y, mo - 1, d, h || 0, mi || 0, 0, 0);
 }
 
 /**
@@ -165,11 +167,11 @@ type TripFallback = {
  * Priority:
  *   1. The first "current" timeline item (something happening right now)
  *   2. The first "upcoming" timeline item (the next thing to do)
- *   3. Trip-level fallback copy (next_action_title / next_action_description)
- *   4. Empty state — when no source has meaningful content
+ *   3. When all items are completed — show the most recent (last) item
+ *   4. Trip-level fallback copy (next_action_title / next_action_description)
+ *   5. Empty state — only when there are zero timeline items AND no fallback
  *
- * Completed items are skipped entirely — the hero should never show something
- * that already happened.
+ * If timeline_items.length > 0, never show empty state.
  */
 export function buildPrimaryActionView(
   items: DbTimelineItem[],
@@ -182,7 +184,8 @@ export function buildPrimaryActionView(
   const primaryItem =
     items.find((item) => computeItemState(item, now) === "current") ??
     items.find((item) => computeItemState(item, now) === "upcoming") ??
-    null;
+    // When all items are completed, show the most recent one (last in sorted list)
+    (items.length > 0 ? items[items.length - 1]! : null);
 
   // ── State 1: real timeline item ──────────────────────────────────────────────
   if (primaryItem) {
@@ -202,7 +205,7 @@ export function buildPrimaryActionView(
   const fallbackTitle = fallback.nextActionTitle?.trim() ?? "";
   const fallbackSubtitle = fallback.nextActionDescription?.trim() ?? "";
 
-  // ── State 3: empty — no usable items, no fallback copy ───────────────────────
+  // ── State 3: empty — only when zero items AND no fallback copy ────────────────
   if (!fallbackTitle) {
     return {
       title: "",
