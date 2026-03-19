@@ -206,6 +206,7 @@ export function buildPrimaryActionView(
   const fallbackSubtitle = fallback.nextActionDescription?.trim() ?? "";
 
   // ── State 3: empty — only when zero items AND no fallback copy ────────────────
+  // (When items.length > 0, primaryItem is always set above — never show empty state.)
   if (!fallbackTitle) {
     return {
       title: "",
