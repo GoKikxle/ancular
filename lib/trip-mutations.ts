@@ -89,11 +89,14 @@ export async function updateTrip(input: UpdateTripInput) {
     })
     .eq("id", input.id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error("[updateTrip] Supabase error:", error.message, error.code, error.details);
     throw new Error(error.message);
+  }
+  if (!data) {
+    throw new Error("Trip not found or update was denied.");
   }
   return data;
 }
