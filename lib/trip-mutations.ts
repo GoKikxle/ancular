@@ -69,24 +69,32 @@ export async function createTrip(input: CreateTripInput) {
 /**
  * Updates a trip's editable fields and recomputes status from the new dates.
  * The slug is never changed here — redirect back using the original slug.
+ * Includes user_id to claim orphaned trips (user_id null) for RLS.
  */
 export async function updateTrip(input: UpdateTripInput) {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
 
   const status = computeTripStatus(input.startDate, input.endDate);
   const dates = formatTripDates(input.startDate, input.endDate);
 
+  const updatePayload: Record<string, unknown> = {
+    title: input.title,
+    start_date: input.startDate,
+    end_date: input.endDate ?? null,
+    dates,
+    status,
+    travelers: input.travelers,
+    destination: input.destination ?? null,
+    user_id: user.id, // claim orphaned trips for RLS
+  };
+
   const { data, error } = await supabase
     .from("trips")
-    .update({
-      title: input.title,
-      start_date: input.startDate,
-      end_date: input.endDate ?? null,
-      dates,
-      status,
-      travelers: input.travelers,
-      destination: input.destination ?? null,
-    })
+    .update(updatePayload)
     .eq("id", input.id)
     .select()
     .maybeSingle();
@@ -96,6 +104,7 @@ export async function updateTrip(input: UpdateTripInput) {
     throw new Error(error.message);
   }
   if (!data) {
+    console.error("[updateTrip] 0 rows updated — tripId:", input.id, "authUid:", user.id);
     throw new Error("Trip not found or update was denied.");
   }
   return data;
