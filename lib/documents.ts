@@ -1,4 +1,4 @@
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import type { DocumentCategory } from "@/types/document";
 import { getBucketForCategory, SIGNED_URL_TTL } from "@/lib/storage-buckets";
 
@@ -168,12 +168,18 @@ export async function deleteDocumentFromVault(
   return { error: null, storageWarning };
 }
 
+type InsertDocumentOpts = {
+  /** Shared client with established session; use when caller has same request context. */
+  supabase?: Awaited<ReturnType<typeof createClient>>;
+};
+
 /** Inserts a new row into the documents table and returns it. */
 export async function insertDocument(
-  input: InsertDocumentInput
+  input: InsertDocumentInput,
+  opts?: InsertDocumentOpts
 ): Promise<{ document: DbDocument | null; error: string | null }> {
-  const anon = await createClient();
-  const { data: { user } } = await anon.auth.getUser();
+  const supabase = opts?.supabase ?? (await createClient());
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { document: null, error: "Not authenticated" };
 
   const payload = {
@@ -188,8 +194,9 @@ export async function insertDocument(
     storage_bucket: input.storage_bucket,
   };
 
-  // Use admin client to bypass RLS; user_id is set from verified auth above
-  const supabase = createAdminClient();
+  // eslint-disable-next-line no-console
+  console.log("[documents] Insert payload:", JSON.stringify({ ...payload, file_url: payload.file_url ? "[SET]" : null }));
+
   const { data, error } = await supabase
     .from("documents")
     .insert(payload)
@@ -197,7 +204,7 @@ export async function insertDocument(
     .single();
 
   if (error) {
-    console.error("[documents] Insert failed:", error.message);
+    console.error("[documents] Insert failed — full error:", JSON.stringify({ message: error.message, code: error.code, details: error.details }));
     return { document: null, error: error.message };
   }
 

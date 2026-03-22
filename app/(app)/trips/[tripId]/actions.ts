@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
 import { attachDocumentToTrip, removeDocumentFromTrip } from "@/lib/trip-documents";
 import { uploadToStorage, insertDocument } from "@/lib/documents";
 import { generateItinerary } from "@/lib/ai-itinerary";
@@ -304,20 +305,27 @@ export async function uploadAndAttachDocumentAction(
   if (!file || file.size === 0) return { error: "Please select a file.", linkedToTimeline: false, linkedItemTitle: null };
   if (!title) return { error: "Please enter a document title.", linkedToTimeline: false, linkedItemTitle: null };
 
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated", linkedToTimeline: false, linkedItemTitle: null };
+
   // 1 — Upload to the bucket that matches the document category
   const { path, bucket, signedUrl, error: storageError } = await uploadToStorage(file, tripId, category);
   if (storageError) return { error: `Upload failed: ${storageError}`, linkedToTimeline: false, linkedItemTitle: null };
 
-  // 2 — Insert documents row (sets user_id for RLS; must complete before attach)
-  const { document, error: insertError } = await insertDocument({
-    title,
-    category,
-    file_url: signedUrl,
-    file_name: file.name,
-    mime_type: file.type || "application/octet-stream",
-    storage_path: path,
-    storage_bucket: bucket,
-  });
+  // 2 — Insert documents row (use same supabase client so session/JWT is available for RLS)
+  const { document, error: insertError } = await insertDocument(
+    {
+      title,
+      category,
+      file_url: signedUrl,
+      file_name: file.name,
+      mime_type: file.type || "application/octet-stream",
+      storage_path: path,
+      storage_bucket: bucket,
+    },
+    { supabase }
+  );
   if (insertError || !document) return { error: `Could not save document: ${insertError}`, linkedToTimeline: false, linkedItemTitle: null };
 
   // 3 — Attach to trip (document exists and belongs to user; trip_documents RLS allows)
