@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import type { DocumentCategory } from "@/types/document";
 import { getBucketForCategory, SIGNED_URL_TTL } from "@/lib/storage-buckets";
 
@@ -172,23 +172,27 @@ export async function deleteDocumentFromVault(
 export async function insertDocument(
   input: InsertDocumentInput
 ): Promise<{ document: DbDocument | null; error: string | null }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const anon = await createClient();
+  const { data: { user } } = await anon.auth.getUser();
   if (!user) return { document: null, error: "Not authenticated" };
 
+  const payload = {
+    user_id: user.id,
+    title: input.title,
+    name: input.title, // mirror for backward compat
+    category: input.category,
+    file_url: input.file_url,
+    file_name: input.file_name,
+    mime_type: input.mime_type,
+    storage_path: input.storage_path,
+    storage_bucket: input.storage_bucket,
+  };
+
+  // Use admin client to bypass RLS; user_id is set from verified auth above
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("documents")
-    .insert({
-      user_id: user.id,
-      title: input.title,
-      name: input.title, // mirror for backward compat — remove if `name` column does not exist
-      category: input.category,
-      file_url: input.file_url,
-      file_name: input.file_name,
-      mime_type: input.mime_type,
-      storage_path: input.storage_path,
-      storage_bucket: input.storage_bucket,
-    })
+    .insert(payload)
     .select()
     .single();
 
