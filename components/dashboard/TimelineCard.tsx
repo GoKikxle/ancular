@@ -300,13 +300,13 @@ export function TimelineCard({ items, tripSlug, hasDocuments, tripDocs }: Timeli
               <Fragment key={item.id}>
 
                 {/* ── Group label ──────────────────────────────────────────────── */}
-                {label && (
+                    {label && (
                   <div
                     className={`flex items-center gap-3 pl-[31px] ${
                       i > 0 ? "mb-4 mt-6" : "mb-4"
                     }`}
                   >
-                    <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/32">
+                    <span className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-sky-400/80">
                       {label}
                     </span>
                     <div className="h-px flex-1 bg-white/[0.09]" />
@@ -324,7 +324,7 @@ export function TimelineCard({ items, tripSlug, hasDocuments, tripDocs }: Timeli
                       : isConfirming || isEditing
                       ? "opacity-55"
                       : isCompleted
-                      ? "opacity-75"
+                      ? "opacity-85"
                       : "opacity-100"
                   } ${i > 0 && !label ? "mt-6" : i > 0 ? "" : ""}`}
                 >
@@ -339,11 +339,11 @@ export function TimelineCard({ items, tripSlug, hasDocuments, tripDocs }: Timeli
                     <div className="flex items-center gap-1.5">
                       <p
                         className={`text-[12px] font-medium tabular-nums ${
-                          isCurrent
+                          isCurrent || isPrimary
                             ? "text-sky-400"
                             : isCompleted
                             ? "text-white/50"
-                            : "text-sky-400/60"
+                            : "text-sky-400/85"
                         }`}
                       >
                         {item.time}
@@ -354,11 +354,11 @@ export function TimelineCard({ items, tripSlug, hasDocuments, tripDocs }: Timeli
                     {/* Title */}
                     <h3
                       className={`mt-0.5 font-semibold tracking-[-0.01em] ${
-                        isCurrent
+                        isCurrent || isPrimary
                           ? "text-[16px] text-white"
                           : isCompleted
                           ? "text-[14px] text-white/70"
-                          : "text-[15px] text-white/90"
+                          : "text-[15px] text-white"
                       }`}
                     >
                       {item.title}
@@ -368,7 +368,7 @@ export function TimelineCard({ items, tripSlug, hasDocuments, tripDocs }: Timeli
                     {!isCompleted && item.note && (
                       <p
                         className={`mt-1 text-[13px] leading-relaxed ${
-                          isCurrent ? "text-white/55" : "text-white/38"
+                          isCurrent || isPrimary ? "text-white/55" : "text-white/50"
                         }`}
                       >
                         {item.note}
