@@ -42,6 +42,7 @@ const labelCls =
  */
 export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved, tripDocs }: Props) {
   const router = useRouter();
+  const docs = tripDocs ?? [];
   const [isPending, startTransition] = useTransition();
   const [editState, setEditState] = useState<EditState>("idle");
 
@@ -73,16 +74,16 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved, tripDo
     formData.set("document_id", documentId);
 
     startTransition(async () => {
-      const result = await updateTimelineItemAction(item.id, tripSlug, formData);
-      if (result.error) {
-        setEditState({ error: result.error });
-      } else {
-        // router.refresh() forces the RSC to re-render with fresh Supabase data.
-        // revalidatePath() (called in the server action) marks the cache stale,
-        // but for programmatic server action calls Next.js does NOT automatically
-        // refresh the router — the client needs to trigger it explicitly.
-        router.refresh();
-        onSaved();
+      try {
+        const result = await updateTimelineItemAction(item.id, tripSlug, formData);
+        if (result?.error) {
+          setEditState({ error: result.error });
+        } else if (result) {
+          router.refresh();
+          onSaved();
+        }
+      } catch (err) {
+        setEditState({ error: err instanceof Error ? err.message : "Failed to save." });
       }
     });
   }
@@ -185,7 +186,7 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved, tripDo
           Linked document{" "}
           <span className="normal-case text-white/20">(optional)</span>
         </label>
-        {tripDocs.length === 0 ? (
+        {docs.length === 0 ? (
           <p className="text-[12px] leading-relaxed text-white/22">
             No documents attached to this trip yet.
           </p>
@@ -198,11 +199,11 @@ export function EditTimelineItemForm({ item, tripSlug, onCancel, onSaved, tripDo
               className="h-10 w-full appearance-none rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 pr-9 text-[13px] text-white [color-scheme:dark] transition-colors focus:border-white/[0.15] focus:outline-none"
             >
               <option value="">— None —</option>
-              {tripDocs.map((doc) => (
+              {docs.map((doc) => (
                 <option key={doc.id} value={doc.id}>
                   {doc.title}
                   {" — "}
-                  {doc.category.charAt(0).toUpperCase() + doc.category.slice(1)}
+                  {(doc.category ?? "").charAt(0).toUpperCase() + (doc.category ?? "").slice(1)}
                 </option>
               ))}
             </select>

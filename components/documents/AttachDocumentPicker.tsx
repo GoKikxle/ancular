@@ -48,24 +48,29 @@ export function AttachDocumentPicker({ tripId, tripSlug, availableDocs, tripDate
   function handleAttach(doc: DbDocument) {
     setAttachState("idle");
     startTransition(async () => {
-      const result = await attachDocumentAction(
-        tripId,
-        tripSlug,
-        { id: doc.id, title: doc.title, category: doc.category }
-      );
+      try {
+        const result = await attachDocumentAction(
+          tripId,
+          tripSlug,
+          { id: doc.id, title: doc.title, category: doc.category }
+        );
 
-      if (result.error) {
-        setAttachState({ error: result.error });
-      } else {
-        setAttachState({
-          success: true,
-          linkedToTimeline: result.linkedToTimeline,
-          linkedItemTitle: result.linkedItemTitle,
-        });
-        setTimeout(() => {
-          setOpen(false);
-          setAttachState("idle");
-        }, 1800);
+        if (result?.error) {
+          setAttachState({ error: result.error });
+        } else if (result) {
+          setAttachState({
+            success: true,
+            linkedToTimeline: result.linkedToTimeline,
+            linkedItemTitle: result.linkedItemTitle,
+          });
+          setTimeout(() => {
+            setOpen(false);
+            setAttachState("idle");
+          }, 1800);
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Failed to attach document.";
+        setAttachState({ error: msg });
       }
     });
   }

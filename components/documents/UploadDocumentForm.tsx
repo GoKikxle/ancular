@@ -80,19 +80,24 @@ export function UploadDocumentForm({ tripId, tripSlug, tripDates }: Props) {
     setUploadState("idle");
 
     startTransition(async () => {
-      const result = await uploadAndAttachDocumentAction(tripId, tripSlug, formData);
-      if (result.error) {
-        setUploadState({ error: result.error });
-      } else {
-        setUploadState({
-          success: true,
-          linkedToTimeline: result.linkedToTimeline,
-          linkedItemTitle: result.linkedItemTitle,
-        });
-        setTimeout(() => {
-          setOpen(false);
-          resetForm();
-        }, 1800);
+      try {
+        const result = await uploadAndAttachDocumentAction(tripId, tripSlug, formData);
+        if (result?.error) {
+          setUploadState({ error: result.error });
+        } else if (result) {
+          setUploadState({
+            success: true,
+            linkedToTimeline: result.linkedToTimeline,
+            linkedItemTitle: result.linkedItemTitle,
+          });
+          setTimeout(() => {
+            setOpen(false);
+            resetForm();
+          }, 1800);
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Upload failed.";
+        setUploadState({ error: msg });
       }
     });
   }

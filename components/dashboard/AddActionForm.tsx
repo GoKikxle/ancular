@@ -114,6 +114,7 @@ type FormState = "idle" | "success" | { error: string };
 
 export function AddActionForm({ tripId, tripSlug, hasExistingItems, tripDocs }: Props) {
   const [open, setOpen] = useState(!hasExistingItems);
+  const docs = tripDocs ?? [];
   const [selectedType, setSelectedType] = useState<ActionTypeValue>("train");
   const [formState, setFormState] = useState<FormState>("idle");
   const [isPending, startTransition] = useTransition();
@@ -134,13 +135,16 @@ export function AddActionForm({ tripId, tripSlug, hasExistingItems, tripDocs }: 
     setFormState("idle");
 
     startTransition(async () => {
-      const result = await addManualActionAction(tripId, tripSlug, formData);
-
-      if (result.error) {
-        setFormState({ error: result.error });
-      } else {
-        setFormState("success");
-        setTimeout(close, 1600);
+      try {
+        const result = await addManualActionAction(tripId, tripSlug, formData);
+        if (result?.error) {
+          setFormState({ error: result.error });
+        } else if (result) {
+          setFormState("success");
+          setTimeout(close, 1600);
+        }
+      } catch (err) {
+        setFormState({ error: err instanceof Error ? err.message : "Failed to add action." });
       }
     });
   }
@@ -376,7 +380,7 @@ export function AddActionForm({ tripId, tripSlug, hasExistingItems, tripDocs }: 
                     Linked document{" "}
                     <span className="normal-case text-white/20">(optional)</span>
                   </label>
-                  {tripDocs.length === 0 ? (
+                  {docs.length === 0 ? (
                     <p className="text-[12px] leading-relaxed text-white/22">
                       Attach a document to this trip first, then link it here.
                     </p>
@@ -389,11 +393,11 @@ export function AddActionForm({ tripId, tripSlug, hasExistingItems, tripDocs }: 
                         className="h-10 w-full appearance-none rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 pr-9 text-[13px] text-white [color-scheme:dark] transition-colors focus:border-white/[0.15] focus:outline-none"
                       >
                         <option value="">— None —</option>
-                        {tripDocs.map((doc) => (
+                        {docs.map((doc) => (
                           <option key={doc.id} value={doc.id}>
                             {doc.title}
                             {" — "}
-                            {doc.category.charAt(0).toUpperCase() + doc.category.slice(1)}
+                            {(doc.category ?? "").charAt(0).toUpperCase() + (doc.category ?? "").slice(1)}
                           </option>
                         ))}
                       </select>
