@@ -8,6 +8,7 @@ import { getBucketForCategory, SIGNED_URL_TTL } from "@/lib/storage-buckets";
  *
  * Required table definition:
  *   id           UUID PRIMARY KEY DEFAULT gen_random_uuid()
+ *   user_id      UUID NULL REFERENCES auth.users(id)   ← ownership; required for RLS
  *   title        TEXT NOT NULL        ← canonical display field
  *   name         TEXT NULL            ← optional alias; mirrored from title on insert
  *   category     TEXT NOT NULL CHECK (category IN ('flight','hotel','identity','booking','other'))

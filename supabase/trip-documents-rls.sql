@@ -4,9 +4,8 @@
 --
 -- Fixes: "new row violates row-level security policy for table trip_documents"
 --
--- Prerequisite: trips and documents must be readable (if they have RLS,
--- ensure policies allow authenticated users to read their own rows).
--- New trips and documents should set user_id via createTrip/insertDocument.
+-- Prerequisite: Run supabase/documents-rls.sql so documents has RLS policies.
+-- New trips and documents must set user_id via createTrip/insertDocument.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------

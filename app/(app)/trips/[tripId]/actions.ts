@@ -308,7 +308,7 @@ export async function uploadAndAttachDocumentAction(
   const { path, bucket, signedUrl, error: storageError } = await uploadToStorage(file, tripId, category);
   if (storageError) return { error: `Upload failed: ${storageError}`, linkedToTimeline: false, linkedItemTitle: null };
 
-  // 2 — Insert documents row
+  // 2 — Insert documents row (sets user_id for RLS; must complete before attach)
   const { document, error: insertError } = await insertDocument({
     title,
     category,
@@ -320,7 +320,7 @@ export async function uploadAndAttachDocumentAction(
   });
   if (insertError || !document) return { error: `Could not save document: ${insertError}`, linkedToTimeline: false, linkedItemTitle: null };
 
-  // 3 — Attach to trip
+  // 3 — Attach to trip (document exists and belongs to user; trip_documents RLS allows)
   const { error: attachError } = await attachDocumentToTrip(tripId, document.id);
   if (attachError) return { error: `Uploaded but failed to attach: ${attachError}`, linkedToTimeline: false, linkedItemTitle: null };
 
