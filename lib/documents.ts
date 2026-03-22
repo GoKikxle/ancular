@@ -89,6 +89,7 @@ export async function uploadToStorage(
   const sanitized = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path = `${tripId}/${Date.now()}-${sanitized}`;
 
+  console.log("[documents] storage upload start", { bucket, path, filename: file.name });
   const { error: uploadError } = await supabase.storage
     .from(bucket)
     .upload(path, file, {
@@ -97,7 +98,7 @@ export async function uploadToStorage(
     });
 
   if (uploadError) {
-    console.error(`[documents] Storage upload to "${bucket}" failed:`, uploadError.message);
+    console.error("[documents] storage upload result", { error: uploadError.message, code: uploadError.name });
     return { path: "", bucket: "", signedUrl: "", error: uploadError.message };
   }
 
@@ -106,10 +107,12 @@ export async function uploadToStorage(
     .createSignedUrl(path, SIGNED_URL_TTL);
 
   if (signedError || !signedData?.signedUrl) {
-    console.error("[documents] Failed to create signed URL:", signedError?.message);
-    return { path: "", bucket: "", signedUrl: "", error: signedError?.message ?? "Failed to sign URL" };
+    const err = signedError?.message ?? "Failed to sign URL";
+    console.error("[documents] storage upload result", { error: err });
+    return { path: "", bucket: "", signedUrl: "", error: err };
   }
 
+  console.log("[documents] storage upload result", { path, bucket, signedUrl: "[SET]" });
   return { path, bucket, signedUrl: signedData.signedUrl, error: null };
 }
 
@@ -194,8 +197,7 @@ export async function insertDocument(
     storage_bucket: input.storage_bucket,
   };
 
-  // eslint-disable-next-line no-console
-  console.log("[documents] Insert payload:", JSON.stringify({ ...payload, file_url: payload.file_url ? "[SET]" : null }));
+  console.log("[documents] insert payload", { ...payload, file_url: payload.file_url ? "[SET]" : null });
 
   const { data, error } = await supabase
     .from("documents")
@@ -204,9 +206,10 @@ export async function insertDocument(
     .single();
 
   if (error) {
-    console.error("[documents] Insert failed — full error:", JSON.stringify({ message: error.message, code: error.code, details: error.details }));
+    console.error("[documents] insert result", { error: error.message, code: error.code });
     return { document: null, error: error.message };
   }
 
+  console.log("[documents] insert result", { id: (data as DbDocument).id });
   return { document: data as DbDocument, error: null };
 }

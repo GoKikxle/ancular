@@ -311,7 +311,7 @@ export async function uploadAndAttachDocumentAction(
 
   // 1 — Upload to the bucket that matches the document category
   const { path, bucket, signedUrl, error: storageError } = await uploadToStorage(file, tripId, category);
-  if (storageError) return { error: `Upload failed: ${storageError}`, linkedToTimeline: false, linkedItemTitle: null };
+  if (storageError) return { error: storageError, linkedToTimeline: false, linkedItemTitle: null };
 
   // 2 — Insert documents row (use same supabase client so session/JWT is available for RLS)
   const { document, error: insertError } = await insertDocument(
@@ -326,7 +326,7 @@ export async function uploadAndAttachDocumentAction(
     },
     { supabase }
   );
-  if (insertError || !document) return { error: `Could not save document: ${insertError}`, linkedToTimeline: false, linkedItemTitle: null };
+  if (insertError || !document) return { error: insertError ?? "Could not save document", linkedToTimeline: false, linkedItemTitle: null };
 
   // 3 — Attach to trip (document exists and belongs to user; trip_documents RLS allows)
   const { error: attachError } = await attachDocumentToTrip(tripId, document.id);
