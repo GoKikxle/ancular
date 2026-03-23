@@ -9,7 +9,8 @@ export async function createTripAction(formData: FormData) {
   const slug = String(formData.get("slug") ?? "").trim();
   const startDate = String(formData.get("start_date") ?? "").trim();
   const endDate = String(formData.get("end_date") ?? "").trim();
-  const travelers = String(formData.get("travelers") ?? "").trim();
+  const travelersRaw = String(formData.get("travelers") ?? "").trim();
+  const travelers = travelersRaw || "1 traveler";
   const destination = String(formData.get("destination") ?? "").trim() || null;
 
   if (!title || !slug || !startDate) {
@@ -49,7 +50,8 @@ export async function updateTripAction(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const startDate = String(formData.get("start_date") ?? "").trim();
   const endDate = String(formData.get("end_date") ?? "").trim();
-  const travelers = String(formData.get("travelers") ?? "").trim();
+  const travelersRaw = String(formData.get("travelers") ?? "").trim();
+  const travelers = travelersRaw || "1 traveler";
   const destination = String(formData.get("destination") ?? "").trim() || null;
 
   if (!tripId || !tripSlug || !title || !startDate) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { TravelerCountStepper } from "@/components/trips/TravelerCountStepper";
 
 type TripFormProps = {
   action: (formData: FormData) => Promise<void>;
@@ -114,11 +115,7 @@ export function TripForm({ action }: TripFormProps) {
       {/* ── Travelers ────────────────────────────────────────────────────────── */}
       <motion.div {...fadeUp(0.20)}>
         <label className={labelClass}>Travelers</label>
-        <input
-          name="travelers"
-          placeholder="e.g. 2 travelers"
-          className={fieldClass}
-        />
+        <TravelerCountStepper name="travelers" defaultCount={1} />
       </motion.div>
 
       {/* Status is computed automatically from the dates above — no field needed. */}

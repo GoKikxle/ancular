@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { DbTrip } from "@/lib/trips";
+import { TravelerCountStepper } from "@/components/trips/TravelerCountStepper";
 
 type TripEditFormProps = {
   trip: DbTrip;
@@ -103,12 +104,7 @@ export function TripEditForm({ trip, action }: TripEditFormProps) {
       {/* ── Travelers ────────────────────────────────────────────────────────── */}
       <motion.div {...fadeUp(0.15)}>
         <label className={labelClass}>Travelers</label>
-        <input
-          name="travelers"
-          defaultValue={trip.travelers ?? ""}
-          placeholder="e.g. 2 travelers"
-          className={fieldClass}
-        />
+        <TravelerCountStepper name="travelers" initialLabel={trip.travelers} />
       </motion.div>
 
       {/* ── Auto-status note — compact info row ──────────────────────────────── */}
