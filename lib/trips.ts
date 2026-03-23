@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { computeTripStatus } from "@/lib/trip-status";
 
 export type DbTrip = {
   id: string;
@@ -35,6 +36,28 @@ export async function getTrips() {
   if (error) throw new Error(error.message);
 
   return (data ?? []) as DbTrip[];
+}
+
+/**
+ * Trips that are current or upcoming (not past) — for the home dashboard only.
+ * Uses date-based status when `start_date` exists; otherwise falls back to stored `status`.
+ */
+export async function getActiveTripsForHome(): Promise<DbTrip[]> {
+  const all = await getTrips();
+  const active = all.filter((t) => {
+    if (t.start_date) {
+      const s = computeTripStatus(t.start_date, t.end_date ?? null);
+      return s === "Active" || s === "Upcoming";
+    }
+    return t.status === "Active" || t.status === "Upcoming";
+  });
+  active.sort((a, b) => {
+    const da = a.start_date ?? "";
+    const db = b.start_date ?? "";
+    if (da && db) return da.localeCompare(db);
+    return 0;
+  });
+  return active;
 }
 
 export async function getTripBySlug(slug: string) {
