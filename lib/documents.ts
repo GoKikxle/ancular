@@ -98,7 +98,10 @@ export async function uploadToStorage(
     });
 
   if (uploadError) {
-    console.error("[documents] storage upload result", { error: uploadError.message, code: uploadError.name });
+    console.error("[documents] STORAGE UPLOAD FAILED FULL", {
+      message: uploadError.message,
+      name: uploadError.name,
+    });
     return { path: "", bucket: "", signedUrl: "", error: uploadError.message };
   }
 
@@ -206,8 +209,17 @@ export async function insertDocument(
     .single();
 
   if (error) {
-    console.error("[documents] insert result", { error: error.message, code: error.code });
-    return { document: null, error: error.message };
+    console.error("[documents] INSERT FAILED FULL", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      name: error.name,
+    });
+    return {
+      document: null,
+      error: `${error.message} | code=${error.code ?? "n/a"} | details=${error.details ?? "n/a"} | hint=${error.hint ?? "n/a"}`,
+    };
   }
 
   console.log("[documents] insert result", { id: (data as DbDocument).id });
