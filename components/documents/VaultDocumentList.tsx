@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { DbDocument } from "@/lib/documents";
 import { surfaceCard, surfaceCardLinkHover } from "@/lib/screen-styles";
 import { DocumentCategoryIcon, categoryLabel } from "./DocumentCategoryIcon";
 import { deleteDocumentAction, updateDocumentTitleAction } from "@/app/(app)/documents/actions";
+import { VaultDocumentCardMenu } from "./VaultDocumentCardMenu";
 
 // ── Local helpers (mirrors page.tsx originals) ────────────────────────────────
 
@@ -39,48 +40,6 @@ function fileTypeLabel(mimeType: string | null | undefined): string | null {
   return map[mimeType] ?? mimeType.split("/")[1]?.toUpperCase() ?? null;
 }
 
-// ── Icons ─────────────────────────────────────────────────────────────────────
-
-function PencilIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-      <path
-        d="M8.5 2.5l3 3M1 13l3.25-.5L12 4.75a1.414 1.414 0 000-2L11.25 2a1.414 1.414 0 00-2 0L2.5 8.75 1 13z"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg width="12" height="13" viewBox="0 0 12 13" fill="none" aria-hidden="true">
-      <path
-        d="M1 3.5h10M4.5 3.5V2.5a.5.5 0 01.5-.5h2a.5.5 0 01.5.5v1"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M2 3.5l.6 7.2a1 1 0 001 .8h4.8a1 1 0 001-.8L10 3.5"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
-      <path
-        d="M4.5 6.5v3M7.5 6.5v3"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 // ── Animation ─────────────────────────────────────────────────────────────────
 
 // Stagger entrance — matches StaggerList/StaggerItem from components/motion/
@@ -98,20 +57,6 @@ const cardVariants = {
   },
 };
 
-const confirmSlide = {
-  hidden: { opacity: 0, height: 0 },
-  show: {
-    opacity: 1,
-    height: "auto",
-    transition: { duration: 0.18, ease: [0.25, 0.46, 0.45, 0.94] as const },
-  },
-  exit: {
-    opacity: 0,
-    height: 0,
-    transition: { duration: 0.14, ease: [0.55, 0, 1, 0.45] as const },
-  },
-};
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 type Props = {
@@ -121,8 +66,8 @@ type Props = {
 /**
  * Interactive document list for the vault page.
  *
- * Each card has a trash icon trigger that slides in an inline two-step
- * confirmation. Confirmed deletion calls deleteDocumentAction which:
+ * Actions live in a ⋮ menu; delete uses a modal confirmation before
+ * deleteDocumentAction, which:
  *   - removes the file from Supabase Storage
  *   - deletes the documents row (cascades to trip_documents)
  *
@@ -131,7 +76,8 @@ type Props = {
  */
 export function VaultDocumentList({ docs }: Props) {
   const router = useRouter();
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [deleteConfirmDoc, setDeleteConfirmDoc] = useState<DbDocument | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [docErrors, setDocErrors] = useState<Record<string, string>>({});
   const [isPending, startTransition] = useTransition();
@@ -140,18 +86,18 @@ export function VaultDocumentList({ docs }: Props) {
   const [editError, setEditError] = useState<string | null>(null);
   const [editPending, setEditPending] = useState(false);
 
-  function requestConfirm(id: string) {
-    setConfirmingId(id);
-    // Clear any previous error for this doc when re-entering confirm flow.
+  function openDeleteConfirm(doc: DbDocument) {
+    setMenuOpenId(null);
     setDocErrors((prev) => {
       const next = { ...prev };
-      delete next[id];
+      delete next[doc.id];
       return next;
     });
+    setDeleteConfirmDoc(doc);
   }
 
-  function cancelConfirm() {
-    setConfirmingId(null);
+  function closeDeleteConfirm() {
+    setDeleteConfirmDoc(null);
   }
 
   function openEdit(doc: DbDocument) {
@@ -165,6 +111,15 @@ export function VaultDocumentList({ docs }: Props) {
     setEditError(null);
     setEditPending(false);
   }
+
+  useEffect(() => {
+    if (!deleteConfirmDoc) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setDeleteConfirmDoc(null);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [deleteConfirmDoc]);
 
   async function saveTitle() {
     if (!editingDoc) return;
@@ -186,8 +141,8 @@ export function VaultDocumentList({ docs }: Props) {
   }
 
   function handleDelete(doc: DbDocument) {
+    closeDeleteConfirm();
     setDeletingId(doc.id);
-    setConfirmingId(null);
     startTransition(async () => {
       const result = await deleteDocumentAction(
         doc.id,
@@ -213,7 +168,6 @@ export function VaultDocumentList({ docs }: Props) {
       className="flex flex-col gap-3"
     >
       {docs.map((doc) => {
-        const isConfirming = confirmingId === doc.id;
         const isDeleting = deletingId === doc.id && isPending;
         const errorMsg = docErrors[doc.id];
         const fileType = fileTypeLabel(doc.mime_type);
@@ -236,9 +190,9 @@ export function VaultDocumentList({ docs }: Props) {
                 </div>
               </div>
 
-              {/* Right: file type chip + trash trigger */}
+              {/* Right: metadata chips + ⋮ menu */}
               <div
-                className="flex flex-shrink-0 items-center gap-1.5"
+                className="flex flex-shrink-0 items-start gap-1.5"
                 onClick={(e) => e.stopPropagation()}
               >
                 {(doc.available_offline ?? false) && (
@@ -246,40 +200,18 @@ export function VaultDocumentList({ docs }: Props) {
                     Offline
                   </span>
                 )}
-                <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-[10px] text-white/35">
+                <span className="mt-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-[10px] text-white/35">
                   {fileType ?? (doc.file_url ? "File" : "No file")}
                 </span>
 
-                {!isConfirming && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        openEdit(doc);
-                      }}
-                      disabled={isPending}
-                      aria-label={`Edit title for "${doc.title}"`}
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white/35 transition-colors hover:bg-white/[0.06] hover:text-white/60 disabled:opacity-30"
-                    >
-                      <PencilIcon />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        requestConfirm(doc.id);
-                      }}
-                      disabled={isPending}
-                      aria-label={`Delete "${doc.title}" from vault`}
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white/35 transition-colors hover:bg-white/[0.06] hover:text-white/55 active:text-red-400/70 disabled:opacity-30"
-                    >
-                      <TrashIcon />
-                    </button>
-                  </>
-                )}
+                <VaultDocumentCardMenu
+                  docTitle={doc.title}
+                  isOpen={menuOpenId === doc.id}
+                  onOpenChange={(open) => setMenuOpenId(open ? doc.id : null)}
+                  onEditTitle={() => openEdit(doc)}
+                  onDeleteClick={() => openDeleteConfirm(doc)}
+                  disabled={isPending}
+                />
               </div>
             </div>
 
@@ -296,53 +228,12 @@ export function VaultDocumentList({ docs }: Props) {
                 {errorMsg}
               </p>
             )}
-
-            {/* ── Confirmation row — stopPropagation so it doesn't open file ─ */}
-            <AnimatePresence initial={false}>
-              {isConfirming && (
-                <motion.div
-                  key={`confirm-${doc.id}`}
-                  variants={confirmSlide}
-                  initial="hidden"
-                  animate="show"
-                  exit="exit"
-                  className="overflow-hidden"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3">
-                    <p className="text-[12px] text-white/35">
-                      Delete permanently?
-                    </p>
-                    <div className="flex flex-shrink-0 gap-2">
-                      <button
-                        type="button"
-                        onClick={cancelConfirm}
-                        className="rounded-full border border-white/[0.12] px-3 py-1.5 text-[12px] text-white/40 transition-colors hover:text-white/60"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(doc)}
-                        className="rounded-full border border-red-500/25 bg-red-500/[0.09] px-3 py-1.5 text-[12px] font-medium text-red-400/80 transition-colors hover:bg-red-500/[0.16] hover:text-red-400"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </>
         );
 
-        const isClickable = doc.file_url && !isConfirming;
+        const isClickable = Boolean(doc.file_url);
         const baseClassName = `${surfaceCard} p-6 transition-all duration-200 ease-out ${
-          isDeleting
-            ? "pointer-events-none opacity-35"
-            : isConfirming
-              ? "opacity-65"
-              : "opacity-100"
+          isDeleting ? "pointer-events-none opacity-35" : "opacity-100"
         }`;
 
         const interactiveClassName = isClickable
@@ -350,8 +241,12 @@ export function VaultDocumentList({ docs }: Props) {
           : "";
 
         return (
-          <motion.div key={doc.id} variants={cardVariants}>
-            {doc.file_url && !isConfirming ? (
+          <motion.div
+            key={doc.id}
+            variants={cardVariants}
+            className={menuOpenId === doc.id ? "relative z-[50]" : undefined}
+          >
+            {doc.file_url ? (
               <Link
                 href={`/documents/${doc.id}`}
                 className={`block ${baseClassName} ${interactiveClassName}`}
@@ -422,6 +317,57 @@ export function VaultDocumentList({ docs }: Props) {
                 className="flex-1 rounded-xl bg-white py-3 text-[14px] font-semibold text-neutral-950 transition-opacity hover:opacity-95 disabled:opacity-50"
               >
                 {editPending ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    <AnimatePresence>
+      {deleteConfirmDoc && (
+        <motion.div
+          key="delete-doc"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[200] flex items-end justify-center p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-doc-heading"
+        >
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/65 backdrop-blur-[2px]"
+            aria-label="Close"
+            onClick={closeDeleteConfirm}
+          />
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 16, opacity: 0 }}
+            className={`relative w-full max-w-sm ${surfaceCard} p-6 shadow-xl`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="delete-doc-heading" className="text-[16px] font-bold text-white">
+              Delete this document?
+            </h2>
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                onClick={closeDeleteConfirm}
+                disabled={isPending && deletingId === deleteConfirmDoc.id}
+                className="flex-1 rounded-xl border border-white/[0.12] py-3 text-[14px] font-medium text-white/55 transition-colors hover:bg-white/[0.05] disabled:opacity-40"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(deleteConfirmDoc)}
+                disabled={isPending && deletingId === deleteConfirmDoc.id}
+                className="flex-1 rounded-xl border border-red-500/30 bg-red-500/[0.12] py-3 text-[14px] font-semibold text-red-400 transition-colors hover:bg-red-500/[0.2] disabled:opacity-50"
+              >
+                Delete
               </button>
             </div>
           </motion.div>
