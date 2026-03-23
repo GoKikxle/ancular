@@ -8,6 +8,7 @@ import { toggleAvailableOfflineAction } from "@/app/(app)/documents/actions";
 import { useRouter } from "next/navigation";
 import { getDocumentViewKind, getFileTypeDisplayLabel } from "@/lib/document-view-kind";
 import { categoryLabel } from "@/components/documents/DocumentCategoryIcon";
+import { PdfViewer } from "@/components/documents/PdfViewer";
 import type { DocumentCategory } from "@/types/document";
 
 type DocumentViewerProps = {
@@ -147,17 +148,6 @@ export function DocumentViewer({ doc }: DocumentViewerProps) {
     resetLoadState();
     setImageZoomed(false);
   }, [doc.id, displayUrl, viewKind, resetLoadState]);
-
-  useEffect(() => {
-    if (viewKind !== "pdf" || !displayUrl) return;
-    const t = window.setTimeout(() => {
-      setMediaLoaded((loaded) => {
-        if (!loaded) setMediaError(true);
-        return loaded;
-      });
-    }, 18_000);
-    return () => clearTimeout(t);
-  }, [viewKind, displayUrl, loadKey]);
 
   async function handleToggleOffline() {
     const next = !availableOffline;
@@ -330,17 +320,18 @@ export function DocumentViewer({ doc }: DocumentViewerProps) {
           <ContentSkeleton kind={viewKind} />
         ) : viewKind === "pdf" ? (
           <div className="flex h-full min-h-0 flex-1 flex-col px-3 pt-3">
-            <div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl bg-[#111] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07)]">
-              {!mediaLoaded && !mediaError && <LoadingOverlay kind="pdf" />}
-              <iframe
-                key={loadKey}
-                src={displayUrl ?? ""}
-                title={doc.title}
-                onLoad={() => {
+            <div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl bg-[#1a1a1a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07)]">
+              <PdfViewer
+                fileSrc={displayUrl ?? ""}
+                loadKey={loadKey}
+                onReady={() => {
                   setMediaLoaded(true);
                   setMediaError(false);
                 }}
-                className="h-full min-h-[58dvh] w-full border-0 bg-neutral-100"
+                onError={() => {
+                  setMediaError(true);
+                  setMediaLoaded(false);
+                }}
               />
             </div>
           </div>
