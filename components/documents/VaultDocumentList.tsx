@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -145,7 +146,7 @@ export function VaultDocumentList({ docs }: Props) {
       );
 
       if (result.error) {
-        setDocErrors((prev) => ({ ...prev, [doc.id]: result.error }));
+        setDocErrors((prev) => ({ ...prev, [doc.id]: result.error ?? "Unknown error" }));
       } else {
         router.refresh();
       }
@@ -191,6 +192,11 @@ export function VaultDocumentList({ docs }: Props) {
                 className="flex flex-shrink-0 items-center gap-1.5"
                 onClick={(e) => e.stopPropagation()}
               >
+                {(doc.available_offline ?? false) && (
+                  <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400/90">
+                    Offline
+                  </span>
+                )}
                 <span className="rounded-full border border-white/[0.07] px-2 py-0.5 text-[10px] text-white/28">
                   {fileType ?? (doc.file_url ? "File" : "No file")}
                 </span>
@@ -288,14 +294,12 @@ export function VaultDocumentList({ docs }: Props) {
         return (
           <motion.div key={doc.id} variants={cardVariants}>
             {doc.file_url && !isConfirming ? (
-              <a
-                href={doc.file_url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href={`/documents/${doc.id}`}
                 className={`block ${baseClassName} ${interactiveClassName}`}
               >
                 {cardContent}
-              </a>
+              </Link>
             ) : (
               <div className={`${baseClassName} ${interactiveClassName}`}>
                 {cardContent}

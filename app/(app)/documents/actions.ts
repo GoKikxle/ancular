@@ -1,9 +1,27 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { deleteDocumentFromVault } from "@/lib/documents";
+import { deleteDocumentFromVault, updateDocumentAvailableOffline } from "@/lib/documents";
 import { getTripIdsForDocument } from "@/lib/trip-documents";
 import { getSlugsForTripIds } from "@/lib/trips";
+
+/**
+ * Toggles the available_offline flag for a document.
+ * Revalidates /documents and any trip pages that have this document attached.
+ */
+export async function toggleAvailableOfflineAction(
+  documentId: string,
+  availableOffline: boolean
+): Promise<{ error: string | null }> {
+  const { error } = await updateDocumentAvailableOffline(documentId, availableOffline);
+  if (error) return { error: "Could not update" };
+
+  revalidatePath("/documents");
+  const tripIds = await getTripIdsForDocument(documentId);
+  const slugs = await getSlugsForTripIds(tripIds);
+  slugs.forEach((s) => revalidatePath(`/trips/${s}`));
+  return { error: null };
+}
 
 /**
  * Permanently deletes a document from the vault.

@@ -35,13 +35,14 @@ const TABS: Tab[] = [
     ),
   },
   {
-    href: "/notifications",
-    label: "Notifications",
-    matchPaths: ["/notifications"],
+    href: "/stats",
+    label: "My Stats",
+    matchPaths: ["/stats"],
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-        <path d="M13.73 21a2 2 0 01-3.46 0" />
+        <path d="M18 20V10" />
+        <path d="M12 20V4" />
+        <path d="M6 20v-6" />
       </svg>
     ),
   },

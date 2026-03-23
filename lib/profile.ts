@@ -8,6 +8,8 @@ export type Profile = {
   avatar_id: string | null;
   created_at: string;
   updated_at: string;
+  /** Unread notifications count. Mock for now; real notifications plug in later. */
+  notifications_unread_count?: number;
 };
 
 /** Load the current user's profile. Returns null if not found. */
@@ -34,6 +36,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     avatar_id: (row.avatar_id as string | null) ?? "avatar_1",
     created_at: (row.created_at as string) ?? new Date().toISOString(),
     updated_at: (row.updated_at as string) ?? new Date().toISOString(),
+    notifications_unread_count: (row.notifications_unread_count as number | undefined) ?? 0,
   } as Profile;
 }
 

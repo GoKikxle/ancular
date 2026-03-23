@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -138,14 +139,17 @@ export function TripDocumentList({ docs, tripId, tripSlug }: Props) {
 
               {/* View link — hidden while confirmation is open */}
               {!isConfirming && doc.file_url && (
-                <a
-                  href={doc.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href={`/documents/${doc.id}`}
                   className="flex-shrink-0 rounded-full border border-white/[0.07] px-2 py-0.5 text-[10px] text-white/28 transition-colors hover:text-white/50"
                 >
                   View
-                </a>
+                </Link>
+              )}
+              {(doc.available_offline ?? false) && (
+                <span className="flex-shrink-0 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400/90">
+                  Offline
+                </span>
               )}
 
               {/* No-file badge — hidden while confirmation is open */}

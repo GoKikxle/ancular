@@ -46,6 +46,8 @@ export type DbDocument = {
   storage_path?: string | null;
   /** Supabase Storage bucket name (e.g. "flight"). See lib/storage-buckets.ts. */
   storage_bucket?: string | null;
+  /** User marked for offline access; persisted in DB. */
+  available_offline?: boolean;
 };
 
 /** Fetches every document in the vault, newest first. */
@@ -224,4 +226,40 @@ export async function insertDocument(
 
   console.log("[documents] insert result", { id: (data as DbDocument).id });
   return { document: data as DbDocument, error: null };
+}
+
+/** Fetches a single document by ID. Returns null if not found. */
+export async function getDocumentById(id: string): Promise<DbDocument | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("documents")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return null;
+  return data as DbDocument;
+}
+
+/** Updates the available_offline flag for a document. */
+export async function updateDocumentAvailableOffline(
+  id: string,
+  availableOffline: boolean
+): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("documents")
+    .update({ available_offline: availableOffline })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("[documents] Failed to update available_offline:", error.message);
+    return { error: error.message };
+  }
+  return { error: null };
 }

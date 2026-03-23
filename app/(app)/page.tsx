@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { NowCard } from "@/components/dashboard/NowCard";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { UserAvatar } from "@/components/ui/UserAvatar";
 import { getCurrentProfile } from "@/lib/profile";
 import { getTrips } from "@/lib/trips";
 import { getUpcomingNowItem } from "@/lib/now-card";
@@ -23,20 +22,10 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <PageContainer>
-        {/* Personalized header */}
-        <header className="mb-8 flex items-center justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-[22px] font-semibold leading-[1.3] tracking-[-0.02em] text-white">
-              Hello {name}, where are we off to today?
-            </h1>
-          </div>
-          <Link
-            href="/settings"
-            className="flex-shrink-0 rounded-full transition-opacity active:scale-95 active:opacity-90"
-            aria-label="Open settings"
-          >
-            <UserAvatar avatarId={profile?.avatar_id ?? null} size="medium" />
-          </Link>
+        <header className="mb-8">
+          <h1 className="text-[22px] font-semibold leading-[1.3] tracking-[-0.02em] text-white">
+            Hello {name}, where are we off to today?
+          </h1>
         </header>
 
         {nowItem && <NowCard item={nowItem} />}

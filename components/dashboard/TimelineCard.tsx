@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Fragment, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { computeItemState, getGroupLabel } from "@/lib/timeline-view-model";
@@ -406,14 +407,12 @@ export function TimelineCard({ items, tripSlug, hasDocuments, tripDocs }: Timeli
                             </span>
                           </span>
                           {linked.file_url && (
-                            <a
-                              href={linked.file_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <Link
+                              href={`/documents/${linked.id}`}
                               className="rounded-full border border-white/[0.07] px-2 py-0.5 text-[11px] text-white/35 transition-colors hover:text-white/55"
                             >
                               View
-                            </a>
+                            </Link>
                           )}
                         </span>
                       );
