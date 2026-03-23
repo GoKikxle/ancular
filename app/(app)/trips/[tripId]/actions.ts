@@ -340,5 +340,6 @@ export async function uploadAndAttachDocumentAction(
   );
 
   revalidatePath(`/trips/${tripSlug}`);
+  revalidatePath("/documents");
   return { error: null, linkedToTimeline: matched, linkedItemTitle };
 }

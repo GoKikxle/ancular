@@ -1,9 +1,28 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { deleteDocumentFromVault, updateDocumentAvailableOffline } from "@/lib/documents";
+import {
+  deleteDocumentFromVault,
+  updateDocumentAvailableOffline,
+  updateDocumentTitle,
+} from "@/lib/documents";
 import { getTripIdsForDocument } from "@/lib/trip-documents";
 import { getSlugsForTripIds } from "@/lib/trips";
+
+/** Updates document title only; revalidates vault and attached trips. */
+export async function updateDocumentTitleAction(
+  documentId: string,
+  title: string
+): Promise<{ error: string | null }> {
+  const { error } = await updateDocumentTitle(documentId, title);
+  if (error) return { error: "Could not update title" };
+
+  revalidatePath("/documents");
+  const tripIds = await getTripIdsForDocument(documentId);
+  const slugs = await getSlugsForTripIds(tripIds);
+  slugs.forEach((s) => revalidatePath(`/trips/${s}`));
+  return { error: null };
+}
 
 /**
  * Toggles the available_offline flag for a document.

@@ -263,3 +263,30 @@ export async function updateDocumentAvailableOffline(
   }
   return { error: null };
 }
+
+/** Updates display title only (mirrors `name` for legacy rows). */
+export async function updateDocumentTitle(
+  id: string,
+  title: string
+): Promise<{ error: string | null }> {
+  const trimmed = title.trim();
+  if (!trimmed) return { error: "Title is required" };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const { error } = await supabase
+    .from("documents")
+    .update({ title: trimmed, name: trimmed })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("[documents] Failed to update title:", error.message);
+    return { error: error.message };
+  }
+  return { error: null };
+}

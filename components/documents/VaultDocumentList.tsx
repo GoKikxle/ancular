@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { DbDocument } from "@/lib/documents";
 import { surfaceCard, surfaceCardLinkHover } from "@/lib/screen-styles";
 import { DocumentCategoryIcon, categoryLabel } from "./DocumentCategoryIcon";
-import { deleteDocumentAction } from "@/app/(app)/documents/actions";
+import { deleteDocumentAction, updateDocumentTitleAction } from "@/app/(app)/documents/actions";
 
 // ── Local helpers (mirrors page.tsx originals) ────────────────────────────────
 
@@ -40,6 +40,20 @@ function fileTypeLabel(mimeType: string | null | undefined): string | null {
 }
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
+
+function PencilIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <path
+        d="M8.5 2.5l3 3M1 13l3.25-.5L12 4.75a1.414 1.414 0 000-2L11.25 2a1.414 1.414 0 00-2 0L2.5 8.75 1 13z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 function TrashIcon() {
   return (
@@ -121,6 +135,10 @@ export function VaultDocumentList({ docs }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [docErrors, setDocErrors] = useState<Record<string, string>>({});
   const [isPending, startTransition] = useTransition();
+  const [editingDoc, setEditingDoc] = useState<DbDocument | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editPending, setEditPending] = useState(false);
 
   function requestConfirm(id: string) {
     setConfirmingId(id);
@@ -134,6 +152,37 @@ export function VaultDocumentList({ docs }: Props) {
 
   function cancelConfirm() {
     setConfirmingId(null);
+  }
+
+  function openEdit(doc: DbDocument) {
+    setEditingDoc(doc);
+    setEditTitle(doc.title);
+    setEditError(null);
+  }
+
+  function closeEdit() {
+    setEditingDoc(null);
+    setEditError(null);
+    setEditPending(false);
+  }
+
+  async function saveTitle() {
+    if (!editingDoc) return;
+    const trimmed = editTitle.trim();
+    if (!trimmed) {
+      setEditError("Title is required");
+      return;
+    }
+    setEditPending(true);
+    setEditError(null);
+    const result = await updateDocumentTitleAction(editingDoc.id, trimmed);
+    setEditPending(false);
+    if (result.error) {
+      setEditError(result.error);
+      return;
+    }
+    closeEdit();
+    router.refresh();
   }
 
   function handleDelete(doc: DbDocument) {
@@ -156,6 +205,7 @@ export function VaultDocumentList({ docs }: Props) {
   }
 
   return (
+    <>
     <motion.div
       variants={listVariants}
       initial="hidden"
@@ -201,19 +251,34 @@ export function VaultDocumentList({ docs }: Props) {
                 </span>
 
                 {!isConfirming && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      requestConfirm(doc.id);
-                    }}
-                    disabled={isPending}
-                    aria-label={`Delete "${doc.title}" from vault`}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white/35 transition-colors hover:bg-white/[0.06] hover:text-white/55 active:text-red-400/70 disabled:opacity-30"
-                  >
-                    <TrashIcon />
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openEdit(doc);
+                      }}
+                      disabled={isPending}
+                      aria-label={`Edit title for "${doc.title}"`}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white/35 transition-colors hover:bg-white/[0.06] hover:text-white/60 disabled:opacity-30"
+                    >
+                      <PencilIcon />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        requestConfirm(doc.id);
+                      }}
+                      disabled={isPending}
+                      aria-label={`Delete "${doc.title}" from vault`}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white/35 transition-colors hover:bg-white/[0.06] hover:text-white/55 active:text-red-400/70 disabled:opacity-30"
+                    >
+                      <TrashIcon />
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -302,5 +367,67 @@ export function VaultDocumentList({ docs }: Props) {
         );
       })}
     </motion.div>
+
+    <AnimatePresence>
+      {editingDoc && (
+        <motion.div
+          key="edit-title"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[200] flex items-end justify-center p-4 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-doc-title-heading"
+        >
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/65 backdrop-blur-[2px]"
+            aria-label="Close"
+            onClick={closeEdit}
+          />
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 16, opacity: 0 }}
+            className={`relative w-full max-w-sm ${surfaceCard} p-6 shadow-xl`}
+          >
+            <h2 id="edit-doc-title-heading" className="text-[16px] font-bold text-white">
+              Edit title
+            </h2>
+            <p className="mt-1 text-[12px] text-white/38">Only the display name changes—not the file.</p>
+            <input
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="mt-4 h-12 w-full rounded-2xl border border-white/[0.1] bg-white/[0.05] px-4 text-[15px] text-white placeholder:text-white/25 focus:border-white/[0.18] focus:outline-none"
+              autoFocus
+            />
+            {editError && (
+              <p className="mt-2 text-[12px] text-red-300">{editError}</p>
+            )}
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                onClick={closeEdit}
+                disabled={editPending}
+                className="flex-1 rounded-xl border border-white/[0.12] py-3 text-[14px] font-medium text-white/55 transition-colors hover:bg-white/[0.05] disabled:opacity-40"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void saveTitle()}
+                disabled={editPending}
+                className="flex-1 rounded-xl bg-white py-3 text-[14px] font-semibold text-neutral-950 transition-opacity hover:opacity-95 disabled:opacity-50"
+              >
+                {editPending ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
