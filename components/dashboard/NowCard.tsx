@@ -30,49 +30,52 @@ type NowCardProps = {
 };
 
 /**
- * Large card at top of dashboard showing what to do right now.
- * Uses contextual label (Now / Next) and optional "View File" when document_id exists.
+ * Home hero — next action. Visual hierarchy: accent time → bold title → muted date.
  */
 export function NowCard({ item }: NowCardProps) {
   const { title, time, eventDate, label, documentId, tripSlug } = item;
 
   return (
-    <section className="mb-6 rounded-3xl border border-white/[0.1] bg-white/[0.05] p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <span
-            className={`inline-block rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
-              label === "Now" ? "bg-amber-500/20 text-amber-300" : "bg-white/10 text-white/60"
-            }`}
-          >
-            {label}
-          </span>
-          <h2 className="mt-3 text-[20px] font-semibold leading-tight tracking-[-0.02em] text-white">
-            {title}
-          </h2>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {eventDate && (
-              <span className="text-[13px] text-white/50">{formatEventDate(eventDate)}</span>
-            )}
-            <span className="font-mono text-[14px] tabular-nums text-white/70">{time}</span>
-          </div>
-        </div>
+    <section
+      className="rounded-2xl border border-white/[0.1] bg-gradient-to-b from-white/[0.07] to-white/[0.03] p-6 shadow-[0_1px_0_rgba(255,255,255,0.06)_inset]"
+      aria-label="Next action"
+    >
+      <div className="min-w-0">
+        <span
+          className={`inline-block rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${
+            label === "Now" ? "bg-amber-500/15 text-amber-200/90" : "bg-white/[0.08] text-white/50"
+          }`}
+        >
+          {label}
+        </span>
+
+        <p className="mt-4 font-mono text-[15px] font-semibold tabular-nums tracking-tight text-sky-400">
+          {time}
+        </p>
+
+        <h2 className="mt-1.5 text-[22px] font-bold leading-snug tracking-[-0.02em] text-white">
+          {title}
+        </h2>
+
+        {eventDate && (
+          <p className="mt-2 text-[13px] leading-relaxed text-white/45">{formatEventDate(eventDate)}</p>
+        )}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3">
+      <div className="mt-6 flex flex-wrap gap-2.5">
         <Link
           href={`/trips/${tripSlug}`}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.06] px-4 py-2.5 text-[14px] font-medium text-white/90 transition-colors active:scale-[0.98]"
+          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-white/[0.14] bg-white/[0.06] px-4 py-2.5 text-[13px] font-semibold text-white/90 transition-colors hover:bg-white/[0.1] active:scale-[0.98]"
         >
           View trip
         </Link>
         {documentId && (
           <Link
             href={`/documents/${documentId}`}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[14px] font-semibold text-neutral-950 transition-opacity active:scale-[0.98]"
+            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[13px] font-semibold text-neutral-950 transition-opacity hover:opacity-95 active:scale-[0.98]"
           >
             <FileIcon />
-            View File
+            View file
           </Link>
         )}
       </div>
