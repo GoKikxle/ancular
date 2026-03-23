@@ -5,10 +5,12 @@ export async function GET(request: Request) {
   try {
     const { searchParams, origin } = new URL(request.url);
     const code = searchParams.get("code");
+    const errorParam = searchParams.get("error");
+    const errorCode = searchParams.get("error_code");
     const next = searchParams.get("next") ?? "/";
     const base = origin.replace(/\/+$/, "");
 
-    if (!code) {
+    if (!code || errorParam || errorCode) {
       return NextResponse.redirect(`${base}/login?error=auth_callback_error`);
     }
 
