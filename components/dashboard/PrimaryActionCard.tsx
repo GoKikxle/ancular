@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import type { PrimaryActionView } from "@/lib/timeline-view-model";
 
@@ -38,28 +39,6 @@ function FileIcon() {
   );
 }
 
-/** ↗ External link indicator — signals the file opens in a new tab. */
-function ExternalIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-      <path
-        d="M5.5 3H3a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1V8"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M8.5 1.5H11m0 0v2.5m0-2.5L6.5 7"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 /**
  * Primary action hero card — the first thing a user reads on the trip page.
  *
@@ -77,9 +56,8 @@ function ExternalIcon() {
  *   3. Empty    (isEmpty: true)
  *      No timeline items AND no fallback copy. Muted placeholder card.
  *
- * fileUrl — signed URL for the linked document. When present the "Open
- * document" button is the full-contrast primary CTA. When absent no file
- * CTA is shown.
+ * documentId — when present the "Open document" button links to the in-app
+ * viewer at /documents/[id]. fileUrl is deprecated for CTA; viewer loads the file.
  */
 export function PrimaryActionCard({
   title,
@@ -87,6 +65,7 @@ export function PrimaryActionCard({
   time,
   eventDate,
   documentLabel,
+  documentId,
   fromTimeline,
   hasDocuments,
   isEmpty,
@@ -118,10 +97,11 @@ export function PrimaryActionCard({
   // ── States 1 & 2: active or guidance ────────────────────────────────────────
 
   const label = fromTimeline ? "Next action" : "Up next";
-  const showViewFile = fromTimeline && !!fileUrl;
+  const showViewFile = fromTimeline && !!documentId;
 
   // Unused by current CTA logic — kept for potential future use.
   void hasDocuments;
+  void fileUrl;
 
   return (
     <section className="mb-4 rounded-3xl bg-sky-500 px-5 pb-5 pt-5">
@@ -170,21 +150,18 @@ export function PrimaryActionCard({
 
       {/* ── Row 5: CTA ──────────────────────────────────────────────────────── */}
       {showViewFile ? (
-        // Full-contrast "Open document" button — high-confidence CTA.
-        // ↗ external icon on the right makes it clear the file opens in a new tab.
-        <motion.a
-          href={fileUrl!}
-          target="_blank"
-          rel="noopener noreferrer"
-          whileTap={{ scale: 0.97 }}
-          className="mt-5 flex w-full items-center justify-between rounded-2xl bg-sky-950 px-5 py-4 text-[15px] font-semibold text-white"
-        >
-          <span className="flex items-center gap-2.5">
-            <FileIcon />
-            Open document
-          </span>
-          <ExternalIcon />
-        </motion.a>
+        <Link href={`/documents/${documentId}`}>
+          <motion.div
+            whileTap={{ scale: 0.97 }}
+            className="mt-5 flex w-full items-center justify-between rounded-2xl bg-sky-950 px-5 py-4 text-[15px] font-semibold text-white"
+          >
+            <span className="flex items-center gap-2.5">
+              <FileIcon />
+              Open document
+            </span>
+            <ArrowRightIcon />
+          </motion.div>
+        </Link>
       ) : fromTimeline ? (
         // Real item but no linked document — secondary CTA.
         <motion.a

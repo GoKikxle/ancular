@@ -34,7 +34,7 @@ type NowCardProps = {
  * Uses contextual label (Now / Next) and optional "View File" when document_id exists.
  */
 export function NowCard({ item }: NowCardProps) {
-  const { title, time, eventDate, label, fileUrl, tripSlug } = item;
+  const { title, time, eventDate, label, documentId, tripSlug } = item;
 
   return (
     <section className="mb-6 rounded-3xl border border-white/[0.1] bg-white/[0.05] p-5">
@@ -66,16 +66,14 @@ export function NowCard({ item }: NowCardProps) {
         >
           View trip
         </Link>
-        {fileUrl && (
-          <a
-            href={fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+        {documentId && (
+          <Link
+            href={`/documents/${documentId}`}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[14px] font-semibold text-neutral-950 transition-opacity active:scale-[0.98]"
           >
             <FileIcon />
             View File
-          </a>
+          </Link>
         )}
       </div>
     </section>
