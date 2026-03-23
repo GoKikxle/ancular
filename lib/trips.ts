@@ -50,3 +50,15 @@ export async function getTripBySlug(slug: string) {
 
   return data as DbTrip;
 }
+
+/** Returns slugs for the given trip IDs. Used when revalidating trip pages after document delete. */
+export async function getSlugsForTripIds(ids: string[]): Promise<string[]> {
+  if (ids.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("trips")
+    .select("slug")
+    .in("id", ids);
+  if (error) return [];
+  return (data ?? []).map((r) => r.slug);
+}

@@ -213,7 +213,7 @@ export async function removeDocumentFromTripAction(
   documentId: string
 ): Promise<{ error: string | null }> {
   const { error } = await removeDocumentFromTrip(tripId, documentId);
-  if (error) return { error };
+  if (error) return { error: "Could not remove document" };
   revalidatePath(`/trips/${tripSlug}`);
   return { error: null };
 }
@@ -249,7 +249,7 @@ export async function attachDocumentAction(
   doc: { id: string; title: string; category: DocumentCategory }
 ): Promise<{ error: string | null; linkedToTimeline: boolean; linkedItemTitle: string | null }> {
   const { error } = await attachDocumentToTrip(tripId, doc.id);
-  if (error) return { error, linkedToTimeline: false, linkedItemTitle: null };
+  if (error) return { error: "Could not attach document", linkedToTimeline: false, linkedItemTitle: null };
 
   // Confidence-scored auto-link — category + keyword + date + title overlap.
   // Returns the matched item's title so the UI can show a specific message.
@@ -311,7 +311,7 @@ export async function uploadAndAttachDocumentAction(
 
   // 1 — Upload to the bucket that matches the document category
   const { path, bucket, signedUrl, error: storageError } = await uploadToStorage(file, tripId, category);
-  if (storageError) return { error: storageError, linkedToTimeline: false, linkedItemTitle: null };
+  if (storageError) return { error: "Could not upload file", linkedToTimeline: false, linkedItemTitle: null };
 
   // 2 — Insert documents row (use same supabase client so session/JWT is available for RLS)
   const { document, error: insertError } = await insertDocument(
@@ -326,11 +326,11 @@ export async function uploadAndAttachDocumentAction(
     },
     { supabase }
   );
-  if (insertError || !document) return { error: insertError ?? "Could not save document", linkedToTimeline: false, linkedItemTitle: null };
+  if (insertError || !document) return { error: "Could not save document", linkedToTimeline: false, linkedItemTitle: null };
 
   // 3 — Attach to trip (document exists and belongs to user; trip_documents RLS allows)
   const { error: attachError } = await attachDocumentToTrip(tripId, document.id);
-  if (attachError) return { error: `Uploaded but failed to attach: ${attachError}`, linkedToTimeline: false, linkedItemTitle: null };
+  if (attachError) return { error: "Could not attach document", linkedToTimeline: false, linkedItemTitle: null };
 
   // 4 — Confidence-scored auto-link. Only links when score ≥ AUTO_LINK_THRESHOLD.
   // Passes the document title for the title-overlap bonus component.

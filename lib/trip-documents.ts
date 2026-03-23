@@ -70,6 +70,25 @@ export async function removeDocumentFromTrip(
 }
 
 /**
+ * Returns trip IDs that have this document attached. Used to revalidate trip
+ * pages when a document is deleted from the vault.
+ */
+export async function getTripIdsForDocument(documentId: string): Promise<string[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("trip_documents")
+    .select("trip_id")
+    .eq("document_id", documentId);
+
+  if (error) {
+    console.error("[trip-documents] Failed to fetch trips for document:", error.message);
+    return [];
+  }
+
+  return (data ?? []).map((row) => row.trip_id);
+}
+
+/**
  * Attaches a vault document to a trip.
  * The UNIQUE constraint on (trip_id, document_id) prevents duplicates at the
  * DB level. Postgres error code 23505 = unique_violation; we treat it as a

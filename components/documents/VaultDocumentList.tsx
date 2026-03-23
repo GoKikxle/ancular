@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { DbDocument } from "@/lib/documents";
@@ -113,6 +114,7 @@ type Props = {
  * only removes the trip_documents link.
  */
 export function VaultDocumentList({ docs }: Props) {
+  const router = useRouter();
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [docErrors, setDocErrors] = useState<Record<string, string>>({});
@@ -143,11 +145,10 @@ export function VaultDocumentList({ docs }: Props) {
       );
 
       if (result.error) {
-        setDeletingId(null);
-        setDocErrors((prev) => ({ ...prev, [doc.id]: result.error! }));
+        setDocErrors((prev) => ({ ...prev, [doc.id]: result.error }));
+      } else {
+        router.refresh();
       }
-      // On success: revalidatePath in the action re-renders the page without
-      // this document. setDeletingId(null) is defensive for the unmount case.
       setDeletingId(null);
     });
   }

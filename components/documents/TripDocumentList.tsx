@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { DbDocument } from "@/lib/documents";
@@ -68,10 +69,10 @@ type Props = {
  * and its storage file are completely untouched.
  */
 export function TripDocumentList({ docs, tripId, tripSlug }: Props) {
-  // ID of the document currently showing the inline "Remove?" confirmation.
+  const router = useRouter();
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
-  // ID of the document currently being removed (shows loading state).
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function requestConfirm(id: string) {
@@ -85,16 +86,31 @@ export function TripDocumentList({ docs, tripId, tripSlug }: Props) {
   function handleRemove(documentId: string) {
     setRemovingId(documentId);
     setConfirmingId(null);
+    setRemoveError(null);
     startTransition(async () => {
-      await removeDocumentFromTripAction(tripId, tripSlug, documentId);
-      // revalidatePath in the action re-renders the page with updated docs list.
-      // Defensively reset in case the component stays mounted.
+      try {
+        const result = await removeDocumentFromTripAction(tripId, tripSlug, documentId);
+        if (result?.error) {
+          setRemoveError(result.error);
+        } else {
+          router.refresh();
+        }
+      } catch {
+        setRemoveError("Could not remove document");
+      }
       setRemovingId(null);
     });
   }
 
   return (
     <ul className="space-y-2">
+      {removeError && (
+        <li>
+          <p className="rounded-2xl border border-red-500/20 bg-red-500/[0.07] px-3 py-2 text-[12px] text-red-300">
+            {removeError}
+          </p>
+        </li>
+      )}
       {docs.map((doc) => {
         const isConfirming = confirmingId === doc.id;
         const isRemoving = removingId === doc.id && isPending;
@@ -153,10 +169,7 @@ export function TripDocumentList({ docs, tripId, tripSlug }: Props) {
               )}
             </div>
 
-            {/* ── Confirmation row ────────────────────────────────────────────
-                 Slides in below the document row. Full-width layout gives the
-                 buttons room to breathe and reach adequate touch targets.
-                 "Remove from trip" text distinguishes this from vault deletion. */}
+            {/* ── Confirmation row ──────────────────────────────────────────── */}
             <AnimatePresence initial={false}>
               {isConfirming && (
                 <motion.div

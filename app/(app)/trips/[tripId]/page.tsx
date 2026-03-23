@@ -132,13 +132,13 @@ export default async function TripDetailPage({
             items={timelineItems}
             tripSlug={trip.slug}
             hasDocuments={tripDocs.length > 0}
-            tripDocs={tripDocs.map((d) => ({ id: d.id, title: d.title, category: d.category }))}
+            tripDocs={tripDocs.map((d) => ({ id: d.id, title: d.title, category: d.category, file_url: d.file_url }))}
           />
           <AddActionForm
             tripId={trip.id}
             tripSlug={trip.slug}
             hasExistingItems={timelineItems.length > 0}
-            tripDocs={tripDocs.map((d) => ({ id: d.id, title: d.title, category: d.category }))}
+            tripDocs={tripDocs.map((d) => ({ id: d.id, title: d.title, category: d.category, file_url: d.file_url }))}
           />
         </div>
 
