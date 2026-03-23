@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { DbDocument } from "@/lib/documents";
+import { surfaceCard, surfaceCardLinkHover } from "@/lib/screen-styles";
 import { DocumentCategoryIcon, categoryLabel } from "./DocumentCategoryIcon";
 import { deleteDocumentAction } from "@/app/(app)/documents/actions";
 
@@ -159,7 +160,7 @@ export function VaultDocumentList({ docs }: Props) {
       variants={listVariants}
       initial="hidden"
       animate="show"
-      className="space-y-3"
+      className="flex flex-col gap-3"
     >
       {docs.map((doc) => {
         const isConfirming = confirmingId === doc.id;
@@ -175,14 +176,12 @@ export function VaultDocumentList({ docs }: Props) {
               <div className="flex min-w-0 items-center gap-2.5">
                 <DocumentCategoryIcon category={doc.category} />
                 <div className="min-w-0">
-                  <p className="truncate text-[15px] font-medium text-white/80">
+                  <p className="truncate text-[17px] font-bold leading-snug tracking-[-0.02em] text-white">
                     {doc.title}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-white/30">
+                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
                     {categoryLabel(doc.category)}
-                    {doc.uploaded_at
-                      ? ` · ${formatDate(doc.uploaded_at)}`
-                      : ""}
+                    {doc.uploaded_at ? ` · ${formatDate(doc.uploaded_at)}` : ""}
                   </p>
                 </div>
               </div>
@@ -193,11 +192,11 @@ export function VaultDocumentList({ docs }: Props) {
                 onClick={(e) => e.stopPropagation()}
               >
                 {(doc.available_offline ?? false) && (
-                  <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400/90">
+                  <span className="rounded-full border border-emerald-500/15 bg-emerald-500/[0.08] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-400/85">
                     Offline
                   </span>
                 )}
-                <span className="rounded-full border border-white/[0.07] px-2 py-0.5 text-[10px] text-white/28">
+                <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-[10px] text-white/35">
                   {fileType ?? (doc.file_url ? "File" : "No file")}
                 </span>
 
@@ -211,7 +210,7 @@ export function VaultDocumentList({ docs }: Props) {
                     }}
                     disabled={isPending}
                     aria-label={`Delete "${doc.title}" from vault`}
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-white/[0.28] transition-colors hover:text-white/50 active:text-red-400/70 disabled:opacity-30"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white/35 transition-colors hover:bg-white/[0.06] hover:text-white/55 active:text-red-400/70 disabled:opacity-30"
                   >
                     <TrashIcon />
                   </button>
@@ -221,7 +220,7 @@ export function VaultDocumentList({ docs }: Props) {
 
             {/* ── Filename row ───────────────────────────────────────────── */}
             {displayName && displayName !== doc.title && (
-              <p className="mt-2 truncate pl-[21px] text-[12px] text-white/25">
+              <p className="mt-2 truncate pl-1 text-[12px] leading-relaxed text-white/38">
                 {displayName}
               </p>
             )}
@@ -273,23 +272,17 @@ export function VaultDocumentList({ docs }: Props) {
         );
 
         const isClickable = doc.file_url && !isConfirming;
-        const baseClassName = `rounded-3xl border bg-white/[0.04] p-4 transition-all duration-200 ease-out ${
+        const baseClassName = `${surfaceCard} p-6 transition-all duration-200 ease-out ${
           isDeleting
-            ? "pointer-events-none opacity-35 border-white/[0.08]"
+            ? "pointer-events-none opacity-35"
             : isConfirming
-            ? "opacity-65 border-white/[0.08]"
-            : "opacity-100"
+              ? "opacity-65"
+              : "opacity-100"
         }`;
 
         const interactiveClassName = isClickable
-          ? [
-              "cursor-pointer",
-              "border-white/[0.11]",
-              "hover:border-white/[0.18] hover:bg-white/[0.07]",
-              "active:scale-[0.998] active:bg-white/[0.09]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
-            ].join(" ")
-          : "border-white/[0.08]";
+          ? `cursor-pointer ${surfaceCardLinkHover} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950`
+          : "";
 
         return (
           <motion.div key={doc.id} variants={cardVariants}>

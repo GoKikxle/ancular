@@ -4,16 +4,13 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { getCurrentProfile } from "@/lib/profile";
 import { getActiveTripsForHome } from "@/lib/trips";
 import { getUpcomingNowItem } from "@/lib/now-card";
+import { screenEyebrow, screenSubtitle, screenTitle, surfaceCard, surfaceCardLinkHover } from "@/lib/screen-styles";
 
 function getGreetingName(fullName: string | null): string {
   if (!fullName?.trim()) return "there";
   const first = fullName.trim().split(/\s+/)[0];
   return first || "there";
 }
-
-/** Shared card shell for home — matches hero + trip cards */
-const homeCardClass =
-  "rounded-2xl border border-white/[0.1] bg-gradient-to-b from-white/[0.06] to-white/[0.025] shadow-[0_1px_0_rgba(255,255,255,0.05)_inset]";
 
 export default async function Home() {
   const [profile, activeTrips, nowItem] = await Promise.all([
@@ -41,7 +38,7 @@ export default async function Home() {
           {nowItem ? (
             <NowCard item={nowItem} />
           ) : (
-            <div className={`${homeCardClass} p-7`}>
+            <div className={`${surfaceCard} p-7`}>
               <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">Next action</p>
               <p className="mt-4 text-[17px] font-semibold text-white/88">Nothing scheduled right now</p>
               <p className="mt-2 max-w-[280px] text-[14px] leading-relaxed text-white/45">
@@ -61,16 +58,11 @@ export default async function Home() {
         <section className="space-y-6" aria-labelledby="active-trips-heading">
           <header className="flex items-start justify-between gap-4 pb-1">
             <div className="min-w-0">
-              <p
-                className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40"
-                id="active-trips-heading"
-              >
+              <p className={screenEyebrow} id="active-trips-heading">
                 Active trips
               </p>
-              <h2 className="mt-2 text-[18px] font-bold tracking-[-0.02em] text-white">Current &amp; upcoming</h2>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-white/45">
-                Trips you&apos;re planning or on now
-              </p>
+              <h2 className={screenTitle}>Current &amp; upcoming</h2>
+              <p className={screenSubtitle}>Trips you&apos;re planning or on now</p>
             </div>
             <Link
               href="/trips/new"
@@ -81,7 +73,7 @@ export default async function Home() {
           </header>
 
           {activeTrips.length === 0 ? (
-            <div className={`${homeCardClass} px-6 py-10 text-center`}>
+            <div className={`${surfaceCard} px-6 py-10 text-center`}>
               <p className="text-[16px] font-semibold text-white/80">No active trips</p>
               <p className="mx-auto mt-2 max-w-[260px] text-[14px] leading-relaxed text-white/45">
                 Start a trip or open{" "}
@@ -103,7 +95,7 @@ export default async function Home() {
                 <li key={trip.id}>
                   <Link
                     href={`/trips/${trip.slug}`}
-                    className={`${homeCardClass} block p-6 transition-[border-color,background-color] duration-200 hover:border-white/[0.14] hover:from-white/[0.08] active:scale-[0.99]`}
+                    className={`${surfaceCard} block p-6 ${surfaceCardLinkHover}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">

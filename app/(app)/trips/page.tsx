@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { getTrips } from "@/lib/trips";
+import {
+  screenEyebrow,
+  screenHeaderWrap,
+  screenSubtitle,
+  screenTitle,
+  surfaceCard,
+  surfaceCardLinkHover,
+} from "@/lib/screen-styles";
 
 export default async function TripsIndexPage() {
   const trips = await getTrips();
@@ -8,70 +16,73 @@ export default async function TripsIndexPage() {
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <PageContainer>
-        <header className="mb-8 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-white/35">
-              Trips
-            </p>
-            <h1 className="mt-1 text-[24px] font-semibold tracking-[-0.02em] text-white/90">
-              All trips
-            </h1>
-            <p className="mt-1.5 text-[14px] text-white/40">
-              Active, upcoming, and past
-            </p>
+        <header className={`${screenHeaderWrap} flex items-start justify-between gap-4`}>
+          <div className="min-w-0">
+            <p className={screenEyebrow}>Trips</p>
+            <h1 className={screenTitle}>All trips</h1>
+            <p className={screenSubtitle}>Active, upcoming, and past</p>
           </div>
           <Link
             href="/trips/new"
-            className="rounded-2xl border border-white/[0.1] bg-white/[0.05] px-4 py-2.5 text-[14px] font-medium text-white/80 transition-colors hover:bg-white/[0.08]"
+            className="flex-shrink-0 rounded-xl border border-white/[0.12] bg-white/[0.06] px-3.5 py-2.5 text-[13px] font-semibold text-white/85 transition-colors hover:bg-white/[0.1] active:scale-[0.98]"
           >
             + New trip
           </Link>
         </header>
 
         {trips.length === 0 ? (
-          <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-10 text-center">
-            <p className="text-[15px] font-medium text-white/50">No trips yet</p>
-            <p className="mt-2 text-[13px] leading-relaxed text-white/35">
-              Create your first trip to start planning.
+          <div className={`${surfaceCard} px-6 py-10 text-center`}>
+            <p className="text-[16px] font-semibold text-white/80">No trips yet</p>
+            <p className="mx-auto mt-2 max-w-[260px] text-[14px] leading-relaxed text-white/45">
+              Create your first trip to start planning itineraries, documents, and timeline.
             </p>
             <Link
               href="/trips/new"
-              className="mt-6 inline-flex rounded-2xl bg-white px-5 py-3 text-[14px] font-semibold text-neutral-950"
+              className="mt-8 inline-flex min-h-[44px] items-center justify-center rounded-xl bg-white px-6 py-3 text-[14px] font-semibold text-neutral-950 transition-opacity hover:opacity-95 active:scale-[0.98]"
             >
               Create a trip
             </Link>
           </div>
         ) : (
-          <section className="space-y-4">
+          <ul className="flex flex-col gap-3">
             {trips.map((trip) => (
-              <Link
-                key={trip.id}
-                href={`/trips/${trip.slug}`}
-                className="block rounded-3xl border border-white/[0.08] bg-white/[0.04] p-5 transition-colors hover:border-white/[0.12] hover:bg-white/[0.06]"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 className="text-xl font-semibold">{trip.title}</h2>
-                    <p className="mt-1 text-sm text-white/70">
-                      {trip.dates} • {trip.travelers}
-                    </p>
+              <li key={trip.id}>
+                <Link
+                  href={`/trips/${trip.slug}`}
+                  className={`${surfaceCard} block p-6 ${surfaceCardLinkHover}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-[17px] font-bold leading-snug tracking-[-0.02em] text-white">{trip.title}</h2>
+                      <p className="mt-1.5 text-[13px] leading-relaxed text-white/48">
+                        {trip.dates}
+                        {trip.travelers ? ` · ${trip.travelers}` : null}
+                      </p>
+                      {trip.destination?.trim() ? (
+                        <p className="mt-1 text-[13px] text-white/38">{trip.destination.trim()}</p>
+                      ) : null}
+                    </div>
+                    <span
+                      className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
+                        trip.status === "Active"
+                          ? "bg-emerald-500/12 text-emerald-300/95"
+                          : trip.status === "Upcoming"
+                            ? "bg-amber-500/12 text-amber-200/90"
+                            : "bg-white/[0.08] text-white/50"
+                      }`}
+                    >
+                      {trip.status}
+                    </span>
                   </div>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      trip.status === "Active"
-                        ? "bg-emerald-500/15 text-emerald-300"
-                        : trip.status === "Upcoming"
-                          ? "bg-amber-500/15 text-amber-300"
-                          : "bg-white/10 text-white/70"
-                    }`}
-                  >
-                    {trip.status}
-                  </span>
-                </div>
-                <p className="mt-3 text-sm text-white/60">{trip.next_action_title}</p>
-              </Link>
+                  {trip.next_action_title?.trim() ? (
+                    <p className="mt-3 border-t border-white/[0.06] pt-3 text-[12px] leading-relaxed text-white/40">
+                      {trip.next_action_title.trim()}
+                    </p>
+                  ) : null}
+                </Link>
+              </li>
             ))}
-          </section>
+          </ul>
         )}
       </PageContainer>
     </main>
