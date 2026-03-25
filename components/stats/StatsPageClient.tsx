@@ -2,7 +2,9 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import type { UserStats } from "@/lib/stats";
+import { buildYearlyTravelNarrative } from "@/lib/yearly-travel-story";
 import { getTravelStory } from "@/lib/travel-story";
+import type { YearlyTravelStoryStats } from "@/lib/yearly-travel-story";
 import { surfaceCard } from "@/lib/screen-styles";
 import { CountUp } from "./CountUp";
 
@@ -148,6 +150,53 @@ type Props = {
   stats: UserStats;
 };
 
+function YearlyTravelStorySection({ y }: { y: YearlyTravelStoryStats }) {
+  const narrative = buildYearlyTravelNarrative(y);
+  type Chip = { key: string; label: string; value: string };
+  const chips: Chip[] = [];
+  if (y.favoriteDestination) {
+    chips.push({ key: "fav", label: "Favorite stop", value: y.favoriteDestination });
+  }
+  if (y.lastPlaceVisited) {
+    chips.push({ key: "last", label: "Last place visited", value: y.lastPlaceVisited });
+  }
+  if (y.flights > 0) {
+    chips.push({ key: "flights", label: "Flights this year", value: String(y.flights) });
+  }
+  if (y.restaurants > 0) {
+    chips.push({ key: "food", label: "Restaurants", value: String(y.restaurants) });
+  }
+  if (y.daysTraveled > 0) {
+    chips.push({ key: "days", label: "Days traveled", value: String(y.daysTraveled) });
+  }
+
+  return (
+    <div className="rounded-2xl border border-white/[0.12] bg-gradient-to-b from-white/[0.1] to-white/[0.03] p-7 shadow-[0_1px_0_rgba(255,255,255,0.06)_inset]">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+        Your {y.year} Travel Story
+      </p>
+      <p className="mt-3 text-[17px] font-medium leading-relaxed tracking-[-0.015em] text-white/[0.93]">
+        {narrative}
+      </p>
+      {chips.length > 0 ? (
+        <div className="mt-5 flex flex-wrap gap-2">
+          {chips.map((c) => (
+            <div
+              key={c.key}
+              className="min-w-0 max-w-full rounded-2xl border border-white/[0.08] bg-white/[0.05] px-3.5 py-2"
+            >
+              <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-white/32">{c.label}</p>
+              <p className="mt-0.5 truncate text-[12px] font-medium leading-snug text-white/72" title={c.value}>
+                {c.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function StatsPageClient({ stats: s }: Props) {
   const copy = buildCopy(s);
   const tripDelta = s.completedTripsThisYear - s.completedTripsLastYear;
@@ -156,6 +205,8 @@ export function StatsPageClient({ stats: s }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
+      <YearlyTravelStorySection y={s.yearlyTravel} />
+
       <div
         className={`rounded-2xl border border-white/[0.11] bg-gradient-to-b from-white/[0.09] to-white/[0.025] p-7 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset]`}
       >

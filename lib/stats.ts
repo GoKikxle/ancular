@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { isCompletedAtSchemaError } from "@/lib/trip-completed-at-guard";
+import type { YearlyTravelStoryStats } from "@/lib/yearly-travel-story";
+
+export type { YearlyTravelStoryStats } from "@/lib/yearly-travel-story";
 
 export type UserStats = {
   placesVisited: number;
@@ -19,6 +22,8 @@ export type UserStats = {
   favoritePlaceTripCount: number;
   averageTripLengthDays: number;
   longestTripDays: number;
+  /** Completed trips in the current calendar year only */
+  yearlyTravel: YearlyTravelStoryStats;
 };
 
 type CompletedTripRow = {
@@ -97,23 +102,40 @@ function timelineItemCategory(title: string, note: string): "flight" | "restaura
   return null;
 }
 
-const emptyStats: UserStats = {
-  placesVisited: 0,
-  countriesVisited: 0,
-  flights: 0,
-  restaurants: 0,
-  daysTraveled: 0,
-  lastPlace: null,
-  completedTripCount: 0,
-  completedTripsThisYear: 0,
-  completedTripsLastYear: 0,
-  placesVisitedThisYear: 0,
-  firstPlaceVisited: null,
-  favoritePlaceVisited: null,
-  favoritePlaceTripCount: 0,
-  averageTripLengthDays: 0,
-  longestTripDays: 0,
-};
+function emptyYearlyTravel(year: number): YearlyTravelStoryStats {
+  return {
+    year,
+    tripsCompleted: 0,
+    countriesVisited: 0,
+    placesVisited: 0,
+    daysTraveled: 0,
+    flights: 0,
+    restaurants: 0,
+    favoriteDestination: null,
+    lastPlaceVisited: null,
+  };
+}
+
+function emptyStatsForYear(year: number): UserStats {
+  return {
+    placesVisited: 0,
+    countriesVisited: 0,
+    flights: 0,
+    restaurants: 0,
+    daysTraveled: 0,
+    lastPlace: null,
+    completedTripCount: 0,
+    completedTripsThisYear: 0,
+    completedTripsLastYear: 0,
+    placesVisitedThisYear: 0,
+    firstPlaceVisited: null,
+    favoritePlaceVisited: null,
+    favoritePlaceTripCount: 0,
+    averageTripLengthDays: 0,
+    longestTripDays: 0,
+    yearlyTravel: emptyYearlyTravel(year),
+  };
+}
 
 /**
  * Aggregates for trips with `completed_at` set only. Active / incomplete / deleted trips excluded.
@@ -124,7 +146,8 @@ export async function getUserStats(): Promise<UserStats> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return emptyStats;
+  const statsYear = new Date().getFullYear();
+  if (!user) return emptyStatsForYear(statsYear);
 
   let { data: tripsData, error: tripsError } = await supabase
     .from("trips")
@@ -137,27 +160,27 @@ export async function getUserStats(): Promise<UserStats> {
       tripsData = [];
     } else {
       console.error("[getUserStats] trips query:", tripsError.message);
-      return emptyStats;
+      return emptyStatsForYear(statsYear);
     }
   }
 
   const trips = (tripsData ?? []) as CompletedTripRow[];
   const tripIds = trips.map((t) => t.id);
-  const year = new Date().getFullYear();
+  const year = statsYear;
   const jan1 = `${year}-01-01`;
   const jan1Next = `${year + 1}-01-01`;
   const jan1Last = `${year - 1}-01-01`;
 
-  let items: { title: string; note: string }[] = [];
+  let items: { trip_id: string; title: string; note: string }[] = [];
   if (tripIds.length > 0) {
     const { data: itemRows, error: itemsError } = await supabase
       .from("timeline_items")
-      .select("title, note")
+      .select("trip_id, title, note")
       .in("trip_id", tripIds);
     if (itemsError) {
       console.error("[getUserStats] timeline_items query:", itemsError.message);
     } else {
-      items = (itemRows ?? []) as { title: string; note: string }[];
+      items = (itemRows ?? []) as { trip_id: string; title: string; note: string }[];
     }
   }
 
@@ -210,6 +233,73 @@ export async function getUserStats(): Promise<UserStats> {
     if (pk) placesThisYear.add(pk.toLowerCase());
   }
   const placesVisitedThisYear = placesThisYear.size;
+
+  const countriesThisYear = new Set<string>();
+  let daysTraveledThisYear = 0;
+  for (const t of tripsThisYear) {
+    const dest = (t.destination || "").trim();
+    const ck = countryKeyFromDestination(dest);
+    if (ck) countriesThisYear.add(ck.toLowerCase());
+    daysTraveledThisYear += inclusiveTripDays(t.start_date, t.end_date);
+  }
+  const countriesVisitedThisYear = countriesThisYear.size;
+
+  const thisYearTripIdSet = new Set(tripsThisYear.map((t) => t.id));
+  let flightsThisYear = 0;
+  let restaurantsThisYear = 0;
+  for (const item of items) {
+    if (!thisYearTripIdSet.has(item.trip_id)) continue;
+    const cat = timelineItemCategory(item.title, item.note);
+    if (cat === "flight") flightsThisYear++;
+    if (cat === "restaurant") restaurantsThisYear++;
+  }
+
+  const placeTripCountsYear = new Map<string, number>();
+  const lastCompletedByPlaceYear = new Map<string, string>();
+  for (const t of tripsThisYear) {
+    const dest = (t.destination || "").trim();
+    const pk = placeKeyFromDestination(dest);
+    if (!pk) continue;
+    const k = pk.toLowerCase();
+    placeTripCountsYear.set(k, (placeTripCountsYear.get(k) ?? 0) + 1);
+    const c = t.completed_at ?? "";
+    if (c > (lastCompletedByPlaceYear.get(k) ?? "")) lastCompletedByPlaceYear.set(k, c);
+  }
+
+  let favoriteDestinationThisYear: string | null = null;
+  let favoriteYearCount = 0;
+  let favoriteYearTie = "";
+  for (const [k, n] of placeTripCountsYear) {
+    const lastC = lastCompletedByPlaceYear.get(k) ?? "";
+    if (n > favoriteYearCount || (n === favoriteYearCount && lastC > favoriteYearTie)) {
+      favoriteYearCount = n;
+      favoriteYearTie = lastC;
+      const sample = tripsThisYear.find(
+        (t) => placeKeyFromDestination((t.destination || "").trim())?.toLowerCase() === k
+      );
+      favoriteDestinationThisYear = sample?.destination
+        ? toDisplayPlace(sample.destination)
+        : null;
+    }
+  }
+
+  const tripsThisYearNewest = [...tripsThisYear].sort((a, b) =>
+    (b.completed_at ?? "").localeCompare(a.completed_at ?? "")
+  );
+  const lastPlaceVisitedThisYear =
+    tripsThisYearNewest.map((t) => (t.destination || "").trim()).find((d) => d.length > 0) ?? null;
+
+  const yearlyTravel: YearlyTravelStoryStats = {
+    year,
+    tripsCompleted: tripsThisYear.length,
+    countriesVisited: countriesVisitedThisYear,
+    placesVisited: placesVisitedThisYear,
+    daysTraveled: daysTraveledThisYear,
+    flights: flightsThisYear,
+    restaurants: restaurantsThisYear,
+    favoriteDestination: favoriteDestinationThisYear,
+    lastPlaceVisited: lastPlaceVisitedThisYear,
+  };
 
   const chronological = [...trips].sort((a, b) => {
     const ca = a.completed_at ?? "";
@@ -273,5 +363,6 @@ export async function getUserStats(): Promise<UserStats> {
     favoritePlaceTripCount,
     averageTripLengthDays,
     longestTripDays,
+    yearlyTravel,
   };
 }
