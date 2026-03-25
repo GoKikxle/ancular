@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import type { UserStats } from "@/lib/stats";
+import { getTravelStory } from "@/lib/travel-story";
 import { surfaceCard } from "@/lib/screen-styles";
 import { CountUp } from "./CountUp";
 
@@ -151,14 +152,25 @@ export function StatsPageClient({ stats: s }: Props) {
   const copy = buildCopy(s);
   const tripDelta = s.completedTripsThisYear - s.completedTripsLastYear;
   const year = new Date().getFullYear();
+  const travelStory = getTravelStory(s);
 
   return (
-    <motion.div
-      variants={listVariants}
-      initial="hidden"
-      animate="show"
-      className="flex flex-col gap-3"
-    >
+    <div className="flex flex-col gap-3">
+      <div
+        className={`rounded-2xl border border-white/[0.11] bg-gradient-to-b from-white/[0.09] to-white/[0.025] p-7 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset]`}
+      >
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/38">Travel Story</p>
+        <p className="mt-4 text-[17px] font-medium leading-relaxed tracking-[-0.015em] text-white/[0.92]">
+          {travelStory}
+        </p>
+      </div>
+
+      <motion.div
+        variants={listVariants}
+        initial="hidden"
+        animate="show"
+        className="flex flex-col gap-3"
+      >
       <motion.div variants={cardVariants}>
         <AnimatedStatCard
           label="Places visited"
@@ -264,6 +276,7 @@ export function StatsPageClient({ stats: s }: Props) {
           </ul>
         </motion.div>
       ) : null}
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
