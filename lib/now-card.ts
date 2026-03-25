@@ -7,6 +7,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { isCompletedAtSchemaError } from "@/lib/trip-completed-at-guard";
 import type { DbTimelineItem } from "@/lib/timeline-items";
 
 export type NowItemView = {
@@ -50,11 +51,25 @@ export async function getUpcomingNowItem(): Promise<NowItemView | null> {
   const supabase = await createClient();
   const now = new Date();
 
-  const { data: trips } = await supabase
+  let { data: trips, error: tripsError } = await supabase
     .from("trips")
     .select("id, slug")
     .is("completed_at", null)
     .order("created_at", { ascending: false });
+
+  if (tripsError) {
+    if (isCompletedAtSchemaError(tripsError)) {
+      const fb = await supabase
+        .from("trips")
+        .select("id, slug")
+        .order("created_at", { ascending: false });
+      trips = fb.data;
+    } else {
+      console.error("[getUpcomingNowItem] trips query:", tripsError.message);
+      return null;
+    }
+  }
+
   if (!trips?.length) return null;
 
   const tripIds = trips.map((t) => t.id);

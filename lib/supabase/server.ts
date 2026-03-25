@@ -14,13 +14,15 @@ export async function createClient() {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
+          // Next.js forbids mutating cookies outside Server Actions / Route Handlers.
+          // Refresh runs in middleware; swallow per-cookie failures so RSC never crashes.
+          cookiesToSet.forEach(({ name, value, options }) => {
+            try {
               cookieStore.set(name, value, options);
-            });
-          } catch {
-            // Server Component context — cookie writes not allowed. Middleware handles refresh.
-          }
+            } catch {
+              /* ignore */
+            }
+          });
         },
       },
     }

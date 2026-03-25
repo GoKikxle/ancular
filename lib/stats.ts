@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isCompletedAtSchemaError } from "@/lib/trip-completed-at-guard";
 
 export type UserStats = {
   placesVisited: number;
@@ -28,13 +29,31 @@ export async function getUserStats(): Promise<UserStats> {
     };
   }
 
-  const { data: tripsData } = await supabase
+  let { data: tripsData, error: tripsError } = await supabase
     .from("trips")
     .select("id, destination, start_date, end_date")
     .not("completed_at", "is", null)
     .order("created_at", { ascending: false });
 
-  const trips = (tripsData ?? []) as { id: string; destination: string | null; start_date: string | null; end_date: string | null }[];
+  if (tripsError) {
+    if (isCompletedAtSchemaError(tripsError)) {
+      const fallback = await supabase
+        .from("trips")
+        .select("id, destination, start_date, end_date")
+        .order("created_at", { ascending: false });
+      tripsData = fallback.data;
+    } else {
+      console.error("[getUserStats] trips query:", tripsError.message);
+      tripsData = [];
+    }
+  }
+
+  const trips = (tripsData ?? []) as {
+    id: string;
+    destination: string | null;
+    start_date: string | null;
+    end_date: string | null;
+  }[];
   const tripIds = trips.map((t) => t.id);
 
   let items: { title: string; note: string }[] = [];

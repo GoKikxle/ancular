@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isCompletedAtSchemaError } from "@/lib/trip-completed-at-guard";
 import { computeTripStatus, formatTripDates } from "@/lib/trip-status";
 
 type CreateTripInput = {
@@ -39,26 +40,33 @@ export async function createTrip(input: CreateTripInput) {
   // Status is always derived from dates — never accepted from user input.
   const status = computeTripStatus(input.startDate, input.endDate);
 
-  const { data, error } = await supabase
+  const baseInsert = {
+    user_id: user.id,
+    slug: input.slug,
+    title: input.title,
+    dates: input.dates,
+    start_date: input.startDate,
+    end_date: input.endDate ?? null,
+    travelers: input.travelers,
+    destination: input.destination ?? null,
+    status,
+    next_action_title: input.nextActionTitle,
+    next_action_description: input.nextActionDescription,
+    weather_summary: input.weatherSummary ?? null,
+    weather_note: input.weatherNote ?? null,
+  };
+
+  let { data, error } = await supabase
     .from("trips")
-    .insert({
-      user_id: user.id,
-      slug: input.slug,
-      title: input.title,
-      dates: input.dates,
-      start_date: input.startDate,
-      end_date: input.endDate ?? null,
-      travelers: input.travelers,
-      destination: input.destination ?? null,
-      status,
-      next_action_title: input.nextActionTitle,
-      next_action_description: input.nextActionDescription,
-      weather_summary: input.weatherSummary ?? null,
-      weather_note: input.weatherNote ?? null,
-      completed_at: null,
-    })
+    .insert({ ...baseInsert, completed_at: null })
     .select()
     .single();
+
+  if (error && isCompletedAtSchemaError(error)) {
+    const retry = await supabase.from("trips").insert(baseInsert).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
 
   if (error) {
     throw new Error(error.message);

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { isCompletedAtSchemaError } from "@/lib/trip-completed-at-guard";
 import { computeTripStatus } from "@/lib/trip-status";
 
 export type DbTrip = {
@@ -51,7 +52,12 @@ export async function getIncompleteTrips() {
     .is("completed_at", null)
     .order("created_at", { ascending: false });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (isCompletedAtSchemaError(error)) {
+      return getAllTrips();
+    }
+    throw new Error(error.message);
+  }
 
   return (data ?? []) as DbTrip[];
 }
@@ -66,7 +72,12 @@ export async function getArchivedTrips() {
     .not("completed_at", "is", null)
     .order("completed_at", { ascending: false });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (isCompletedAtSchemaError(error)) {
+      return [];
+    }
+    throw new Error(error.message);
+  }
 
   return (data ?? []) as DbTrip[];
 }
