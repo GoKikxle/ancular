@@ -18,7 +18,7 @@ function StatCard({
   return (
     <div className={`${surfaceCard} p-6`}>
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">{label}</p>
-      <p className="mt-3 text-[32px] font-bold leading-none tracking-[-0.03em] tabular-nums text-white">
+      <p className="mt-3 break-words text-[32px] font-bold leading-tight tracking-[-0.03em] text-white tabular-nums">
         {value}
       </p>
     </div>
@@ -39,10 +39,11 @@ export default async function StatsPage() {
 
         <div className="flex flex-col gap-3">
           <StatCard label="Places visited" value={stats.placesVisited} />
-          <StatCard label="Flights" value={stats.flights} />
-          <StatCard label="Miles traveled" value={stats.milesTraveled ?? "—"} />
-          <StatCard label="Time traveled" value={stats.timeTraveled ?? "—"} />
-          <StatCard label="Restaurants discovered" value={stats.restaurantsDiscovered} />
+          <StatCard label="Countries visited" value={stats.countriesVisited} />
+          <StatCard label="Flights taken" value={stats.flights} />
+          <StatCard label="Restaurants discovered" value={stats.restaurants} />
+          <StatCard label="Days traveled" value={stats.daysTraveled} />
+          <StatCard label="Last place" value={stats.lastPlace ?? "—"} />
         </div>
       </PageContainer>
     </main>
