@@ -8,6 +8,17 @@ export type UserStats = {
   restaurants: number;
   daysTraveled: number;
   lastPlace: string | null;
+  /** Rich context for UI — all derived from completed trips only */
+  completedTripCount: number;
+  completedTripsThisYear: number;
+  completedTripsLastYear: number;
+  placesVisitedThisYear: number;
+  /** City-style label from earliest completed trip (by completion date) */
+  firstPlaceVisited: string | null;
+  favoritePlaceVisited: string | null;
+  favoritePlaceTripCount: number;
+  averageTripLengthDays: number;
+  longestTripDays: number;
 };
 
 type CompletedTripRow = {
@@ -21,6 +32,18 @@ type CompletedTripRow = {
 function parseLocalDate(iso: string): Date {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d);
+}
+
+function completedOnOrAfter(iso: string | null, ymd: string): boolean {
+  if (!iso) return false;
+  const d = iso.slice(0, 10);
+  return d >= ymd;
+}
+
+function completedBefore(iso: string | null, ymd: string): boolean {
+  if (!iso) return false;
+  const d = iso.slice(0, 10);
+  return d < ymd;
 }
 
 /** City / primary place: segment before first comma, else full string. */
@@ -38,6 +61,12 @@ function countryKeyFromDestination(dest: string): string | null {
   const parts = t.split(",").map((p) => p.trim()).filter(Boolean);
   if (parts.length >= 2) return parts[parts.length - 1] ?? null;
   return t;
+}
+
+function toDisplayPlace(dest: string): string {
+  const pk = placeKeyFromDestination(dest);
+  if (!pk) return dest.trim();
+  return pk.replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function inclusiveTripDays(startDate: string | null, endDate: string | null): number {
@@ -75,6 +104,15 @@ const emptyStats: UserStats = {
   restaurants: 0,
   daysTraveled: 0,
   lastPlace: null,
+  completedTripCount: 0,
+  completedTripsThisYear: 0,
+  completedTripsLastYear: 0,
+  placesVisitedThisYear: 0,
+  firstPlaceVisited: null,
+  favoritePlaceVisited: null,
+  favoritePlaceTripCount: 0,
+  averageTripLengthDays: 0,
+  longestTripDays: 0,
 };
 
 /**
@@ -105,6 +143,10 @@ export async function getUserStats(): Promise<UserStats> {
 
   const trips = (tripsData ?? []) as CompletedTripRow[];
   const tripIds = trips.map((t) => t.id);
+  const year = new Date().getFullYear();
+  const jan1 = `${year}-01-01`;
+  const jan1Next = `${year + 1}-01-01`;
+  const jan1Last = `${year - 1}-01-01`;
 
   let items: { title: string; note: string }[] = [];
   if (tripIds.length > 0) {
@@ -140,12 +182,80 @@ export async function getUserStats(): Promise<UserStats> {
   }
 
   let daysTraveled = 0;
+  let longestTripDays = 0;
   for (const t of trips) {
-    daysTraveled += inclusiveTripDays(t.start_date, t.end_date);
+    const d = inclusiveTripDays(t.start_date, t.end_date);
+    daysTraveled += d;
+    longestTripDays = Math.max(longestTripDays, d);
   }
 
   const lastPlace =
     trips.map((t) => (t.destination || "").trim()).find((d) => d.length > 0) ?? null;
+
+  const completedTripCount = trips.length;
+  const completedTripsThisYear = trips.filter(
+    (t) => completedOnOrAfter(t.completed_at, jan1) && completedBefore(t.completed_at, jan1Next)
+  ).length;
+  const completedTripsLastYear = trips.filter(
+    (t) => completedOnOrAfter(t.completed_at, jan1Last) && completedBefore(t.completed_at, jan1)
+  ).length;
+
+  const tripsThisYear = trips.filter(
+    (t) => completedOnOrAfter(t.completed_at, jan1) && completedBefore(t.completed_at, jan1Next)
+  );
+  const placesThisYear = new Set<string>();
+  for (const t of tripsThisYear) {
+    const dest = (t.destination || "").trim();
+    const pk = placeKeyFromDestination(dest);
+    if (pk) placesThisYear.add(pk.toLowerCase());
+  }
+  const placesVisitedThisYear = placesThisYear.size;
+
+  const chronological = [...trips].sort((a, b) => {
+    const ca = a.completed_at ?? "";
+    const cb = b.completed_at ?? "";
+    return ca.localeCompare(cb);
+  });
+  let firstPlaceVisited: string | null = null;
+  for (const t of chronological) {
+    const dest = (t.destination || "").trim();
+    if (dest) {
+      firstPlaceVisited = toDisplayPlace(dest);
+      break;
+    }
+  }
+
+  const placeTripCounts = new Map<string, number>();
+  const lastCompletedByPlace = new Map<string, string>();
+  for (const t of trips) {
+    const dest = (t.destination || "").trim();
+    const pk = placeKeyFromDestination(dest);
+    if (!pk) continue;
+    const k = pk.toLowerCase();
+    placeTripCounts.set(k, (placeTripCounts.get(k) ?? 0) + 1);
+    const c = t.completed_at ?? "";
+    if (c > (lastCompletedByPlace.get(k) ?? "")) lastCompletedByPlace.set(k, c);
+  }
+
+  let favoritePlaceVisited: string | null = null;
+  let favoritePlaceTripCount = 0;
+  let favoriteTieDate = "";
+  for (const [k, n] of placeTripCounts) {
+    const lastC = lastCompletedByPlace.get(k) ?? "";
+    if (n > favoritePlaceTripCount || (n === favoritePlaceTripCount && lastC > favoriteTieDate)) {
+      favoritePlaceTripCount = n;
+      favoriteTieDate = lastC;
+      const sample = trips.find(
+        (t) => placeKeyFromDestination((t.destination || "").trim())?.toLowerCase() === k
+      );
+      favoritePlaceVisited = sample?.destination
+        ? toDisplayPlace(sample.destination)
+        : null;
+    }
+  }
+
+  const averageTripLengthDays =
+    trips.length > 0 ? Math.round(daysTraveled / trips.length) : 0;
 
   return {
     placesVisited: placeKeys.size,
@@ -154,5 +264,14 @@ export async function getUserStats(): Promise<UserStats> {
     restaurants,
     daysTraveled,
     lastPlace,
+    completedTripCount,
+    completedTripsThisYear,
+    completedTripsLastYear,
+    placesVisitedThisYear,
+    firstPlaceVisited,
+    favoritePlaceVisited,
+    favoritePlaceTripCount,
+    averageTripLengthDays,
+    longestTripDays,
   };
 }
