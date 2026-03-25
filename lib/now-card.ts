@@ -50,7 +50,11 @@ export async function getUpcomingNowItem(): Promise<NowItemView | null> {
   const supabase = await createClient();
   const now = new Date();
 
-  const { data: trips } = await supabase.from("trips").select("id, slug").order("created_at", { ascending: false });
+  const { data: trips } = await supabase
+    .from("trips")
+    .select("id, slug")
+    .is("completed_at", null)
+    .order("created_at", { ascending: false });
   if (!trips?.length) return null;
 
   const tripIds = trips.map((t) => t.id);

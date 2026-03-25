@@ -75,12 +75,16 @@ export default async function Home() {
           {activeTrips.length === 0 ? (
             <div className={`${surfaceCard} px-6 py-10 text-center`}>
               <p className="text-[16px] font-semibold text-white/80">No active trips</p>
-              <p className="mx-auto mt-2 max-w-[260px] text-[14px] leading-relaxed text-white/45">
-                Start a trip or open{" "}
+              <p className="mx-auto mt-2 max-w-[280px] text-[14px] leading-relaxed text-white/45">
+                Start a trip, open{" "}
                 <Link href="/trips" className="font-medium text-white/65 underline decoration-white/20 underline-offset-2">
                   all trips
-                </Link>{" "}
-                for past ones.
+                </Link>
+                , or{" "}
+                <Link href="/trips/archived" className="font-medium text-white/65 underline decoration-white/20 underline-offset-2">
+                  archived
+                </Link>
+                .
               </p>
               <Link
                 href="/trips/new"

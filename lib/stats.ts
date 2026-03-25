@@ -31,6 +31,7 @@ export async function getUserStats(): Promise<UserStats> {
   const { data: tripsData } = await supabase
     .from("trips")
     .select("id, destination, start_date, end_date")
+    .not("completed_at", "is", null)
     .order("created_at", { ascending: false });
 
   const trips = (tripsData ?? []) as { id: string; destination: string | null; start_date: string | null; end_date: string | null }[];

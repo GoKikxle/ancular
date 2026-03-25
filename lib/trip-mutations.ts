@@ -55,6 +55,7 @@ export async function createTrip(input: CreateTripInput) {
       next_action_description: input.nextActionDescription,
       weather_summary: input.weatherSummary ?? null,
       weather_note: input.weatherNote ?? null,
+      completed_at: null,
     })
     .select()
     .single();
@@ -118,4 +119,25 @@ export async function deleteTripById(id: string) {
   if (error) {
     throw new Error(error.message);
   }
+}
+
+/** User explicitly marks trip complete; sets completed_at (Stats + Archived). */
+export async function completeTripById(tripId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("trips")
+    .update({ completed_at: now })
+    .eq("id", tripId)
+    .is("completed_at", null)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Trip not found or already completed.");
 }

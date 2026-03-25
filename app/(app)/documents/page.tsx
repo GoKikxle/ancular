@@ -1,11 +1,11 @@
 import { PageContainer } from "@/components/layout/PageContainer";
 import { VaultScreenClient } from "@/components/documents/VaultScreenClient";
 import { getAllDocuments } from "@/lib/documents";
-import { getTrips } from "@/lib/trips";
+import { getAllTrips } from "@/lib/trips";
 import { screenEyebrow, screenHeaderWrap, screenSubtitle, screenTitle } from "@/lib/screen-styles";
 
 export default async function DocumentsPage() {
-  const [documents, trips] = await Promise.all([getAllDocuments(), getTrips()]);
+  const [documents, trips] = await Promise.all([getAllDocuments(), getAllTrips()]);
   const tripOptions = trips.map((t) => ({ id: t.id, slug: t.slug, title: t.title }));
 
   return (

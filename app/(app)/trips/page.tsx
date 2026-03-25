@@ -1,9 +1,9 @@
 import { PageContainer } from "@/components/layout/PageContainer";
 import { TripsIndexClient } from "@/components/trips/TripsIndexClient";
-import { getTrips } from "@/lib/trips";
+import { getIncompleteTrips } from "@/lib/trips";
 
 export default async function TripsIndexPage() {
-  const trips = await getTrips();
+  const trips = await getIncompleteTrips();
 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">

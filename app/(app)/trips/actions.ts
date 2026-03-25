@@ -1,7 +1,13 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createTrip, updateTrip, deleteTripById } from "@/lib/trip-mutations";
+import { revalidatePath } from "next/cache";
+import {
+  completeTripById,
+  createTrip,
+  deleteTripById,
+  updateTrip,
+} from "@/lib/trip-mutations";
 import { formatTripDates } from "@/lib/trip-status";
 
 export async function createTripAction(formData: FormData) {
@@ -87,4 +93,26 @@ export async function deleteTripAction(formData: FormData) {
 
   await deleteTripById(id);
   redirect("/");
+}
+
+export async function completeTripAction(formData: FormData) {
+  const tripId = String(formData.get("trip_id") ?? "").trim();
+  const tripSlug = String(formData.get("trip_slug") ?? "").trim();
+
+  if (!tripId || !tripSlug) {
+    throw new Error("Missing trip.");
+  }
+
+  try {
+    await completeTripById(tripId);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Could not complete trip.";
+    redirect(`/trips/${tripSlug}?completed_error=${encodeURIComponent(message)}`);
+  }
+
+  revalidatePath("/trips");
+  revalidatePath("/trips/archived");
+  revalidatePath("/stats");
+  revalidatePath(`/trips/${tripSlug}`);
+  redirect("/trips");
 }

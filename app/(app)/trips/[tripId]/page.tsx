@@ -17,17 +17,33 @@ import { getSuggestionsForTrip } from "@/lib/trip-suggestions";
 import { buildPrimaryActionView } from "@/lib/timeline-view-model";
 import { getWeatherForDestination } from "@/lib/weather";
 import { notFound } from "next/navigation";
+import { MarkTripCompleteSection } from "@/components/trips/MarkTripCompleteSection";
 
 type TripDetailPageProps = {
   params: Promise<{
     tripId: string;
   }>;
+  searchParams: Promise<{ completed_error?: string }>;
 };
+
+function formatCompletedDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
 
 export default async function TripDetailPage({
   params,
+  searchParams,
 }: TripDetailPageProps) {
   const { tripId } = await params;
+  const { completed_error: completedError } = await searchParams;
   const trip = await getTripBySlug(tripId);
 
   if (!trip) {
@@ -73,6 +89,8 @@ export default async function TripDetailPage({
     weatherNote: weatherResult.ok ? weatherResult.note : trip.weather_note,
   });
 
+  const isCompleted = trip.completed_at != null && trip.completed_at !== "";
+
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       <PageContainer>
@@ -81,12 +99,20 @@ export default async function TripDetailPage({
           <BackButton href="/" label="Back to trips" />
         </div>
 
+        {completedError ? (
+          <div className="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-[13px] text-red-200/95">
+            {completedError}
+          </div>
+        ) : null}
+
         {/* Trip header */}
         <header className="mb-6">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[11px] uppercase tracking-[0.1em] text-white/35">
-                {trip.status}
+                {isCompleted
+                  ? `Completed${trip.completed_at ? ` · ${formatCompletedDate(trip.completed_at)}` : ""}`
+                  : trip.status}
               </p>
               <h1 className="mt-1 text-[28px] font-semibold tracking-[-0.02em]">
                 {trip.title}
@@ -175,6 +201,14 @@ export default async function TripDetailPage({
           suggestions={suggestions}
           tripTitle={trip.title}
         />
+
+        {isCompleted ? (
+          <p className="mt-10 border-t border-white/[0.06] pt-8 text-center text-[12px] text-white/35">
+            This trip is archived. It counts toward My Stats.
+          </p>
+        ) : (
+          <MarkTripCompleteSection tripId={trip.id} tripSlug={trip.slug} />
+        )}
       </PageContainer>
     </main>
   );

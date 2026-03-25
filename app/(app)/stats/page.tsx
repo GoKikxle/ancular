@@ -34,7 +34,7 @@ export default async function StatsPage() {
         <header className={screenHeaderWrap}>
           <p className={screenEyebrow}>Your travel stats</p>
           <h1 className={screenTitle}>My Stats</h1>
-          <p className={screenSubtitle}>Places, flights, and memories from your trips</p>
+          <p className={screenSubtitle}>From trips you’ve marked as completed</p>
         </header>
 
         <div className="flex flex-col gap-3">
