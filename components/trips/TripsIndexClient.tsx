@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { DbTrip } from "@/lib/trips";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { TripsPageMenu } from "@/components/trips/TripsPageMenu";
+import { TripsSummaryHero } from "@/components/trips/TripsSummaryHero";
 import { surfaceCard, surfaceCardLinkHover } from "@/lib/screen-styles";
 
 function filterTrips(trips: DbTrip[], query: string): DbTrip[] {
@@ -85,6 +86,8 @@ export function TripsIndexClient({ trips, variant = "active" }: Props) {
           <TripsPageMenu />
         </div>
       </div>
+
+      {!archived && trips.length > 0 ? <TripsSummaryHero trips={trips} /> : null}
 
       {trips.length === 0 ? (
         <div className={`${surfaceCard} px-6 py-10 text-center`}>
