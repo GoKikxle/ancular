@@ -5,14 +5,7 @@ import Link from "next/link";
 import type { DbTrip } from "@/lib/trips";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { TripsPageMenu } from "@/components/trips/TripsPageMenu";
-import {
-  screenEyebrow,
-  screenHeaderWrap,
-  screenSubtitle,
-  screenTitle,
-  surfaceCard,
-  surfaceCardLinkHover,
-} from "@/lib/screen-styles";
+import { surfaceCard, surfaceCardLinkHover } from "@/lib/screen-styles";
 
 function filterTrips(trips: DbTrip[], query: string): DbTrip[] {
   const s = query.trim().toLowerCase();
@@ -43,20 +36,32 @@ export function TripsIndexClient({ trips, variant = "active" }: Props) {
   const noMatches = searching && filtered.length === 0;
   const archived = variant === "archived";
 
-  const title = archived ? "Archived" : "All trips";
-  const subtitle = archived
-    ? "Trips you marked as completed"
-    : "Active trips — complete one when you’re done to add it to Stats";
-
   return (
     <>
-      <header className={screenHeaderWrap}>
-        <p className={screenEyebrow}>Trips</p>
-        <h1 className={screenTitle}>{title}</h1>
-        <p className={screenSubtitle}>{subtitle}</p>
+      <header className="mb-8 pt-1">
+        {archived ? (
+          <>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/40">Trips</p>
+            <h1 className="mt-2 text-[30px] font-bold leading-[1.08] tracking-[-0.035em] text-white sm:text-[34px]">
+              Archived
+            </h1>
+            <p className="mt-3 max-w-[340px] text-[15px] leading-relaxed text-white/48">
+              Completed journeys — they stay here and count toward your Stats.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="text-[30px] font-bold leading-[1.08] tracking-[-0.035em] text-white sm:text-[34px]">
+              Trips
+            </h1>
+            <p className="mt-3 max-w-[360px] text-[15px] leading-relaxed text-white/48">
+              Every journey in one place. Search below, add a trip with +, or open Archived from the menu.
+            </p>
+          </>
+        )}
       </header>
 
-      <div className="mb-6 flex flex-row items-stretch gap-2">
+      <div className="mb-8 flex flex-row items-center gap-2.5">
         {trips.length > 0 ? (
           <SearchInput
             value={q}
@@ -72,7 +77,7 @@ export function TripsIndexClient({ trips, variant = "active" }: Props) {
           href="/trips/new"
           aria-label="New trip"
           title="New trip"
-          className="flex h-12 w-12 shrink-0 items-center justify-center self-center rounded-2xl border border-white/[0.12] bg-white/[0.06] text-white/85 transition-colors hover:bg-white/[0.1] active:scale-[0.98]"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/[0.12] bg-white/[0.06] text-white transition-colors hover:border-white/[0.18] hover:bg-white/[0.1] active:scale-[0.98]"
         >
           <PlusIcon />
         </Link>
