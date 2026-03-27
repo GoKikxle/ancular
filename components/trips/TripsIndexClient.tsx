@@ -111,42 +111,48 @@ export function TripsIndexClient({ trips, variant = "active" }: Props) {
           <p className="mx-auto mt-2 max-w-[260px] text-[14px] text-white/42">Try another search.</p>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-4 sm:gap-5">
           {filtered.map((trip) => {
-            const statusLabel = archived ? "Completed" : trip.status;
+            const statusDisplay = archived ? "COMPLETED" : trip.status.toUpperCase();
             const statusClass = archived
-              ? "bg-white/[0.08] text-white/55"
+              ? "border border-white/[0.1] bg-white/[0.06] text-white/55"
               : trip.status === "Active"
-                ? "bg-emerald-500/12 text-emerald-300/95"
+                ? "border border-emerald-500/25 bg-emerald-500/[0.14] text-emerald-300"
                 : trip.status === "Upcoming"
-                  ? "bg-amber-500/12 text-amber-200/90"
-                  : "bg-white/[0.08] text-white/50";
+                  ? "border border-amber-500/20 bg-amber-500/[0.12] text-amber-200/95"
+                  : "border border-white/[0.08] bg-white/[0.06] text-white/48";
 
             return (
               <li key={trip.id}>
                 <Link
                   href={`/trips/${trip.slug}`}
-                  className={`${surfaceCard} block p-6 ${surfaceCardLinkHover}`}
+                  className="group relative block overflow-hidden rounded-2xl border border-white/[0.09] bg-[#0A0A0A] p-7 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-200 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] hover:border-white/[0.15] hover:shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_0_0_1px_rgba(255,255,255,0.04),0_16px_48px_rgba(0,0,0,0.55)] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-[#030303]"
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <span
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent opacity-90"
+                    aria-hidden
+                  />
+                  <div className="relative flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
-                      <h2 className="text-[17px] font-bold leading-snug tracking-[-0.02em] text-white">{trip.title}</h2>
-                      <p className="mt-1.5 text-[13px] leading-relaxed text-white/48">
+                      <h2 className="text-[21px] font-bold leading-[1.2] tracking-[-0.03em] text-white sm:text-[22px]">
+                        {trip.title}
+                      </h2>
+                      <p className="mt-2.5 text-[12px] font-medium leading-relaxed tracking-wide text-white/42">
                         {trip.dates}
                         {trip.travelers ? ` · ${trip.travelers}` : null}
                       </p>
                       {trip.destination?.trim() ? (
-                        <p className="mt-1 text-[13px] text-white/38">{trip.destination.trim()}</p>
+                        <p className="mt-1.5 text-[12px] leading-snug text-white/28">{trip.destination.trim()}</p>
                       ) : null}
                     </div>
                     <span
-                      className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${statusClass}`}
+                      className={`flex-shrink-0 rounded-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.14em] ${statusClass}`}
                     >
-                      {statusLabel}
+                      {statusDisplay}
                     </span>
                   </div>
                   {trip.next_action_title?.trim() && !archived ? (
-                    <p className="mt-3 border-t border-white/[0.06] pt-3 text-[12px] leading-relaxed text-white/40">
+                    <p className="relative mt-5 border-t border-white/[0.06] pt-4 text-[13px] leading-relaxed text-white/45">
                       {trip.next_action_title.trim()}
                     </p>
                   ) : null}
