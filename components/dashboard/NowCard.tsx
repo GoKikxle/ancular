@@ -27,13 +27,61 @@ function FileIcon() {
 
 type NowCardProps = {
   item: NowItemView;
+  light?: boolean;
 };
 
 /**
- * Home hero — next action. Visual hierarchy: accent time → bold title → muted date.
+ * Home hero — next action. Supports dark (default) and light mode.
  */
-export function NowCard({ item }: NowCardProps) {
+export function NowCard({ item, light = false }: NowCardProps) {
   const { title, time, eventDate, label, documentId, tripSlug } = item;
+
+  if (light) {
+    return (
+      <section
+        className="rounded-[16px] border border-[#EBEBEB] bg-white p-6"
+        aria-label="Next action"
+      >
+        <div className="min-w-0">
+          <span className="inline-block rounded-full border border-[#E5E5E5] bg-[#F5F5F5] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#888888]">
+            {label}
+          </span>
+
+          <p className="mt-4 font-mono text-[15px] font-semibold tabular-nums tracking-tight text-sky-500">
+            {time}
+          </p>
+
+          <h2 className="mt-1.5 text-[20px] font-bold leading-snug tracking-[-0.02em] text-[#111111]">
+            {title}
+          </h2>
+
+          {eventDate && (
+            <p className="mt-1.5 text-[13px] leading-relaxed text-[#9A9A9A]">
+              {formatEventDate(eventDate)}
+            </p>
+          )}
+        </div>
+
+        <div className="mt-5 flex flex-wrap gap-2.5">
+          <Link
+            href={`/trips/${tripSlug}`}
+            className="inline-flex min-h-[40px] items-center justify-center rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-2 text-[13px] font-semibold text-[#444444] active:scale-[0.97]"
+          >
+            View trip
+          </Link>
+          {documentId && (
+            <Link
+              href={`/documents/${documentId}`}
+              className="inline-flex min-h-[40px] items-center justify-center gap-2 rounded-[12px] border border-[#E5E5E5] bg-white px-4 py-2 text-[13px] font-semibold text-[#444444] active:scale-[0.97]"
+            >
+              <FileIcon />
+              View file
+            </Link>
+          )}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section

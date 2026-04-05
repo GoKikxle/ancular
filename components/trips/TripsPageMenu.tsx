@@ -18,7 +18,7 @@ function KebabIcon() {
  * Trips hub ⋮ menu: open Archived from the main list, return to All trips from Archived.
  * Same outside-click + Escape pattern as AvatarMenu / VaultDocumentCardMenu.
  */
-export function TripsPageMenu() {
+export function TripsPageMenu({ light = false }: { light?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -54,14 +54,22 @@ export function TripsPageMenu() {
         aria-label="Trip list options"
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex h-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-2xl border border-white/[0.1] bg-white/[0.04] text-white/45 transition-colors hover:border-white/[0.14] hover:bg-white/[0.07] hover:text-white/70 active:scale-[0.99]"
+        className={
+          light
+            ? "flex h-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-[12px] border border-[#E5E5E5] bg-white text-[#666666] active:scale-[0.96]"
+            : "flex h-12 min-h-[48px] min-w-[48px] items-center justify-center rounded-2xl border border-white/[0.1] bg-white/[0.04] text-white/45 transition-colors hover:border-white/[0.14] hover:bg-white/[0.07] hover:text-white/70 active:scale-[0.99]"
+        }
       >
         <KebabIcon />
       </button>
 
       {open && (
         <div
-          className="absolute right-0 top-full z-[60] mt-1.5 min-w-[min(100vw-2rem,11rem)] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/[0.08] bg-neutral-900/95 py-1 backdrop-blur-md"
+          className={
+            light
+              ? "absolute right-0 top-full z-[60] mt-1.5 min-w-[min(100vw-2rem,10rem)] rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
+              : "absolute right-0 top-full z-[60] mt-1.5 min-w-[min(100vw-2rem,11rem)] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/[0.08] bg-neutral-900/95 py-1 backdrop-blur-md"
+          }
           role="menu"
           aria-label="Trip list menu"
         >
@@ -69,7 +77,7 @@ export function TripsPageMenu() {
             <Link
               href="/trips"
               role="menuitem"
-              className="flex w-full px-4 py-3.5 text-left text-[15px] text-white/85 transition-colors hover:bg-white/[0.06]"
+              className={light ? "flex w-full px-4 py-3 text-left text-[14px] text-gray-700 transition-colors hover:bg-gray-50" : "flex w-full px-4 py-3.5 text-left text-[15px] text-white/85 transition-colors hover:bg-white/[0.06]"}
               onClick={() => setOpen(false)}
             >
               All trips
@@ -78,7 +86,7 @@ export function TripsPageMenu() {
             <Link
               href="/trips/archived"
               role="menuitem"
-              className="flex w-full px-4 py-3.5 text-left text-[15px] text-white/85 transition-colors hover:bg-white/[0.06]"
+              className={light ? "flex w-full px-4 py-3 text-left text-[14px] text-gray-700 transition-colors hover:bg-gray-50" : "flex w-full px-4 py-3.5 text-left text-[15px] text-white/85 transition-colors hover:bg-white/[0.06]"}
               onClick={() => setOpen(false)}
             >
               Archived
