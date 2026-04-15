@@ -12,11 +12,12 @@ type AppShellProps = {
 /**
  * Mobile app shell — stable viewport, scrollable content, sticky bottom nav.
  * Safe-area aware for notched devices (iPhone X+, Android gestures).
+ * Adapts to light / dark theme via Tailwind dark: variant.
  */
 export function AppShell({ children, avatarId = null, hasUnreadNotifications = false }: AppShellProps) {
   return (
     <div
-      className="flex min-h-dvh flex-col bg-neutral-950 text-white"
+      className="flex min-h-dvh flex-col bg-[#F8F8F8] text-[#111111] dark:bg-neutral-950 dark:text-white"
       style={{
         minHeight: "100dvh",
         paddingTop: "var(--safe-area-top)",
@@ -31,7 +32,7 @@ export function AppShell({ children, avatarId = null, hasUnreadNotifications = f
         {children}
       </div>
 
-      <footer className="flex-shrink-0">
+      <footer className="flex-shrink-0 bg-[#F8F8F8] dark:bg-neutral-950">
         <BottomNav />
       </footer>
     </div>

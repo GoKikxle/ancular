@@ -1,13 +1,23 @@
 @import "tailwindcss";
 
+/* Class-based dark mode — applied when <html> has the "dark" class */
+@variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  /* Light mode defaults */
+  --background: #F8F8F8;
+  --foreground: #111111;
+
   /* Safe-area insets for notched devices — used by AppShell and BottomNav */
   --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-left: env(safe-area-inset-left, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+html.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 @theme inline {

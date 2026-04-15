@@ -36,7 +36,7 @@ export function AvatarMenu({ avatarId, hasUnreadNotifications }: AvatarMenuProps
         <UserAvatar avatarId={avatarId} size="medium" />
         {hasUnreadNotifications && (
           <span
-            className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-neutral-950"
+            className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-neutral-950"
             aria-hidden="true"
           />
         )}
@@ -44,13 +44,13 @@ export function AvatarMenu({ avatarId, hasUnreadNotifications }: AvatarMenuProps
 
       {open && (
         <div
-          className="absolute right-0 top-full z-50 mt-2 min-w-[180px] rounded-2xl border border-white/[0.08] bg-neutral-900 py-1 shadow-xl"
+          className="absolute right-0 top-full z-50 mt-2 min-w-[180px] rounded-2xl border border-[#E5E5E5] bg-white py-1 shadow-lg dark:border-white/[0.08] dark:bg-neutral-900 dark:shadow-xl"
           role="menu"
         >
           <Link
             href="/notifications"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 text-[14px] text-white/80 transition-colors hover:bg-white/[0.06] hover:text-white"
+            className="flex items-center gap-3 px-4 py-3 text-[14px] text-[#444444] transition-colors hover:bg-[#F5F5F5] hover:text-[#111111] dark:text-white/80 dark:hover:bg-white/[0.06] dark:hover:text-white"
             role="menuitem"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -65,7 +65,7 @@ export function AvatarMenu({ avatarId, hasUnreadNotifications }: AvatarMenuProps
           <Link
             href="/settings"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 text-[14px] text-white/80 transition-colors hover:bg-white/[0.06] hover:text-white"
+            className="flex items-center gap-3 px-4 py-3 text-[14px] text-[#444444] transition-colors hover:bg-[#F5F5F5] hover:text-[#111111] dark:text-white/80 dark:hover:bg-white/[0.06] dark:hover:text-white"
             role="menuitem"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

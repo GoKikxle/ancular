@@ -4,6 +4,7 @@ import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import type { DbTrip } from "@/lib/trips";
 import { TripsPageMenu } from "@/components/trips/TripsPageMenu";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -66,11 +67,9 @@ function formatRowDate(start: string | null, end: string | null): string {
   const startDate = new Date(`${start}T00:00:00`);
   const diffDays = Math.ceil((startDate.getTime() - today.getTime()) / 86400000);
 
-  // If trip starts within the current week, show day name
   if (diffDays >= 0 && diffDays <= 6) {
     return startDate.toLocaleDateString("en-US", { weekday: "short" });
   }
-  // Otherwise show "DD Mon"
   const day = String(startDate.getDate()).padStart(2, "0");
   const mon = startDate.toLocaleDateString("en-US", { month: "short" });
   return `${day} ${mon}`;
@@ -140,7 +139,7 @@ function PatternPanel({ word }: { word: string }) {
   );
 }
 
-// ─── ACTIVE TRIP CARD ─────────────────────────────────────────────────────────
+// ─── ACTIVE TRIP CARD (always editorial dark — intentional design) ─────────────
 
 function ActiveTripCard({ trip }: { trip: DbTrip }) {
   const cityLabel = formatCity(trip.destination, trip.title);
@@ -156,20 +155,17 @@ function ActiveTripCard({ trip }: { trip: DbTrip }) {
       className="block rounded-[20px] bg-[#0A0A0A] p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4FF00]/40"
       style={{ WebkitTapHighlightColor: "transparent" }}
     >
-      {/* City headline */}
       <p
-        className="text-[42px] font-black leading-[0.88] tracking-[-0.03em] break-words"
+        className="text-[36px] font-black leading-[0.9] tracking-[-0.03em] break-words"
         style={{ color: "#D4FF00" }}
       >
         {cityLabel}
       </p>
 
-      {/* Trip title */}
       <p className="mt-[10px] text-[10px] font-bold uppercase tracking-[0.24em] text-white/50">
         {trip.title.toUpperCase()}
       </p>
 
-      {/* Pattern panel */}
       <div
         className="mt-[14px] w-full overflow-hidden rounded-[12px]"
         style={{ height: "150px", background: "#161616" }}
@@ -178,7 +174,6 @@ function ActiveTripCard({ trip }: { trip: DbTrip }) {
         <PatternPanel word={patternWord} />
       </div>
 
-      {/* Date + marker row */}
       <div className="mt-[14px] flex items-center justify-between">
         <p
           className="text-[12px] font-medium tracking-[0.01em]"
@@ -187,29 +182,9 @@ function ActiveTripCard({ trip }: { trip: DbTrip }) {
           {date}
         </p>
 
-        {/* Concentric-circle pin marker */}
-        <svg
-          width="22"
-          height="22"
-          viewBox="0 0 22 22"
-          fill="none"
-          aria-hidden
-        >
-          <circle
-            cx="11"
-            cy="11"
-            r="9.5"
-            stroke="#D4FF00"
-            strokeWidth="1.3"
-          />
-          <circle
-            cx="11"
-            cy="11"
-            r="5.5"
-            stroke="#D4FF00"
-            strokeWidth="1.1"
-            opacity="0.5"
-          />
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
+          <circle cx="11" cy="11" r="9.5" stroke="#D4FF00" strokeWidth="1.3" />
+          <circle cx="11" cy="11" r="5.5" stroke="#D4FF00" strokeWidth="1.1" opacity="0.5" />
           <circle cx="11" cy="11" r="2.2" fill="#D4FF00" />
         </svg>
       </div>
@@ -235,10 +210,9 @@ function UpcomingTripRow({
   return (
     <Link
       href={`/trips/${trip.slug}`}
-      className="flex h-[76px] items-center gap-[14px] rounded-[16px] border border-[#EBEBEB] bg-white px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+      className="flex h-[76px] items-center gap-[14px] rounded-[16px] border border-[#EBEBEB] bg-white px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 dark:border-white/[0.08] dark:bg-white/[0.04]"
       style={{ WebkitTapHighlightColor: "transparent" }}
     >
-      {/* Countdown circle */}
       <div
         className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full"
         style={{ background: bg }}
@@ -251,32 +225,32 @@ function UpcomingTripRow({
         </span>
       </div>
 
-      {/* Center text */}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[13.5px] font-bold leading-tight tracking-[-0.02em] text-[#111111]">
+        <p className="truncate text-[13.5px] font-bold leading-tight tracking-[-0.02em] text-[#111111] dark:text-white">
           {cityLabel}
         </p>
-        <p className="mt-[3px] truncate text-[12px] leading-snug text-[#9A9A9A]">
+        <p className="mt-[3px] truncate text-[12px] leading-snug text-[#9A9A9A] dark:text-white/45">
           {trip.title}
         </p>
       </div>
 
-      {/* Date label */}
-      <p className="shrink-0 text-right text-[12px] font-normal text-[#AAAAAA]">
+      <p className="shrink-0 text-right text-[12px] font-normal text-[#AAAAAA] dark:text-white/38">
         {dateLabel}
       </p>
     </Link>
   );
 }
 
-// ─── LIGHT SEARCH BAR ────────────────────────────────────────────────────────
+// ─── SEARCH BAR ───────────────────────────────────────────────────────────────
 
-function LightSearchBar({
+function SearchBar({
   value,
   onChange,
+  placeholder = "Search",
 }: {
   value: string;
   onChange: (v: string) => void;
+  placeholder?: string;
 }) {
   const id = useId();
   return (
@@ -286,9 +260,8 @@ function LightSearchBar({
       </label>
       <div className="relative">
         <span
-          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2"
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#BBBBBB] dark:text-white/30"
           aria-hidden
-          style={{ color: "#BBBBBB" }}
         >
           <svg
             width="16"
@@ -308,10 +281,10 @@ function LightSearchBar({
           type="search"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Search"
+          placeholder={placeholder}
           autoComplete="off"
           enterKeyHint="search"
-          className="h-12 w-full rounded-[12px] border border-[#E5E5E5] bg-white py-0 pl-[38px] pr-3 text-[14px] text-gray-900 placeholder:text-[#BBBBBB] focus:border-[#D0D0D0] focus:outline-none"
+          className="h-12 w-full rounded-[12px] border border-[#E5E5E5] bg-white py-0 pl-[38px] pr-3 text-[14px] text-[#111111] placeholder:text-[#BBBBBB] focus:border-[#D0D0D0] focus:outline-none dark:border-white/[0.1] dark:bg-white/[0.04] dark:text-white dark:placeholder:text-white/30 dark:focus:border-white/[0.18]"
         />
       </div>
     </div>
@@ -337,7 +310,7 @@ function PlusIcon() {
   );
 }
 
-// ─── ACTIVE TRIPS VIEW (light mode) ──────────────────────────────────────────
+// ─── ACTIVE TRIPS VIEW ────────────────────────────────────────────────────────
 
 function ActiveTripsView({
   allTrips,
@@ -352,6 +325,9 @@ function ActiveTripsView({
   q: string;
   setQ: (v: string) => void;
 }) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+
   const activeTrip =
     filtered.find((t) => t.status === "Active") ??
     filtered.find((t) => t.status === "Upcoming") ??
@@ -362,60 +338,56 @@ function ActiveTripsView({
     : filtered;
 
   return (
-    <div className="flex min-h-screen flex-col" style={{ background: "#F8F8F8" }}>
+    <div className="flex flex-col bg-[#F8F8F8] dark:bg-neutral-950">
       {/* HEADER */}
       <div className="flex items-center justify-between px-5 pt-[22px] pb-[10px]">
-        <h1 className="text-[24px] font-bold tracking-[-0.03em] text-[#111111]">
+        <h1 className="text-[24px] font-bold tracking-[-0.03em] text-[#111111] dark:text-white">
           Trips
         </h1>
-        {/* Spacer — AppShell renders the actual avatar via absolute positioning */}
         <div className="h-10 w-10" aria-hidden />
       </div>
 
       {/* SEARCH ROW */}
       <div className="flex items-center gap-[8px] px-5 pb-[16px] pt-[4px]">
         {allTrips.length > 0 ? (
-          <LightSearchBar value={q} onChange={setQ} />
+          <SearchBar value={q} onChange={setQ} />
         ) : (
           <div className="min-w-0 flex-1" aria-hidden />
         )}
         <Link
           href="/trips/new"
           aria-label="New trip"
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] border border-[#E5E5E5] bg-white text-[#666666] active:scale-[0.96]"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] border border-[#E5E5E5] bg-white text-[#666666] active:scale-[0.96] dark:border-white/[0.1] dark:bg-white/[0.05] dark:text-white/65"
           style={{ WebkitTapHighlightColor: "transparent" }}
         >
           <PlusIcon />
         </Link>
         <div className="shrink-0">
-          <TripsPageMenu light />
+          <TripsPageMenu light={isLight} />
         </div>
       </div>
 
       {/* CONTENT */}
       {allTrips.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center px-5 pb-24">
-          <p className="text-[18px] font-bold text-[#111111]">No trips yet</p>
-          <p className="mx-auto mt-2 max-w-[240px] text-center text-[13px] leading-relaxed text-[#999999]">
+          <p className="text-[18px] font-bold text-[#111111] dark:text-white">No trips yet</p>
+          <p className="mx-auto mt-2 max-w-[240px] text-center text-[13px] leading-relaxed text-[#999999] dark:text-white/40">
             Create your first trip to start planning.
           </p>
           <Link
             href="/trips/new"
-            className="mt-8 inline-flex h-[44px] items-center justify-center rounded-[12px] bg-[#111111] px-6 text-[14px] font-semibold text-white active:scale-[0.98]"
+            className="mt-8 inline-flex h-[44px] items-center justify-center rounded-[12px] bg-[#111111] px-6 text-[14px] font-semibold text-white active:scale-[0.98] dark:bg-white dark:text-neutral-950"
           >
             Create a trip
           </Link>
         </div>
       ) : noMatches ? (
         <div className="flex flex-1 items-center justify-center pb-24">
-          <p className="text-[14px] text-[#AAAAAA]">No matching trips</p>
+          <p className="text-[14px] text-[#AAAAAA] dark:text-white/38">No matching trips</p>
         </div>
       ) : (
         <div className="flex flex-col gap-[10px] px-5 pb-10">
-          {/* ACTIVE CARD */}
           {activeTrip && <ActiveTripCard trip={activeTrip} />}
-
-          {/* UPCOMING LIST */}
           {listTrips.map((trip, i) => (
             <UpcomingTripRow key={trip.id} trip={trip} colorIndex={i} />
           ))}
@@ -425,7 +397,7 @@ function ActiveTripsView({
   );
 }
 
-// ─── ARCHIVED VIEW (dark) ─────────────────────────────────────────────────────
+// ─── ARCHIVED VIEW ─────────────────────────────────────────────────────────────
 
 const DARK_PALETTE = [
   { bg: "#DEDCD6", fg: "#0D0D0D", sub: "rgba(13,13,13,0.52)" },
@@ -454,7 +426,7 @@ function ArchivedTripBlock({ trip, index }: { trip: DbTrip; index: number }) {
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <p
-              className="break-words text-[38px] font-black leading-[0.95] tracking-[-0.03em]"
+              className="break-words text-[34px] font-black leading-[0.95] tracking-[-0.03em]"
               style={{ color: fg }}
             >
               {cityLabel}
@@ -505,74 +477,49 @@ function ArchivedTripsView({
   q: string;
   setQ: (v: string) => void;
 }) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+
   return (
     <div className="flex flex-col">
       <div className="px-5 pb-1 pt-12">
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/38">
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#AAAAAA] dark:text-white/38">
           Trips
         </p>
-        <h1 className="mt-1 text-[28px] font-black tracking-[-0.04em] text-white">
+        <h1 className="mt-1 text-[28px] font-black tracking-[-0.04em] text-[#111111] dark:text-white">
           Archived
         </h1>
       </div>
 
       <div className="flex items-center gap-2 px-5 py-4">
         {allTrips.length > 0 ? (
-          <div className="min-w-0 flex-1">
-            <div className="relative">
-              <span
-                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30"
-                aria-hidden
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                >
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M21 21l-4.35-4.35" />
-                </svg>
-              </span>
-              <input
-                type="search"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search archived"
-                autoComplete="off"
-                className="h-11 w-full rounded-xl border border-white/[0.1] bg-white/[0.04] py-2 pl-10 pr-4 text-[14px] text-white placeholder:text-white/30 focus:border-white/[0.18] focus:outline-none"
-              />
-            </div>
-          </div>
+          <SearchBar value={q} onChange={setQ} placeholder="Search archived" />
         ) : (
           <div className="min-w-0 flex-1" aria-hidden />
         )}
         <Link
           href="/trips/new"
           aria-label="New trip"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.05] text-white/65 active:scale-[0.97]"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] border border-[#E5E5E5] bg-white text-[#666666] active:scale-[0.96] dark:border-white/[0.1] dark:bg-white/[0.05] dark:text-white/65"
         >
           <PlusIcon />
         </Link>
-        <TripsPageMenu />
+        <TripsPageMenu light={isLight} />
       </div>
 
       {allTrips.length === 0 ? (
         <div className="px-5 py-16 text-center">
-          <p className="text-[16px] font-semibold text-white/70">
+          <p className="text-[16px] font-semibold text-[#111111] dark:text-white/70">
             No archived trips yet
           </p>
-          <p className="mx-auto mt-2 max-w-[280px] text-[13px] leading-relaxed text-white/38">
+          <p className="mx-auto mt-2 max-w-[280px] text-[13px] leading-relaxed text-[#9A9A9A] dark:text-white/38">
             When you mark a trip as completed, it will show up here and in your
             Stats.
           </p>
         </div>
       ) : noMatches ? (
         <div className="px-5 py-12 text-center">
-          <p className="text-[15px] text-white/55">No matching trips</p>
+          <p className="text-[15px] text-[#AAAAAA] dark:text-white/55">No matching trips</p>
         </div>
       ) : (
         <ul className="flex flex-col">

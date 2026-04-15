@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { ProfileForm } from "@/components/settings/ProfileForm";
+import { ThemeToggle } from "@/components/settings/ThemeToggle";
 import { getUser } from "@/lib/auth";
 import { getCurrentProfile } from "@/lib/profile";
 
@@ -14,19 +15,26 @@ export default async function SettingsPage() {
   const email = profile?.email ?? user.email ?? "";
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white">
+    <main className="min-h-screen bg-[#F8F8F8] text-[#111111] dark:bg-neutral-950 dark:text-white">
       <PageContainer>
-        <header className="mb-8">
-          <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-white/35">
+        <header className="mb-8 pt-4">
+          <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[#AAAAAA] dark:text-white/35">
             Profile
           </p>
-          <h1 className="mt-1 text-[28px] font-semibold tracking-[-0.02em]">
+          <h1 className="mt-1 text-[28px] font-semibold tracking-[-0.02em] text-[#111111] dark:text-white">
             Your profile
           </h1>
-          <p className="mt-1.5 text-[14px] text-white/40">
+          <p className="mt-1.5 text-[14px] text-[#9A9A9A] dark:text-white/40">
             Update your name and avatar
           </p>
         </header>
+
+        {/* Appearance */}
+        <div className="mb-8">
+          <ThemeToggle />
+        </div>
+
+        <div className="mb-2 border-t border-[#EBEBEB] dark:border-white/[0.06]" />
 
         <ProfileForm
           fullName={fullName}

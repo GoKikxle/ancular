@@ -5,7 +5,7 @@ export default async function TripsIndexPage() {
   const trips = await getIncompleteTrips();
 
   return (
-    <main className="min-h-screen bg-[#FBFBFB]">
+    <main className="bg-[#F8F8F8] dark:bg-neutral-950">
       <TripsIndexClient trips={trips} />
     </main>
   );

@@ -50,7 +50,7 @@ export function ProfileForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-8 pt-6">
       {/* Large avatar preview */}
       <div className="flex justify-center">
         <UserAvatar avatarId={avatar} size="large" />
@@ -60,7 +60,7 @@ export function ProfileForm({
       <div>
         <label
           htmlFor="full_name"
-          className="block text-[12px] font-medium text-white/40"
+          className="block text-[12px] font-medium text-[#888888] dark:text-white/40"
         >
           Display name
         </label>
@@ -73,23 +73,23 @@ export function ProfileForm({
           placeholder="Your name"
           autoComplete="name"
           disabled={loading}
-          className="mt-1.5 w-full rounded-2xl border border-white/[0.1] bg-white/[0.05] px-4 py-3.5 text-[15px] text-white placeholder:text-white/30 focus:border-white/20 focus:outline-none focus:ring-1 focus:ring-white/10 disabled:opacity-50"
+          className="mt-1.5 w-full rounded-2xl border border-[#E5E5E5] bg-white px-4 py-3.5 text-[15px] text-[#111111] placeholder:text-[#BBBBBB] focus:border-[#D0D0D0] focus:outline-none disabled:opacity-50 dark:border-white/[0.1] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-white/30 dark:focus:border-white/20"
         />
       </div>
 
       {/* Email (read-only) */}
       <div>
-        <label className="block text-[12px] font-medium text-white/40">
+        <label className="block text-[12px] font-medium text-[#888888] dark:text-white/40">
           Email
         </label>
-        <p className="mt-1.5 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3.5 text-[15px] text-white/70">
+        <p className="mt-1.5 rounded-2xl border border-[#EBEBEB] bg-[#F5F5F5] px-4 py-3.5 text-[15px] text-[#666666] dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white/70">
           {email}
         </p>
       </div>
 
       {/* Avatar picker */}
       <div>
-        <label className="block text-[12px] font-medium text-white/40">
+        <label className="block text-[12px] font-medium text-[#888888] dark:text-white/40">
           Avatar
         </label>
         <input type="hidden" name="avatar_id" value={avatar} />
@@ -99,7 +99,7 @@ export function ProfileForm({
       </div>
 
       {error && (
-        <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-[13px] text-red-300">
+        <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-[13px] text-red-500 dark:text-red-300">
           {error}
         </p>
       )}
@@ -108,13 +108,13 @@ export function ProfileForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-2xl bg-white py-4 text-[15px] font-semibold text-neutral-950 transition-opacity hover:opacity-95 disabled:opacity-50 active:scale-[0.99]"
+        className="w-full rounded-2xl bg-[#111111] py-4 text-[15px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 active:scale-[0.99] dark:bg-white dark:text-neutral-950 dark:hover:opacity-95"
       >
         {loading ? "Saving…" : "Save"}
       </button>
 
       {/* Sign out */}
-      <div className="border-t border-white/[0.06] pt-6">
+      <div className="border-t border-[#EBEBEB] pt-6 dark:border-white/[0.06]">
         <SignOutButton />
       </div>
     </form>
