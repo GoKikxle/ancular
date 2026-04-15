@@ -96,20 +96,21 @@ export function AuthForm({ mode, redirectUrl, initialError }: AuthFormProps) {
 
   if (magicLinkSent) {
     return (
-      <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-6 text-center">
-        <p className="text-[15px] font-medium text-white/90">
+      <div className="rounded-[16px] border border-[#EBEBEB] bg-white p-6 text-center shadow-[0_1px_0_rgba(0,0,0,0.03)] dark:border-white/[0.08] dark:bg-white/[0.04] dark:shadow-none">
+        <p className="text-[16px] font-semibold text-[#111111] dark:text-white/90">
           Check your inbox
         </p>
-        <p className="mt-2 text-[13px] leading-relaxed text-white/50">
-          We sent a magic link to <span className="text-white/70">{email}</span>
+        <p className="mt-2 text-[14px] leading-relaxed text-[#9A9A9A] dark:text-white/50">
+          We sent a magic link to{" "}
+          <span className="font-medium text-[#111111] dark:text-white/70">{email}</span>
         </p>
-        <p className="mt-3 text-[12px] text-white/35">
+        <p className="mt-3 text-[13px] text-[#9A9A9A] dark:text-white/35">
           Check your spam folder if you don’t see it.
         </p>
         <button
           type="button"
           onClick={() => setMagicLinkSent(false)}
-          className="mt-5 text-[13px] text-white/40 underline hover:text-white/60"
+          className="mt-5 text-[14px] font-medium text-[#111111] underline decoration-[#CFCFCF] underline-offset-4 transition-colors hover:text-[#000000] dark:text-white/50 dark:decoration-white/20 dark:hover:text-white/75"
         >
           Use password instead
         </button>
@@ -117,12 +118,15 @@ export function AuthForm({ mode, redirectUrl, initialError }: AuthFormProps) {
     );
   }
 
+  const fieldClass =
+    "mt-2 w-full min-h-[48px] rounded-2xl border border-[#EBEBEB] bg-white px-4 py-3.5 text-[16px] leading-normal text-[#111111] placeholder:text-[#9A9A9A] transition-colors focus:border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-[#111111]/[0.08] disabled:opacity-50 dark:border-white/[0.1] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-white/30 dark:focus:border-white/20 dark:focus:ring-white/10";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <div className="space-y-0">
         <label
           htmlFor="email"
-          className="block text-[12px] font-medium text-white/40"
+          className="block text-[13px] font-semibold text-[#3D3D3D] dark:text-white/50"
         >
           Email
         </label>
@@ -135,14 +139,14 @@ export function AuthForm({ mode, redirectUrl, initialError }: AuthFormProps) {
           required
           autoComplete="email"
           disabled={loading}
-          className="mt-1.5 w-full rounded-2xl border border-white/[0.1] bg-white/[0.05] px-4 py-3.5 text-[15px] text-white placeholder:text-white/30 focus:border-white/20 focus:outline-none focus:ring-1 focus:ring-white/10 disabled:opacity-50"
+          className={fieldClass}
         />
       </div>
 
-      <div>
+      <div className="space-y-0">
         <label
           htmlFor="password"
-          className="block text-[12px] font-medium text-white/40"
+          className="block text-[13px] font-semibold text-[#3D3D3D] dark:text-white/50"
         >
           Password
         </label>
@@ -156,46 +160,48 @@ export function AuthForm({ mode, redirectUrl, initialError }: AuthFormProps) {
           minLength={isLogin ? undefined : 6}
           autoComplete={isLogin ? "current-password" : "new-password"}
           disabled={loading}
-          className="mt-1.5 w-full rounded-2xl border border-white/[0.1] bg-white/[0.05] px-4 py-3.5 text-[15px] text-white placeholder:text-white/30 focus:border-white/20 focus:outline-none focus:ring-1 focus:ring-white/10 disabled:opacity-50"
+          className={fieldClass}
         />
       </div>
 
       {error && (
-        <p className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-[13px] text-red-300">
+        <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[14px] leading-snug text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
           {error}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-2xl bg-white py-4 text-[15px] font-semibold text-neutral-950 transition-opacity hover:opacity-95 disabled:opacity-50 active:scale-[0.99]"
-      >
-        {loading
-          ? "Please wait…"
-          : isLogin
-          ? "Log in"
-          : "Create account"}
-      </button>
-
-      {isLogin && (
+      <div className="flex flex-col gap-3 pt-0.5">
         <button
-          type="button"
-          onClick={handleMagicLink}
-          disabled={loading || !email}
-          className="w-full rounded-2xl border border-white/[0.12] bg-white/[0.04] py-3.5 text-[14px] font-medium text-white/70 transition-colors hover:bg-white/[0.07] hover:text-white/90 disabled:opacity-50 active:scale-[0.99]"
+          type="submit"
+          disabled={loading}
+          className="flex min-h-[52px] w-full items-center justify-center rounded-2xl bg-[#111111] px-4 py-3.5 text-[16px] font-semibold text-white transition-colors hover:bg-[#222222] disabled:opacity-50 active:scale-[0.99] dark:bg-white dark:text-neutral-950 dark:hover:bg-white/90"
         >
-          Continue with Magic Link
+          {loading
+            ? "Please wait…"
+            : isLogin
+              ? "Log in"
+              : "Create account"}
         </button>
-      )}
 
-      <p className="pt-2 text-center text-[13px] text-white/40">
+        {isLogin && (
+          <button
+            type="button"
+            onClick={handleMagicLink}
+            disabled={loading || !email}
+            className="flex min-h-[48px] w-full items-center justify-center rounded-2xl border border-[#EBEBEB] bg-white px-4 py-3.5 text-[15px] font-semibold text-[#111111] shadow-[0_1px_0_rgba(0,0,0,0.03)] transition-colors hover:border-[#D6D6D6] hover:bg-[#FAFAFA] disabled:opacity-50 active:scale-[0.99] dark:border-white/[0.12] dark:bg-white/[0.04] dark:text-white/85 dark:shadow-none dark:hover:bg-white/[0.07]"
+          >
+            Continue with Magic Link
+          </button>
+        )}
+      </div>
+
+      <p className="pt-1 text-center text-[14px] leading-relaxed text-[#9A9A9A] dark:text-white/40">
         {isLogin ? (
           <>
             Don’t have an account?{" "}
             <Link
               href="/signup"
-              className="font-medium text-white/60 underline hover:text-white/80"
+              className="font-semibold text-[#111111] underline decoration-[#D6D6D6] underline-offset-[3px] transition-colors hover:decoration-[#111111] dark:text-white/75 dark:decoration-white/25 dark:hover:text-white"
             >
               Sign up
             </Link>
@@ -205,7 +211,7 @@ export function AuthForm({ mode, redirectUrl, initialError }: AuthFormProps) {
             Already have an account?{" "}
             <Link
               href="/login"
-              className="font-medium text-white/60 underline hover:text-white/80"
+              className="font-semibold text-[#111111] underline decoration-[#D6D6D6] underline-offset-[3px] transition-colors hover:decoration-[#111111] dark:text-white/75 dark:decoration-white/25 dark:hover:text-white"
             >
               Log in
             </Link>

@@ -1,5 +1,4 @@
 import { AuthForm } from "@/components/auth/AuthForm";
-import { getURL } from "@/lib/url";
 import Link from "next/link";
 
 type LoginPageProps = {
@@ -11,15 +10,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const redirectUrl = "https://ancular.vercel.app/auth/callback";
 
   return (
-    <div className="space-y-8">
+    <div className="flex w-full flex-col gap-9 pb-2 pt-1">
       <header className="text-center">
-        <Link href="/" className="text-[22px] font-semibold tracking-tight text-white">
+        <Link
+          href="/"
+          className="inline-block text-[22px] font-semibold tracking-[-0.02em] text-[#111111] transition-opacity hover:opacity-80 dark:text-white"
+        >
           Ancular
         </Link>
-        <h1 className="mt-6 text-[20px] font-medium text-white/90">
+        <h1 className="mt-7 text-[22px] font-bold tracking-[-0.02em] text-[#111111] dark:text-white">
           Log in
         </h1>
-        <p className="mt-1.5 text-[14px] text-white/45">
+        <p className="mt-2 max-w-[280px] mx-auto text-[15px] leading-snug text-[#9A9A9A] dark:text-white/45">
           Sign in to your account
         </p>
       </header>
