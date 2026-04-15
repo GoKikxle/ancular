@@ -1,43 +1,4 @@
-"use client";
-
-import {
-  ComposableMap,
-  Geographies,
-  Geography,
-  Marker,
-} from "react-simple-maps";
 import { screenEyebrowLight } from "@/lib/screen-styles";
-import { travelMapGeography } from "@/lib/travel-map-geography";
-
-const MAP_W = 1000;
-const MAP_H = 480;
-
-const geoStyle = {
-  default: {
-    fill: "#DDE4EC",
-    stroke: "rgba(14, 165, 233, 0.14)",
-    strokeWidth: 0.35,
-    outline: "none",
-  },
-  hover: {
-    fill: "#D4DCE6",
-    stroke: "rgba(14, 165, 233, 0.18)",
-    strokeWidth: 0.35,
-    outline: "none",
-  },
-  pressed: {
-    fill: "#D4DCE6",
-    outline: "none",
-  },
-} as const;
-
-export type TravelMapPoint = {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  active?: boolean;
-};
 
 export type TravelMapHeading = {
   eyebrow: string;
@@ -46,16 +7,17 @@ export type TravelMapHeading = {
 };
 
 type TravelMapProps = {
-  points: TravelMapPoint[];
+  /** Optional section heading above the card */
   heading?: TravelMapHeading;
   className?: string;
 };
 
-export default function TravelMap({ points, heading, className = "" }: TravelMapProps) {
+/**
+ * Lightweight placeholder until a React-19–compatible map solution ships.
+ * Keeps the Stats layout and light-mode shell consistent with the app.
+ */
+export default function TravelMap({ heading, className = "" }: TravelMapProps) {
   const titleId = heading?.titleId ?? "travel-map-heading";
-  const activeIndex = points.findIndex((p) => p.active);
-  const primaryActive = activeIndex >= 0 ? points[activeIndex] : null;
-  const dotPoints = points.filter((_, i) => i !== activeIndex);
 
   const body = (
     <>
@@ -71,51 +33,25 @@ export default function TravelMap({ points, heading, className = "" }: TravelMap
         </header>
       ) : null}
 
-      <div className="rounded-2xl border border-[#EBEBEB] bg-white p-3 shadow-[0_1px_0_rgba(0,0,0,0.03)] dark:border-white/[0.1] dark:bg-white/[0.05] dark:shadow-none sm:p-4">
-        <div className="relative mx-auto aspect-[1000/480] w-full max-h-[min(52vw,16rem)] overflow-hidden rounded-xl bg-[#F4F7FA] sm:max-h-[min(46vw,18rem)] dark:bg-neutral-900/30">
-          <ComposableMap
-            projection="geoEqualEarth"
-            projectionConfig={{
-              scale: 168,
-              center: [0, 4] as [number, number],
-            }}
-            width={MAP_W}
-            height={MAP_H}
-            className="block h-full w-full max-h-full"
-          >
-            <rect x={0} y={0} width={MAP_W} height={MAP_H} fill="#F4F7FA" className="dark:fill-neutral-900/40" />
-            <Geographies geography={travelMapGeography}>
-              {({ geographies }) =>
-                geographies.map((geo) => (
-                  <Geography key={geo.rsmKey} geography={geo} style={geoStyle} />
-                ))
-              }
-            </Geographies>
-
-            {dotPoints.map((point) => (
-              <Marker key={point.id} coordinates={[point.lng, point.lat]}>
-                <circle r={3} fill="#0ea5e9" className="dark:fill-sky-400" />
-              </Marker>
-            ))}
-
-            {primaryActive ? (
-              <Marker coordinates={[primaryActive.lng, primaryActive.lat]}>
-                <g>
-                  <circle r={11} className="fill-sky-500/18 dark:fill-sky-400/20" />
-                  <circle
-                    r={4}
-                    className="fill-sky-500 stroke-white dark:fill-sky-400 dark:stroke-neutral-900"
-                    strokeWidth={2.5}
-                  />
-                  <foreignObject x={10} y={-18} width={200} height={40} style={{ overflow: "visible" }}>
-                    <div className="inline-flex rounded-full bg-sky-600 px-2.5 py-1 text-[12px] font-semibold text-white shadow-sm dark:bg-sky-500">
-                      {primaryActive.name}
-                    </div>
-                  </foreignObject>
-                </g>
-              </Marker>
-            ) : null}
-          </ComposableMap>
+      <div className="rounded-2xl border border-[#EBEBEB] bg-white p-6 shadow-[0_1px_0_rgba(0,0,0,0.03)] dark:border-white/[0.1] dark:bg-white/[0.05] dark:shadow-none sm:p-7">
+        <div className="flex flex-col items-center justify-center gap-3 py-8 text-center sm:py-10">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-sky-500/20 bg-sky-500/10 text-sky-600 dark:border-sky-400/25 dark:bg-sky-400/10 dark:text-sky-400">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+              <circle cx="12" cy="9" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </div>
+          <p className="max-w-[260px] text-[14px] font-medium leading-snug text-[#111111] dark:text-white/85">
+            Travel map coming soon
+          </p>
+          <p className="max-w-[280px] text-[13px] leading-relaxed text-[#9A9A9A] dark:text-white/45">
+            We&apos;re preparing an interactive map for your destinations. Your stats below stay up to date.
+          </p>
         </div>
       </div>
     </>

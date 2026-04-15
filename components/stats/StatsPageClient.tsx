@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import TravelMap, { type TravelMapPoint } from "@/components/TravelMap";
+import TravelMap from "@/components/TravelMap";
 import type { UserStats } from "@/lib/stats";
 import { buildYearlyTravelNarrative } from "@/lib/yearly-travel-story";
 import { surfaceCardLight } from "@/lib/screen-styles";
@@ -52,7 +52,7 @@ function AccentBar({ pct, delay = 0 }: { pct: number; delay?: number }) {
 
 // ─── EMPTY STATE ────────────────────────────────────────────────────────────
 
-function EmptyState({ mapPoints }: { mapPoints: TravelMapPoint[] }) {
+function EmptyState() {
   return (
     <div className="relative w-full">
       <div className="pointer-events-none absolute left-0 top-0 h-[220px] w-[280px] opacity-40 dark:opacity-25">
@@ -166,10 +166,7 @@ function EmptyState({ mapPoints }: { mapPoints: TravelMapPoint[] }) {
         transition={{ duration: 0.5, ease: EASE, delay: 0.52 }}
         className="relative z-10 mt-10 px-5"
       >
-        <TravelMap
-          points={mapPoints}
-          heading={{ eyebrow: "Travel map", title: "Your destinations", titleId: "travel-map-heading" }}
-        />
+        <TravelMap heading={{ eyebrow: "Travel map", title: "Your destinations", titleId: "travel-map-heading" }} />
       </motion.div>
 
       <motion.div
@@ -240,7 +237,7 @@ function StatTile({
   );
 }
 
-function RichState({ s, mapPoints }: { s: UserStats; mapPoints: TravelMapPoint[] }) {
+function RichState({ s }: { s: UserStats }) {
   const year = new Date().getFullYear();
   const yearlyNarrative = buildYearlyTravelNarrative(s.yearlyTravel);
   const tripDelta = s.completedTripsThisYear - s.completedTripsLastYear;
@@ -402,10 +399,7 @@ function RichState({ s, mapPoints }: { s: UserStats; mapPoints: TravelMapPoint[]
       )}
 
       <div className="mt-6">
-        <TravelMap
-          points={mapPoints}
-          heading={{ eyebrow: "Travel map", title: "Your destinations", titleId: "travel-map-heading" }}
-        />
+        <TravelMap heading={{ eyebrow: "Travel map", title: "Your destinations", titleId: "travel-map-heading" }} />
       </div>
 
       <FadeUp delay={0.22} className="mt-3">
@@ -481,11 +475,11 @@ function RichState({ s, mapPoints }: { s: UserStats; mapPoints: TravelMapPoint[]
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
-type Props = { stats: UserStats; mapPoints: TravelMapPoint[] };
+type Props = { stats: UserStats };
 
-export function StatsPageClient({ stats: s, mapPoints }: Props) {
+export function StatsPageClient({ stats: s }: Props) {
   if (s.completedTripCount === 0) {
-    return <EmptyState mapPoints={mapPoints} />;
+    return <EmptyState />;
   }
-  return <RichState s={s} mapPoints={mapPoints} />;
+  return <RichState s={s} />;
 }
