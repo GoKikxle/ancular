@@ -8,7 +8,7 @@ import { VaultAddDocumentPanel, type VaultTripOption } from "@/components/docume
 import { SearchInput } from "@/components/ui/SearchInput";
 import { categoryLabel } from "@/components/documents/DocumentCategoryIcon";
 import type { DocumentCategory } from "@/types/document";
-import { surfaceCard } from "@/lib/screen-styles";
+import { surfaceCardLight } from "@/lib/screen-styles";
 
 function filterDocuments(docs: DbDocument[], query: string): DbDocument[] {
   const s = query.trim().toLowerCase();
@@ -41,30 +41,32 @@ export function VaultScreenClient({ documents, trips }: Props) {
         onChange={setQ}
         placeholder="Search by title, file, or category"
         label="Search documents"
-        className="mb-4"
+        className="mb-5"
       />
 
       <VaultAddDocumentPanel trips={trips} />
 
       {documents.length === 0 && !searching ? (
-        <div className={`${surfaceCard} px-6 py-10 text-center`}>
-          <p className="text-[16px] font-semibold text-white/80">No documents yet</p>
-          <p className="mx-auto mt-2 max-w-[280px] text-[14px] leading-relaxed text-white/45">
+        <div className={`${surfaceCardLight} px-6 py-10 text-center`}>
+          <p className="text-[16px] font-semibold text-[#111111] dark:text-white">No documents yet</p>
+          <p className="mx-auto mt-2 max-w-[280px] text-[14px] leading-relaxed text-[#9A9A9A] dark:text-white/45">
             {trips.length > 0
               ? "Use Add document above, or upload from a trip."
               : "Create a trip, then add documents from the trip or here."}
           </p>
           <Link
             href="/trips"
-            className="mt-8 inline-flex min-h-[44px] items-center justify-center rounded-xl bg-white px-6 py-3 text-[14px] font-semibold text-neutral-950 transition-opacity hover:opacity-95 active:scale-[0.98]"
+            className="mt-8 inline-flex min-h-[44px] items-center justify-center rounded-[12px] bg-[#111111] px-6 py-3 text-[14px] font-semibold text-white transition-colors hover:bg-[#222222] active:scale-[0.98] dark:bg-white dark:text-neutral-950 dark:hover:bg-white/90"
           >
             Go to trips
           </Link>
         </div>
       ) : noMatches ? (
-        <div className={`${surfaceCard} px-6 py-10 text-center`}>
-          <p className="text-[16px] font-semibold text-white/75">No matching documents</p>
-          <p className="mx-auto mt-2 max-w-[260px] text-[14px] text-white/42">Try another search term.</p>
+        <div className={`${surfaceCardLight} px-6 py-10 text-center`}>
+          <p className="text-[16px] font-semibold text-[#111111] dark:text-white">No matching documents</p>
+          <p className="mx-auto mt-2 max-w-[260px] text-[14px] text-[#9A9A9A] dark:text-white/45">
+            Try another search term.
+          </p>
         </div>
       ) : (
         <VaultDocumentList docs={filtered} />

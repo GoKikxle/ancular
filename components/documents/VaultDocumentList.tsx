@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { DbDocument } from "@/lib/documents";
-import { surfaceCard, surfaceCardLinkHover } from "@/lib/screen-styles";
+import { surfaceCardLight, surfaceCardLightHover } from "@/lib/screen-styles";
 import { DocumentCategoryIcon, categoryLabel } from "./DocumentCategoryIcon";
 import { deleteDocumentAction, updateDocumentTitleAction } from "@/app/(app)/documents/actions";
 import { VaultDocumentCardMenu } from "./VaultDocumentCardMenu";
@@ -165,7 +165,7 @@ export function VaultDocumentList({ docs }: Props) {
       variants={listVariants}
       initial="hidden"
       animate="show"
-      className="flex flex-col gap-3"
+      className="flex flex-col gap-2.5"
     >
       {docs.map((doc) => {
         const isDeleting = deletingId === doc.id && isPending;
@@ -178,12 +178,12 @@ export function VaultDocumentList({ docs }: Props) {
             {/* ── Header row ─────────────────────────────────────────────── */}
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2.5">
-                <DocumentCategoryIcon category={doc.category} />
+                <DocumentCategoryIcon category={doc.category} variant="onLight" />
                 <div className="min-w-0">
-                  <p className="truncate text-[17px] font-bold leading-snug tracking-[-0.02em] text-white">
+                  <p className="truncate text-[17px] font-bold leading-snug tracking-[-0.02em] text-[#111111] dark:text-white">
                     {doc.title}
                   </p>
-                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9A9A9A] dark:text-white/45">
                     {categoryLabel(doc.category)}
                     {doc.uploaded_at ? ` · ${formatDate(doc.uploaded_at)}` : ""}
                   </p>
@@ -196,11 +196,11 @@ export function VaultDocumentList({ docs }: Props) {
                 onClick={(e) => e.stopPropagation()}
               >
                 {(doc.available_offline ?? false) && (
-                  <span className="rounded-full border border-emerald-500/15 bg-emerald-500/[0.08] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-400/85">
+                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300/95">
                     Offline
                   </span>
                 )}
-                <span className="mt-0.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-[10px] text-white/35">
+                  <span className="mt-0.5 rounded-full border border-[#EBEBEB] bg-[#F8F8F8] px-2 py-0.5 text-[10px] font-medium text-[#666666] dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-white/50">
                   {fileType ?? (doc.file_url ? "File" : "No file")}
                 </span>
 
@@ -217,14 +217,14 @@ export function VaultDocumentList({ docs }: Props) {
 
             {/* ── Filename row ───────────────────────────────────────────── */}
             {displayName && displayName !== doc.title && (
-              <p className="mt-2 truncate pl-1 text-[12px] leading-relaxed text-white/38">
+              <p className="mt-2 truncate pl-1 text-[12px] leading-relaxed text-[#9A9A9A] dark:text-white/45">
                 {displayName}
               </p>
             )}
 
             {/* ── Inline error ──────────────────────────────────────────── */}
             {errorMsg && (
-              <p className="mt-3 rounded-2xl border border-red-500/20 bg-red-500/[0.07] px-3 py-2 text-[12px] text-red-300">
+              <p className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-800 dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-300">
                 {errorMsg}
               </p>
             )}
@@ -232,12 +232,12 @@ export function VaultDocumentList({ docs }: Props) {
         );
 
         const isClickable = Boolean(doc.file_url);
-        const baseClassName = `${surfaceCard} p-6 transition-all duration-200 ease-out ${
+        const baseClassName = `${surfaceCardLight} p-5 transition-all duration-200 ease-out ${
           isDeleting ? "pointer-events-none opacity-35" : "opacity-100"
         }`;
 
         const interactiveClassName = isClickable
-          ? `cursor-pointer ${surfaceCardLinkHover} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950`
+          ? `cursor-pointer ${surfaceCardLightHover} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D0D0D0] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F8F8F8] dark:focus-visible:ring-white/25 dark:focus-visible:ring-offset-neutral-950`
           : "";
 
         return (
@@ -285,28 +285,30 @@ export function VaultDocumentList({ docs }: Props) {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 16, opacity: 0 }}
-            className={`relative w-full max-w-sm ${surfaceCard} p-6 shadow-xl`}
+            className={`relative w-full max-w-sm ${surfaceCardLight} p-6 shadow-xl`}
           >
-            <h2 id="edit-doc-title-heading" className="text-[16px] font-bold text-white">
+            <h2 id="edit-doc-title-heading" className="text-[16px] font-bold text-[#111111] dark:text-white">
               Edit title
             </h2>
-            <p className="mt-1 text-[12px] text-white/38">Only the display name changes—not the file.</p>
+            <p className="mt-1 text-[12px] text-[#9A9A9A] dark:text-white/45">
+              Only the display name changes—not the file.
+            </p>
             <input
               type="text"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
-              className="mt-4 h-12 w-full rounded-2xl border border-white/[0.1] bg-white/[0.05] px-4 text-[15px] text-white placeholder:text-white/25 focus:border-white/[0.18] focus:outline-none"
+              className="mt-4 h-12 w-full rounded-[12px] border border-[#E5E5E5] bg-white px-4 text-[15px] text-[#111111] placeholder:text-[#BBBBBB] focus:border-[#D0D0D0] focus:outline-none dark:border-white/[0.1] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-white/30 dark:focus:border-white/[0.18]"
               autoFocus
             />
             {editError && (
-              <p className="mt-2 text-[12px] text-red-300">{editError}</p>
+              <p className="mt-2 text-[12px] text-red-700 dark:text-red-300">{editError}</p>
             )}
             <div className="mt-5 flex gap-2">
               <button
                 type="button"
                 onClick={closeEdit}
                 disabled={editPending}
-                className="flex-1 rounded-xl border border-white/[0.12] py-3 text-[14px] font-medium text-white/55 transition-colors hover:bg-white/[0.05] disabled:opacity-40"
+                className="flex-1 rounded-[12px] border border-[#E5E5E5] bg-white py-3 text-[14px] font-medium text-[#444444] transition-colors hover:bg-[#FAFAFA] disabled:opacity-40 dark:border-white/[0.12] dark:bg-white/[0.06] dark:text-white/70 dark:hover:bg-white/[0.1]"
               >
                 Cancel
               </button>
@@ -314,7 +316,7 @@ export function VaultDocumentList({ docs }: Props) {
                 type="button"
                 onClick={() => void saveTitle()}
                 disabled={editPending}
-                className="flex-1 rounded-xl bg-white py-3 text-[14px] font-semibold text-neutral-950 transition-opacity hover:opacity-95 disabled:opacity-50"
+                className="flex-1 rounded-[12px] bg-[#111111] py-3 text-[14px] font-semibold text-white transition-colors hover:bg-[#222222] disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-white/90"
               >
                 {editPending ? "Saving…" : "Save"}
               </button>
@@ -346,10 +348,10 @@ export function VaultDocumentList({ docs }: Props) {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 16, opacity: 0 }}
-            className={`relative w-full max-w-sm ${surfaceCard} p-6 shadow-xl`}
+            className={`relative w-full max-w-sm ${surfaceCardLight} p-6 shadow-xl`}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="delete-doc-heading" className="text-[16px] font-bold text-white">
+            <h2 id="delete-doc-heading" className="text-[16px] font-bold text-[#111111] dark:text-white">
               Delete this document?
             </h2>
             <div className="mt-5 flex gap-2">
@@ -357,7 +359,7 @@ export function VaultDocumentList({ docs }: Props) {
                 type="button"
                 onClick={closeDeleteConfirm}
                 disabled={isPending && deletingId === deleteConfirmDoc.id}
-                className="flex-1 rounded-xl border border-white/[0.12] py-3 text-[14px] font-medium text-white/55 transition-colors hover:bg-white/[0.05] disabled:opacity-40"
+                className="flex-1 rounded-[12px] border border-[#E5E5E5] bg-white py-3 text-[14px] font-medium text-[#444444] transition-colors hover:bg-[#FAFAFA] disabled:opacity-40 dark:border-white/[0.12] dark:bg-white/[0.06] dark:text-white/70 dark:hover:bg-white/[0.1]"
               >
                 Cancel
               </button>
@@ -365,7 +367,7 @@ export function VaultDocumentList({ docs }: Props) {
                 type="button"
                 onClick={() => handleDelete(deleteConfirmDoc)}
                 disabled={isPending && deletingId === deleteConfirmDoc.id}
-                className="flex-1 rounded-xl border border-red-500/30 bg-red-500/[0.12] py-3 text-[14px] font-semibold text-red-400 transition-colors hover:bg-red-500/[0.2] disabled:opacity-50"
+                className="flex-1 rounded-[12px] border border-red-200 bg-red-50 py-3 text-[14px] font-semibold text-red-800 transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-500/30 dark:bg-red-500/[0.12] dark:text-red-300 dark:hover:bg-red-500/[0.2]"
               >
                 Delete
               </button>

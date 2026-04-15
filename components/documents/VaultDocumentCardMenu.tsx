@@ -68,14 +68,14 @@ export function VaultDocumentCardMenu({
         aria-label={`More actions for “${docTitle}”`}
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        className="flex h-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-white/40 transition-colors hover:bg-white/[0.06] hover:text-white/65 active:bg-white/[0.08] disabled:opacity-30"
+        className="flex h-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-[#AAAAAA] transition-colors hover:bg-[#F0F0F0] hover:text-[#444444] active:bg-[#EAEAEA] disabled:opacity-30 dark:text-white/40 dark:hover:bg-white/[0.08] dark:hover:text-white/70"
       >
         <KebabIcon />
       </button>
 
       {isOpen && (
         <div
-          className="absolute right-0 top-full z-[60] mt-1.5 min-w-[min(100vw-2rem,11rem)] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/[0.08] bg-neutral-900/95 py-1 backdrop-blur-md"
+          className="absolute right-0 top-full z-[60] mt-1.5 min-w-[min(100vw-2rem,11rem)] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#EBEBEB] bg-white py-1 shadow-lg dark:border-white/[0.1] dark:bg-neutral-900"
           role="menu"
           aria-label="Document actions"
           onClick={(e) => e.stopPropagation()}
@@ -84,7 +84,7 @@ export function VaultDocumentCardMenu({
             ref={firstItemRef}
             type="button"
             role="menuitem"
-            className="flex w-full items-center px-4 py-3.5 text-left text-[15px] text-white/85 transition-colors hover:bg-white/[0.06] active:bg-white/[0.08]"
+            className="flex w-full items-center px-4 py-3.5 text-left text-[15px] text-[#111111] transition-colors hover:bg-[#F5F5F5] active:bg-[#EEEEEE] dark:text-white/90 dark:hover:bg-white/[0.08] dark:active:bg-white/[0.1]"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -97,7 +97,7 @@ export function VaultDocumentCardMenu({
           <button
             type="button"
             role="menuitem"
-            className="flex w-full items-center px-4 py-3.5 text-left text-[15px] text-red-400/90 transition-colors hover:bg-red-500/[0.08] active:bg-red-500/[0.12]"
+            className="flex w-full items-center px-4 py-3.5 text-left text-[15px] text-red-700 transition-colors hover:bg-red-50 active:bg-red-100/80 dark:text-red-400/90 dark:hover:bg-red-500/[0.12] dark:active:bg-red-500/[0.18]"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();

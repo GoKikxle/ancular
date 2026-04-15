@@ -70,6 +70,9 @@ export function UploadDocumentForm({
   const formRef = useRef<HTMLFormElement>(null);
 
   const isVault = variant === "vault";
+  const fieldLabel = isVault
+    ? "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.1em] text-[#AAAAAA]"
+    : "mb-1.5 block text-[11px] uppercase tracking-[0.1em] text-white/30";
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
@@ -140,14 +143,20 @@ export function UploadDocumentForm({
   }
 
   const successBlock = (
-    <div className={`flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] px-4 py-3 ${isVault ? "" : "mt-4"}`}>
+    <div
+      className={`flex items-center gap-2 rounded-[12px] border px-4 py-3 ${
+        isVault
+          ? "border-emerald-200 bg-emerald-50"
+          : "mt-4 border-emerald-500/20 bg-emerald-500/[0.07]"
+      }`}
+    >
       <svg
         width="14"
         height="14"
         viewBox="0 0 14 14"
         fill="none"
         aria-hidden="true"
-        className="flex-shrink-0 text-emerald-400"
+        className={`flex-shrink-0 ${isVault ? "text-emerald-600" : "text-emerald-400"}`}
       >
         <path
           d="M2.5 7L5.5 10L11.5 4"
@@ -157,17 +166,23 @@ export function UploadDocumentForm({
           strokeLinejoin="round"
         />
       </svg>
-      <p className="text-[13px] text-emerald-300">{uploadSuccessMessage()}</p>
+      <p className={`text-[13px] ${isVault ? "text-emerald-900" : "text-emerald-300"}`}>
+        {uploadSuccessMessage()}
+      </p>
     </div>
   );
 
   const formInner = (
     <form ref={formRef} onSubmit={handleSubmit} className={`space-y-3 ${isVault ? "" : "mt-4"}`}>
       <div>
-        <label className="mb-1.5 block text-[11px] uppercase tracking-[0.1em] text-white/30">File</label>
+        <label className={fieldLabel}>File</label>
         <label
           htmlFor={fileId}
-          className="flex cursor-pointer items-center gap-2.5 rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-[13px] transition-colors hover:border-white/[0.14] hover:bg-white/[0.06]"
+          className={`flex cursor-pointer items-center gap-2.5 rounded-[12px] border px-3.5 py-2.5 text-[13px] transition-colors ${
+            isVault
+              ? "border-[#E5E5E5] bg-white hover:border-[#D0D0D0] hover:bg-[#FAFAFA]"
+              : "border-white/[0.08] bg-white/[0.04] hover:border-white/[0.14] hover:bg-white/[0.06]"
+          }`}
         >
           <svg
             width="13"
@@ -175,12 +190,22 @@ export function UploadDocumentForm({
             viewBox="0 0 13 14"
             fill="none"
             aria-hidden="true"
-            className="flex-shrink-0 text-white/30"
+            className={`flex-shrink-0 ${isVault ? "text-[#BBBBBB]" : "text-white/30"}`}
           >
             <rect x="1.5" y="1" width="10" height="12" rx="2" stroke="currentColor" strokeWidth="1.2" />
             <path d="M4 5h5M4 7.5h5M4 10h3" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
           </svg>
-          <span className={`truncate ${selectedFile ? "text-white/70" : "text-white/25"}`}>
+          <span
+            className={`truncate ${
+              isVault
+                ? selectedFile
+                  ? "text-[#111111]"
+                  : "text-[#BBBBBB]"
+                : selectedFile
+                  ? "text-white/70"
+                  : "text-white/25"
+            }`}
+          >
             {selectedFile ? selectedFile.name : "Choose PDF or image…"}
           </span>
         </label>
@@ -195,7 +220,7 @@ export function UploadDocumentForm({
       </div>
 
       <div>
-        <label htmlFor={nameId} className="mb-1.5 block text-[11px] uppercase tracking-[0.1em] text-white/30">
+        <label htmlFor={nameId} className={fieldLabel}>
           Title
         </label>
         <input
@@ -206,30 +231,44 @@ export function UploadDocumentForm({
           value={nameValue}
           onChange={(e) => setNameValue(e.target.value)}
           placeholder="e.g. Boarding pass"
-          className="w-full rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-[13px] text-white placeholder-white/20 transition-colors focus:border-white/[0.15] focus:outline-none"
+          className={`w-full rounded-[12px] border px-3.5 py-2.5 text-[13px] transition-colors focus:outline-none ${
+            isVault
+              ? "border-[#E5E5E5] bg-white text-[#111111] placeholder:text-[#BBBBBB] focus:border-[#D0D0D0]"
+              : "border-white/[0.08] bg-white/[0.04] text-white placeholder-white/20 focus:border-white/[0.15]"
+          }`}
         />
       </div>
 
       <div>
-        <label htmlFor={categoryId} className="mb-1.5 block text-[11px] uppercase tracking-[0.1em] text-white/30">
+        <label htmlFor={categoryId} className={fieldLabel}>
           Category
         </label>
         <select
           id={categoryId}
           name="category"
           defaultValue="other"
-          className="w-full rounded-2xl border border-white/[0.08] bg-[#0a0a0a] px-3.5 py-2.5 text-[13px] text-white transition-colors focus:border-white/[0.15] focus:outline-none"
+          className={`w-full rounded-[12px] border px-3.5 py-2.5 text-[13px] transition-colors focus:outline-none ${
+            isVault
+              ? "border-[#E5E5E5] bg-white text-[#111111] focus:border-[#D0D0D0]"
+              : "border-white/[0.08] bg-[#0a0a0a] text-white focus:border-white/[0.15]"
+          }`}
         >
-          {CATEGORIES.map(([val, label]) => (
-            <option key={val} value={val} className="bg-neutral-900">
-              {label}
+          {CATEGORIES.map(([val, labelText]) => (
+            <option key={val} value={val} className={isVault ? "" : "bg-neutral-900"}>
+              {labelText}
             </option>
           ))}
         </select>
       </div>
 
       {errorMessage && (
-        <p className="rounded-2xl border border-red-500/20 bg-red-500/[0.07] px-3.5 py-2.5 text-[12px] text-red-300">
+        <p
+          className={`rounded-[12px] border px-3.5 py-2.5 text-[12px] ${
+            isVault
+              ? "border-red-200 bg-red-50 text-red-800"
+              : "border-red-500/20 bg-red-500/[0.07] text-red-300"
+          }`}
+        >
           {errorMessage}
         </p>
       )}
@@ -246,7 +285,11 @@ export function UploadDocumentForm({
             }
           }}
           disabled={isPending}
-          className="flex-1 rounded-2xl border border-white/[0.07] py-2.5 text-[13px] text-white/40 transition-colors hover:text-white/60 disabled:opacity-40"
+          className={`flex-1 rounded-[12px] border py-2.5 text-[13px] transition-colors disabled:opacity-40 ${
+            isVault
+              ? "border-[#E5E5E5] bg-white text-[#666666] hover:bg-[#FAFAFA]"
+              : "border-white/[0.07] text-white/40 hover:text-white/60"
+          }`}
         >
           Cancel
         </button>
@@ -254,7 +297,11 @@ export function UploadDocumentForm({
           type="submit"
           whileTap={{ scale: 0.97 }}
           disabled={isPending || !selectedFile}
-          className="flex-1 rounded-2xl bg-white/[0.08] py-2.5 text-[13px] font-medium text-white/75 transition-colors hover:bg-white/[0.12] disabled:opacity-35"
+          className={`flex-1 rounded-[12px] py-2.5 text-[13px] font-semibold transition-colors disabled:opacity-35 ${
+            isVault
+              ? "bg-[#111111] text-white hover:bg-[#222222]"
+              : "bg-white/[0.08] font-medium text-white/75 hover:bg-white/[0.12]"
+          }`}
         >
           {isPending ? "Uploading…" : "Upload"}
         </motion.button>
