@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { NowCard } from "@/components/dashboard/NowCard";
+import { HomeTripCardsBlock } from "@/components/home/HomeTripCardsBlock";
 import { getCurrentProfile } from "@/lib/profile";
 import { getActiveTripsForHome } from "@/lib/trips";
 import { getUpcomingNowItem } from "@/lib/now-card";
+import { splitFeaturedAndUpcomingTrips } from "@/lib/trip-home-split";
 
 function getGreetingName(fullName: string | null): string {
   if (!fullName?.trim()) return "there";
@@ -17,6 +19,8 @@ export default async function Home() {
     getUpcomingNowItem(),
   ]);
   const name = getGreetingName(profile?.full_name ?? null);
+  const { featured: featuredTrip, upcoming: upcomingTrips } =
+    splitFeaturedAndUpcomingTrips(activeTrips);
 
   return (
     <main className="bg-[#F8F8F8] text-[#111111] dark:bg-neutral-950 dark:text-white">
@@ -62,7 +66,7 @@ export default async function Home() {
         </section>
 
         {/* Active trips */}
-        <section className="pb-10" aria-labelledby="active-trips-heading">
+        <section className="pb-24" aria-labelledby="active-trips-heading">
           <div className="mb-4 flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p
@@ -108,46 +112,7 @@ export default async function Home() {
               </Link>
             </div>
           ) : (
-            <ul className="flex flex-col gap-[10px]">
-              {activeTrips.map((trip) => (
-                <li key={trip.id}>
-                  <Link
-                    href={`/trips/${trip.slug}`}
-                    className="block rounded-[16px] border border-[#EBEBEB] bg-white p-5 active:opacity-80 dark:border-white/[0.08] dark:bg-white/[0.05]"
-                    style={{ WebkitTapHighlightColor: "transparent" }}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-[16px] font-bold leading-snug tracking-[-0.02em] text-[#111111] dark:text-white">
-                          {trip.title}
-                        </h3>
-                        <p className="mt-1 text-[12px] leading-relaxed text-[#9A9A9A] dark:text-white/48">
-                          {trip.dates}
-                          {trip.travelers ? ` · ${trip.travelers}` : null}
-                        </p>
-                        {trip.destination?.trim() ? (
-                          <p className="mt-0.5 text-[12px] text-[#AAAAAA] dark:text-white/38">
-                            {trip.destination.trim()}
-                          </p>
-                        ) : null}
-                      </div>
-                      <span
-                        className={`mt-0.5 shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-                          trip.status === "Active"
-                            ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/12 dark:text-emerald-300/95"
-                            : "bg-amber-50 text-amber-600 dark:bg-amber-500/12 dark:text-amber-200/90"
-                        }`}
-                      >
-                        {trip.status}
-                      </span>
-                    </div>
-                    <p className="mt-3 border-t border-[#F0F0F0] pt-3 text-[12px] leading-relaxed text-[#AAAAAA] dark:border-white/[0.06] dark:text-white/40">
-                      {trip.next_action_title?.trim() || "Add your next action"}
-                    </p>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <HomeTripCardsBlock featured={featuredTrip} upcoming={upcomingTrips} />
           )}
         </section>
       </div>
