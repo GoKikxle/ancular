@@ -6,7 +6,7 @@ import { useEffect, useState, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { DbDocument } from "@/lib/documents";
 import { surfaceCardLight, surfaceCardLightHover } from "@/lib/screen-styles";
-import { DocumentCategoryIcon, categoryLabel } from "./DocumentCategoryIcon";
+import { categoryLabel } from "./DocumentCategoryIcon";
 import { deleteDocumentAction, updateDocumentTitleAction } from "@/app/(app)/documents/actions";
 import { VaultDocumentCardMenu } from "./VaultDocumentCardMenu";
 
@@ -177,17 +177,14 @@ export function VaultDocumentList({ docs }: Props) {
           <>
             {/* ── Header row ─────────────────────────────────────────────── */}
             <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <DocumentCategoryIcon category={doc.category} variant="onLight" />
-                <div className="min-w-0">
-                  <p className="truncate text-[17px] font-bold leading-snug tracking-[-0.02em] text-[#111111] dark:text-white">
-                    {doc.title}
-                  </p>
-                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9A9A9A] dark:text-white/45">
-                    {categoryLabel(doc.category)}
-                    {doc.uploaded_at ? ` · ${formatDate(doc.uploaded_at)}` : ""}
-                  </p>
-                </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[17px] font-bold leading-snug tracking-[-0.02em] text-[#111111] dark:text-white">
+                  {doc.title}
+                </p>
+                <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9A9A9A] dark:text-white/45">
+                  {categoryLabel(doc.category)}
+                  {doc.uploaded_at ? ` · ${formatDate(doc.uploaded_at)}` : ""}
+                </p>
               </div>
 
               {/* Right: metadata chips + ⋮ menu */}
@@ -217,7 +214,7 @@ export function VaultDocumentList({ docs }: Props) {
 
             {/* ── Filename row ───────────────────────────────────────────── */}
             {displayName && displayName !== doc.title && (
-              <p className="mt-2 truncate pl-1 text-[12px] leading-relaxed text-[#9A9A9A] dark:text-white/45">
+              <p className="mt-2 truncate text-[12px] leading-relaxed text-[#9A9A9A] dark:text-white/45">
                 {displayName}
               </p>
             )}

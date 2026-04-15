@@ -23,6 +23,23 @@ function filterDocuments(docs: DbDocument[], query: string): DbDocument[] {
   });
 }
 
+function VaultPlusIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
 type Props = {
   documents: DbDocument[];
   trips: VaultTripOption[];
@@ -30,28 +47,44 @@ type Props = {
 
 export function VaultScreenClient({ documents, trips }: Props) {
   const [q, setQ] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
   const filtered = useMemo(() => filterDocuments(documents, q), [documents, q]);
   const searching = q.trim().length > 0;
   const noMatches = searching && filtered.length === 0;
 
   return (
     <>
-      <SearchInput
-        value={q}
-        onChange={setQ}
-        placeholder="Search by title, file, or category"
-        label="Search documents"
-        className="mb-5"
-      />
-
-      <VaultAddDocumentPanel trips={trips} />
+      <div className="mb-6 flex flex-col gap-3">
+        <div className="flex items-center gap-[8px]">
+          <div className="min-w-0 flex-1">
+            <SearchInput
+              value={q}
+              onChange={setQ}
+              placeholder="Search by title, file, or category"
+              label="Search documents"
+              className=""
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => setAddOpen((o) => !o)}
+            aria-label={addOpen ? "Close add document" : "Add document"}
+            aria-expanded={addOpen}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] border border-[#E5E5E5] bg-white text-[#666666] shadow-[0_1px_0_rgba(0,0,0,0.02)] transition-colors hover:border-[#D8D8D8] hover:bg-[#FAFAFA] active:scale-[0.96] dark:border-white/[0.1] dark:bg-white/[0.05] dark:text-white/65 dark:shadow-none dark:hover:bg-white/[0.08]"
+            style={{ WebkitTapHighlightColor: "transparent" }}
+          >
+            <VaultPlusIcon />
+          </button>
+        </div>
+        {addOpen ? <VaultAddDocumentPanel trips={trips} onClose={() => setAddOpen(false)} /> : null}
+      </div>
 
       {documents.length === 0 && !searching ? (
         <div className={`${surfaceCardLight} px-6 py-10 text-center`}>
           <p className="text-[16px] font-semibold text-[#111111] dark:text-white">No documents yet</p>
           <p className="mx-auto mt-2 max-w-[280px] text-[14px] leading-relaxed text-[#9A9A9A] dark:text-white/45">
             {trips.length > 0
-              ? "Use Add document above, or upload from a trip."
+              ? "Tap + to add a document, or upload from a trip."
               : "Create a trip, then add documents from the trip or here."}
           </p>
           <Link

@@ -35,7 +35,7 @@ export function SearchInput({ value, onChange, placeholder, label = "Search", cl
           placeholder={placeholder}
           autoComplete="off"
           enterKeyHint="search"
-          className="h-12 w-full rounded-[12px] border border-[#E5E5E5] bg-white py-2 pl-11 pr-4 text-[14px] text-[#111111] placeholder:text-[#BBBBBB] shadow-[0_1px_0_rgba(0,0,0,0.02)] focus:border-[#D0D0D0] focus:outline-none dark:border-white/[0.1] dark:bg-white/[0.04] dark:text-white dark:placeholder:text-white/30 dark:focus:border-white/[0.18]"
+          className="h-12 w-full rounded-xl border border-[#E5E5E5] bg-white py-2 pl-11 pr-4 text-[14px] text-[#111111] placeholder:text-[#BBBBBB] shadow-[0_1px_0_rgba(0,0,0,0.02)] focus:border-[#D0D0D0] focus:outline-none dark:border-white/[0.1] dark:bg-white/[0.04] dark:text-white dark:placeholder:text-white/30 dark:focus:border-white/[0.18]"
         />
       </div>
     </div>
