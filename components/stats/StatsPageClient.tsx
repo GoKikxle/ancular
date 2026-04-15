@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import type { UserStats } from "@/lib/stats";
 import { buildYearlyTravelNarrative } from "@/lib/yearly-travel-story";
+import { surfaceCardLight } from "@/lib/screen-styles";
 import { CountUp } from "./CountUp";
 import { StatsWorldMap } from "@/components/stats/StatsWorldMap";
 
@@ -31,13 +32,12 @@ function FadeUp({
   );
 }
 
-function AmberBar({ pct, delay = 0 }: { pct: number; delay?: number }) {
+function AccentBar({ pct, delay = 0 }: { pct: number; delay?: number }) {
   const reduceMotion = useReducedMotion();
   return (
-    <div className="h-[2px] overflow-hidden rounded-full bg-white/[0.07]">
+    <div className="h-[3px] overflow-hidden rounded-full bg-[#EBEBEB] dark:bg-white/[0.1]">
       <motion.div
-        className="h-full rounded-full"
-        style={{ background: "linear-gradient(90deg, #FFB800, #E07000)" }}
+        className="h-full rounded-full bg-gradient-to-r from-sky-500 to-sky-600"
         initial={reduceMotion ? { width: `${pct}%` } : { width: 0 }}
         animate={{ width: `${pct}%` }}
         transition={{
@@ -54,158 +54,146 @@ function AmberBar({ pct, delay = 0 }: { pct: number; delay?: number }) {
 
 function EmptyState() {
   return (
-    <div
-      className="relative w-full"
-      style={{ background: "linear-gradient(170deg, #0A0A0A 0%, #0D0D10 100%)" }}
-    >
-      {/* Ambient amber glow — top-left, behind headline */}
-      <motion.div
-        className="pointer-events-none absolute left-0 top-0 h-[300px] w-[360px]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: [0, 0.12, 0.06, 0.15, 0.06] }}
-        transition={{ duration: 4, ease: "easeInOut", delay: 0.4, repeat: Infinity, repeatType: "mirror" }}
-        style={{
-          background: "radial-gradient(ellipse 70% 55% at 18% 32%, rgba(255,184,0,1) 0%, transparent 65%)",
-        }}
-      />
+    <div className="relative w-full">
+      <div className="pointer-events-none absolute left-0 top-0 h-[220px] w-[280px] opacity-40 dark:opacity-25">
+        <div
+          className="h-full w-full"
+          style={{
+            background:
+              "radial-gradient(ellipse 70% 55% at 18% 28%, rgba(14,165,233,0.14) 0%, transparent 65%)",
+          }}
+        />
+      </div>
 
-      {/* HERO */}
-      <div className="relative z-10 px-6 pt-16">
+      <div className="relative z-10 px-5 pt-[22px]">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: EASE }}
           className="flex items-center gap-2"
         >
-          <svg width="11" height="11" viewBox="0 0 14 14" fill="none" style={{ opacity: 0.55 }}>
-            <circle cx="7" cy="5.5" r="2" stroke="#FFB800" strokeWidth="1.3" />
-            <path d="M7 13C7 13 2 8.5 2 5.5a5 5 0 0 1 10 0C12 8.5 7 13 7 13Z" stroke="#FFB800" strokeWidth="1.3" strokeLinejoin="round" />
+          <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden className="text-sky-500">
+            <circle cx="7" cy="5.5" r="2" stroke="currentColor" strokeWidth="1.3" />
+            <path
+              d="M7 13C7 13 2 8.5 2 5.5a5 5 0 0 1 10 0C12 8.5 7 13 7 13Z"
+              stroke="currentColor"
+              strokeWidth="1.3"
+              strokeLinejoin="round"
+            />
           </svg>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/28">Stats</span>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#AAAAAA] dark:text-white/40">
+            Stats
+          </span>
         </motion.div>
 
         <motion.h1
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.62, ease: EASE, delay: 0.1 }}
-          className="mt-6 max-w-[300px] text-[34px] font-bold leading-[1.1] tracking-[-0.035em] text-white"
+          className="mt-6 max-w-[300px] text-[28px] font-bold leading-[1.12] tracking-[-0.03em] text-[#111111] dark:text-white sm:text-[32px]"
         >
-          Your travel story<br />starts here.
+          Your travel story
+          <br />
+          starts here.
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: EASE, delay: 0.25 }}
-          className="mt-5 max-w-[240px] text-[13px] leading-relaxed text-white/35"
+          className="mt-5 max-w-[280px] text-[13px] leading-relaxed text-[#9A9A9A] dark:text-white/45"
         >
           Complete a trip and this page becomes your personal travel record.
         </motion.p>
       </div>
 
-      {/* PREVIEW METRICS */}
-      <div className="relative z-10 mt-10 px-6">
-        <div className="flex items-baseline">
-          {([
-            { label: "Places",    delay: 0.34 },
-            { label: "Countries", delay: 0.44 },
-            { label: "Days",      delay: 0.54 },
-          ] as const).map((item, i) => (
+      <div className="relative z-10 mt-8 px-5">
+        <div className="flex flex-wrap items-baseline gap-x-1 gap-y-2">
+          {(["Places", "Countries", "Days"] as const).map((item, i) => (
             <motion.div
-              key={item.label}
+              key={item}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: EASE, delay: item.delay }}
+              transition={{ duration: 0.45, ease: EASE, delay: 0.34 + i * 0.1 }}
               className="flex items-baseline"
             >
-              {i > 0 && <span className="mx-3.5 text-[13px] text-white/[0.1]">/</span>}
+              {i > 0 && (
+                <span className="mx-2 text-[12px] font-light text-[#D0D0D0] dark:text-white/15 sm:mx-3.5">
+                  /
+                </span>
+              )}
               <div>
-                <span className="text-[15px] font-bold tracking-[-0.02em] text-white/18">—</span>
-                <span className="ml-2 text-[10px] font-medium uppercase tracking-[0.13em] text-white/22">{item.label}</span>
+                <span className="text-[15px] font-semibold tabular-nums tracking-[-0.02em] text-[#BBBBBB] dark:text-white/25">
+                  —
+                </span>
+                <span className="ml-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9A9A9A] dark:text-white/40">
+                  {item}
+                </span>
               </div>
             </motion.div>
           ))}
         </div>
       </div>
 
-      {/* CTA */}
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: EASE, delay: 0.42 }}
-        className="relative z-10 mt-10 px-6"
+        className="relative z-10 mt-8 px-5"
       >
-        <motion.div whileTap={{ scale: 0.96 }} className="inline-flex">
-          <Link
-            href="/trips"
-            className="group inline-flex items-center gap-2.5 text-[14px] font-medium text-white/55 transition-colors duration-150 hover:text-white/90"
-          >
-            <motion.span
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full"
-              style={{ background: "rgba(255,184,0,0.10)", border: "1px solid rgba(255,184,0,0.22)" }}
-              whileHover={{ background: "rgba(255,184,0,0.24)", borderColor: "rgba(255,184,0,0.5)", boxShadow: "0 0 18px rgba(255,184,0,0.2)" }}
-              transition={{ duration: 0.14, ease: "easeOut" }}
-            >
-              <motion.svg width="11" height="11" viewBox="0 0 12 12" fill="none" whileHover={{ x: 3 }} transition={{ duration: 0.14, ease: "easeOut" }}>
-                <path d="M2.5 6h7M6.5 3l3 3-3 3" stroke="#FFB800" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </motion.svg>
-            </motion.span>
-            <motion.span whileHover={{ x: 1 }} transition={{ duration: 0.14, ease: "easeOut" }}>
-              Go to Trips
-            </motion.span>
-          </Link>
-        </motion.div>
+        <Link
+          href="/trips"
+          className={`group inline-flex items-center gap-3 rounded-xl border border-[#E5E5E5] bg-white px-4 py-3 text-[14px] font-semibold text-[#111111] shadow-[0_1px_0_rgba(0,0,0,0.03)] transition-colors hover:border-[#D8D8D8] hover:bg-[#FAFAFA] dark:border-white/[0.12] dark:bg-white/[0.06] dark:text-white dark:shadow-none dark:hover:bg-white/[0.1]`}
+        >
+          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-sky-500/25 bg-sky-500/10 text-sky-600 dark:border-sky-400/30 dark:bg-sky-400/15 dark:text-sky-300">
+            <svg width="14" height="14" viewBox="0 0 12 12" fill="none" aria-hidden>
+              <path
+                d="M2.5 6h7M6.5 3l3 3-3 3"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          Go to Trips
+        </Link>
       </motion.div>
 
-      {/* MAP — in-flow section, below CTA, no card wrapper */}
       <motion.div
-        className="relative mt-12 w-full overflow-hidden"
+        className="relative z-10 mx-5 mt-10 overflow-hidden rounded-2xl border border-[#EBEBEB] bg-white shadow-[0_1px_0_rgba(0,0,0,0.03)] dark:border-white/[0.1] dark:bg-white/[0.05] dark:shadow-none"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1.6, ease: EASE, delay: 0.55 }}
+        transition={{ duration: 0.8, ease: EASE, delay: 0.55 }}
       >
-        {/* Top fade — dissolves map edge into page */}
-        <div
-          className="pointer-events-none absolute left-0 right-0 top-0 z-10"
-          style={{
-            height: "72px",
-            background: "linear-gradient(to bottom, #0A0A0A 0%, transparent 100%)",
-          }}
-        />
-        {/* Bottom fade */}
-        <div
-          className="pointer-events-none absolute bottom-0 left-0 right-0 z-10"
-          style={{
-            height: "56px",
-            background: "linear-gradient(to top, #0D0D10 0%, transparent 100%)",
-          }}
-        />
-        <StatsWorldMap />
+        <div className="bg-[#F0F6FB] px-2 pt-3 pb-2 dark:bg-sky-950/20">
+          <StatsWorldMap />
+        </div>
       </motion.div>
 
-      {/* SUPPORTING COPY */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, ease: EASE, delay: 1.0 }}
-        className="px-6 pb-28 pt-6"
+        transition={{ duration: 0.6, ease: EASE, delay: 0.85 }}
+        className="px-5 pb-28 pt-8"
       >
-        <div className="space-y-2.5">
+        <div className={`${surfaceCardLight} space-y-3 px-5 py-5`}>
           {[
             "Places, countries and days traveled",
             "Your yearly travel story",
             "Progress across milestones",
             "Flights and restaurants logged",
           ].map((line, i) => (
-            <motion.p
+            <motion.div
               key={line}
               initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.35, ease: EASE, delay: 1.05 + i * 0.07 }}
-              className="text-[12px] leading-snug text-white/28"
+              transition={{ duration: 0.35, ease: EASE, delay: 0.9 + i * 0.06 }}
+              className="flex gap-3"
             >
-              {line}
-            </motion.p>
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-500/70 dark:bg-sky-400/80" />
+              <p className="text-[13px] leading-snug text-[#444444] dark:text-white/70">{line}</p>
+            </motion.div>
           ))}
         </div>
       </motion.div>
@@ -230,17 +218,21 @@ function StatTile({
 }) {
   return (
     <FadeUp delay={delay}>
-      <div className="h-full rounded-2xl border border-white/[0.07] bg-[#0F0F11] p-5 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset] transition-all duration-200 hover:-translate-y-px hover:border-white/[0.11]">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-white/32">{label}</p>
+      <div
+        className={`h-full rounded-2xl border border-[#EBEBEB] bg-white p-5 shadow-[0_1px_0_rgba(0,0,0,0.03)] transition-all duration-200 hover:border-[#D6D6D6] dark:border-white/[0.1] dark:bg-white/[0.05] dark:shadow-none dark:hover:border-white/[0.14]`}
+      >
+        <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#AAAAAA] dark:text-white/40">
+          {label}
+        </p>
         <p
-          className={`mt-2.5 font-bold leading-none tracking-[-0.04em] text-white tabular-nums ${
+          className={`mt-2.5 font-bold leading-none tracking-[-0.04em] text-[#111111] tabular-nums dark:text-white ${
             large ? "text-[38px]" : "text-[28px]"
           }`}
         >
           {typeof value === "number" ? <CountUp value={value} /> : value}
         </p>
         {sub && (
-          <p className="mt-1.5 text-[11px] leading-snug text-white/30">{sub}</p>
+          <p className="mt-1.5 text-[11px] leading-snug text-[#9A9A9A] dark:text-white/45">{sub}</p>
         )}
       </div>
     </FadeUp>
@@ -257,34 +249,35 @@ function RichState({ s }: { s: UserStats }) {
   const daysPct = Math.min(100, Math.round((s.daysTraveled / 50) * 100));
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col px-5 pb-28">
-      {/* HERO */}
+    <div className="mx-auto flex w-full max-w-md flex-col px-5 pb-28 pt-[22px]">
       <FadeUp delay={0}>
-        <div className="relative overflow-hidden rounded-3xl border border-white/[0.07] bg-[#0F0F11] px-7 pb-8 pt-10 text-center">
+        <div
+          className={`relative overflow-hidden rounded-2xl border border-[#EBEBEB] bg-white px-7 pb-8 pt-9 text-center shadow-[0_1px_0_rgba(0,0,0,0.03)] dark:border-white/[0.1] dark:bg-white/[0.05] dark:shadow-none`}
+        >
           <div
-            className="pointer-events-none absolute left-1/2 top-0 h-48 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            className="pointer-events-none absolute left-1/2 top-0 h-44 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full dark:opacity-60"
             style={{
-              background: "radial-gradient(ellipse at center, rgba(255,184,0,0.10) 0%, transparent 65%)",
+              background:
+                "radial-gradient(ellipse at center, rgba(14,165,233,0.12) 0%, transparent 68%)",
             }}
           />
-          <p className="relative z-10 text-[11px] font-semibold uppercase tracking-[0.15em] text-white/30">
+          <p className="relative z-10 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#AAAAAA] dark:text-white/40">
             Travel footprint
           </p>
-          <p className="relative z-10 mt-3 text-[72px] font-bold leading-none tracking-[-0.05em] text-white tabular-nums">
+          <p className="relative z-10 mt-3 text-[56px] font-bold leading-none tracking-[-0.05em] text-[#111111] tabular-nums dark:text-white sm:text-[64px]">
             <CountUp value={s.placesVisited} />
           </p>
-          <p className="relative z-10 mt-2 text-[15px] font-medium text-white/50">
+          <p className="relative z-10 mt-2 text-[15px] font-medium text-[#666666] dark:text-white/55">
             {s.placesVisited === 1 ? "place visited" : "places visited"}
           </p>
           {s.countriesVisited > 0 && (
-            <p className="relative z-10 mt-1 text-[13px] text-white/30">
+            <p className="relative z-10 mt-1 text-[13px] text-[#9A9A9A] dark:text-white/45">
               across {s.countriesVisited} {s.countriesVisited === 1 ? "country" : "countries"}
             </p>
           )}
         </div>
       </FadeUp>
 
-      {/* PRIMARY GRID */}
       <div className="mt-3 grid grid-cols-5 gap-3">
         <div className="col-span-3">
           <StatTile
@@ -296,31 +289,30 @@ function RichState({ s }: { s: UserStats }) {
           />
         </div>
         <div className="col-span-2">
-          <StatTile
-            label="Countries"
-            value={s.countriesVisited}
-            large
-            delay={0.12}
-          />
+          <StatTile label="Countries" value={s.countriesVisited} large delay={0.12} />
         </div>
         <div className="col-span-5">
           <FadeUp delay={0.16}>
-            <div className="rounded-2xl border border-white/[0.07] bg-[#0F0F11] px-5 py-4 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset]">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-white/32">
+            <div
+              className={`rounded-2xl border border-[#EBEBEB] bg-white px-5 py-4 shadow-[0_1px_0_rgba(0,0,0,0.03)] dark:border-white/[0.1] dark:bg-white/[0.05] dark:shadow-none`}
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#AAAAAA] dark:text-white/40">
                 Completed trips
               </p>
               <div className="mt-2.5 flex items-end gap-4">
-                <p className="text-[38px] font-bold leading-none tracking-[-0.04em] text-white tabular-nums">
+                <p className="text-[38px] font-bold leading-none tracking-[-0.04em] text-[#111111] tabular-nums dark:text-white">
                   <CountUp value={s.completedTripCount} />
                 </p>
                 {s.completedTripsThisYear > 0 && (
                   <div className="mb-1 flex flex-col gap-0.5">
-                    <p className="text-[12px] text-white/38">
-                      <span className="text-white/60">{s.completedTripsThisYear}</span>{" "}
+                    <p className="text-[12px] text-[#9A9A9A] dark:text-white/45">
+                      <span className="font-medium text-[#111111] dark:text-white/70">
+                        {s.completedTripsThisYear}
+                      </span>{" "}
                       in {year}
                     </p>
                     {s.completedTripsLastYear > 0 && (
-                      <p className="text-[11px] text-white/25">
+                      <p className="text-[11px] text-[#AAAAAA] dark:text-white/35">
                         {tripDelta >= 0 ? "+" : ""}
                         {tripDelta} vs {year - 1}
                       </p>
@@ -333,7 +325,6 @@ function RichState({ s }: { s: UserStats }) {
         </div>
       </div>
 
-      {/* SECONDARY SCROLL */}
       {(s.averageTripLengthDays > 0 ||
         s.longestTripDays > 0 ||
         s.flights > 0 ||
@@ -342,31 +333,41 @@ function RichState({ s }: { s: UserStats }) {
         <div className="mt-3 flex gap-2.5 overflow-x-auto pb-0.5" style={{ scrollbarWidth: "none" }}>
           {s.averageTripLengthDays > 0 && (
             <FadeUp delay={0.2} className="flex-shrink-0">
-              <div className="w-[112px] rounded-2xl border border-white/[0.07] bg-[#0F0F11] p-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/28">Avg trip</p>
-                <p className="mt-2 text-[22px] font-bold leading-none tracking-[-0.03em] text-white">
+              <div className="w-[112px] rounded-2xl border border-[#EBEBEB] bg-white p-4 dark:border-white/[0.1] dark:bg-white/[0.05]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#AAAAAA] dark:text-white/38">
+                  Avg trip
+                </p>
+                <p className="mt-2 text-[22px] font-bold leading-none tracking-[-0.03em] text-[#111111] dark:text-white">
                   {s.averageTripLengthDays}
-                  <span className="ml-0.5 text-[14px] font-medium text-white/45">d</span>
+                  <span className="ml-0.5 text-[14px] font-medium text-[#9A9A9A] dark:text-white/45">
+                    d
+                  </span>
                 </p>
               </div>
             </FadeUp>
           )}
           {s.longestTripDays > 0 && (
             <FadeUp delay={0.23} className="flex-shrink-0">
-              <div className="w-[112px] rounded-2xl border border-white/[0.07] bg-[#0F0F11] p-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/28">Longest</p>
-                <p className="mt-2 text-[22px] font-bold leading-none tracking-[-0.03em] text-white">
+              <div className="w-[112px] rounded-2xl border border-[#EBEBEB] bg-white p-4 dark:border-white/[0.1] dark:bg-white/[0.05]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#AAAAAA] dark:text-white/38">
+                  Longest
+                </p>
+                <p className="mt-2 text-[22px] font-bold leading-none tracking-[-0.03em] text-[#111111] dark:text-white">
                   {s.longestTripDays}
-                  <span className="ml-0.5 text-[14px] font-medium text-white/45">d</span>
+                  <span className="ml-0.5 text-[14px] font-medium text-[#9A9A9A] dark:text-white/45">
+                    d
+                  </span>
                 </p>
               </div>
             </FadeUp>
           )}
           {s.flights > 0 && (
             <FadeUp delay={0.26} className="flex-shrink-0">
-              <div className="w-[112px] rounded-2xl border border-white/[0.07] bg-[#0F0F11] p-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/28">Flights</p>
-                <p className="mt-2 text-[22px] font-bold leading-none tracking-[-0.03em] text-white tabular-nums">
+              <div className="w-[112px] rounded-2xl border border-[#EBEBEB] bg-white p-4 dark:border-white/[0.1] dark:bg-white/[0.05]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#AAAAAA] dark:text-white/38">
+                  Flights
+                </p>
+                <p className="mt-2 text-[22px] font-bold leading-none tracking-[-0.03em] text-[#111111] tabular-nums dark:text-white">
                   {s.flights}
                 </p>
               </div>
@@ -374,9 +375,11 @@ function RichState({ s }: { s: UserStats }) {
           )}
           {s.restaurants > 0 && (
             <FadeUp delay={0.29} className="flex-shrink-0">
-              <div className="w-[112px] rounded-2xl border border-white/[0.07] bg-[#0F0F11] p-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/28">Restaurants</p>
-                <p className="mt-2 text-[22px] font-bold leading-none tracking-[-0.03em] text-white tabular-nums">
+              <div className="w-[112px] rounded-2xl border border-[#EBEBEB] bg-white p-4 dark:border-white/[0.1] dark:bg-white/[0.05]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#AAAAAA] dark:text-white/38">
+                  Restaurants
+                </p>
+                <p className="mt-2 text-[22px] font-bold leading-none tracking-[-0.03em] text-[#111111] tabular-nums dark:text-white">
                   {s.restaurants}
                 </p>
               </div>
@@ -384,9 +387,11 @@ function RichState({ s }: { s: UserStats }) {
           )}
           {s.favoritePlaceVisited && (
             <FadeUp delay={0.32} className="flex-shrink-0">
-              <div className="w-[140px] rounded-2xl border border-white/[0.07] bg-[#0F0F11] p-4">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/28">Favorite</p>
-                <p className="mt-2 truncate text-[15px] font-semibold leading-snug tracking-[-0.02em] text-white">
+              <div className="w-[140px] rounded-2xl border border-[#EBEBEB] bg-white p-4 dark:border-white/[0.1] dark:bg-white/[0.05]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#AAAAAA] dark:text-white/38">
+                  Favorite
+                </p>
+                <p className="mt-2 truncate text-[15px] font-semibold leading-snug tracking-[-0.02em] text-[#111111] dark:text-white">
                   {s.favoritePlaceVisited}
                 </p>
               </div>
@@ -395,16 +400,14 @@ function RichState({ s }: { s: UserStats }) {
         </div>
       )}
 
-      {/* YEARLY STORY */}
       <FadeUp delay={0.22} className="mt-3">
         <div
-          className="rounded-2xl border border-white/[0.06] p-6"
-          style={{ background: "linear-gradient(150deg, #0D0D12 0%, #0A0A0E 100%)" }}
+          className={`rounded-2xl border border-[#EBEBEB] bg-white p-6 shadow-[0_1px_0_rgba(0,0,0,0.03)] dark:border-white/[0.1] dark:bg-white/[0.05] dark:shadow-none`}
         >
-          <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-white/25">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[#AAAAAA] dark:text-white/40">
             {year} story
           </p>
-          <p className="mt-3.5 text-[16px] font-medium leading-relaxed tracking-[-0.015em] text-white/80">
+          <p className="mt-3.5 text-[16px] font-medium leading-relaxed tracking-[-0.015em] text-[#111111] dark:text-white/85">
             {yearlyNarrative}
           </p>
 
@@ -413,43 +416,39 @@ function RichState({ s }: { s: UserStats }) {
               {s.placesVisited > 0 && (
                 <div>
                   <div className="mb-1.5 flex items-center justify-between">
-                    <span className="text-[11px] text-white/35">
-                      <span style={{ color: "#FFB800" }} className="font-semibold">
-                        {s.placesVisited}
-                      </span>{" "}
+                    <span className="text-[11px] text-[#666666] dark:text-white/45">
+                      <span className="font-semibold text-sky-600 dark:text-sky-400">{s.placesVisited}</span>{" "}
                       / 10 places
                     </span>
-                    <span className="text-[10px] text-white/20">milestone</span>
+                    <span className="text-[10px] text-[#AAAAAA] dark:text-white/30">milestone</span>
                   </div>
-                  <AmberBar pct={placesPct} delay={0.45} />
+                  <AccentBar pct={placesPct} delay={0.45} />
                 </div>
               )}
               {s.countriesVisited > 0 && (
                 <div>
                   <div className="mb-1.5 flex items-center justify-between">
-                    <span className="text-[11px] text-white/35">
-                      <span style={{ color: "#FFB800" }} className="font-semibold">
+                    <span className="text-[11px] text-[#666666] dark:text-white/45">
+                      <span className="font-semibold text-sky-600 dark:text-sky-400">
                         {s.countriesVisited}
                       </span>{" "}
                       / 20 countries
                     </span>
-                    <span className="text-[10px] text-white/20">milestone</span>
+                    <span className="text-[10px] text-[#AAAAAA] dark:text-white/30">milestone</span>
                   </div>
-                  <AmberBar pct={countriesPct} delay={0.55} />
+                  <AccentBar pct={countriesPct} delay={0.55} />
                 </div>
               )}
               {s.daysTraveled > 0 && (
                 <div>
                   <div className="mb-1.5 flex items-center justify-between">
-                    <span className="text-[11px] text-white/35">
-                      <span style={{ color: "#FFB800" }} className="font-semibold">
-                        {s.daysTraveled}
-                      </span>{" "}
+                    <span className="text-[11px] text-[#666666] dark:text-white/45">
+                      <span className="font-semibold text-sky-600 dark:text-sky-400">{s.daysTraveled}</span>{" "}
                       / 50 days
                     </span>
-                    <span className="text-[10px] text-white/20">milestone</span>
+                    <span className="text-[10px] text-[#AAAAAA] dark:text-white/30">milestone</span>
                   </div>
-                  <AmberBar pct={daysPct} delay={0.65} />
+                  <AccentBar pct={daysPct} delay={0.65} />
                 </div>
               )}
             </div>
@@ -457,13 +456,12 @@ function RichState({ s }: { s: UserStats }) {
 
           {s.yearlyTravel.favoriteDestination && (
             <div className="mt-5 flex items-center gap-2.5">
-              <span
-                className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
-                style={{ background: "#FFB800" }}
-              />
-              <p className="text-[12px] text-white/35">
+              <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-500 dark:bg-sky-400" />
+              <p className="text-[12px] text-[#9A9A9A] dark:text-white/45">
                 Favorite this year ·{" "}
-                <span className="text-white/60">{s.yearlyTravel.favoriteDestination}</span>
+                <span className="font-medium text-[#444444] dark:text-white/70">
+                  {s.yearlyTravel.favoriteDestination}
+                </span>
               </p>
             </div>
           )}

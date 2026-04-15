@@ -9,7 +9,6 @@ import { motion } from "framer-motion";
 const LAND: { id: string; d: string }[] = [
   {
     id: "na",
-    // North America: Alaska → Arctic Canada → Labrador → East Coast → Florida → Mexico → Central Am → Pacific Coast
     d: "M 55,95 L 38,80 L 42,65 L 62,56 L 88,50 L 120,46 L 155,42 L 195,38 L 228,35 L 262,28 L 280,22 L 298,22 L 315,32 L 320,50 L 322,68 L 318,90 L 322,118 L 318,135 L 308,152 L 292,170 L 272,188 L 260,202 L 264,215 L 275,225 L 268,222 L 250,210 L 228,198 L 205,185 L 180,168 L 162,152 L 155,132 L 148,110 L 134,96 L 108,86 L 82,82 L 60,85 Z",
   },
   {
@@ -18,12 +17,10 @@ const LAND: { id: string; d: string }[] = [
   },
   {
     id: "sa",
-    // South America
     d: "M 268,222 L 282,215 L 304,214 L 325,220 L 345,232 L 362,248 L 376,265 L 386,284 L 393,304 L 391,328 L 380,348 L 364,366 L 350,382 L 336,400 L 322,415 L 314,412 L 303,398 L 292,374 L 280,345 L 271,315 L 267,285 L 266,255 Z",
   },
   {
     id: "europe",
-    // Western Europe: Iberia → France → Benelux → Germany → Poland → Baltics → Scandinavia → Norway coast → UK coast (simplified)
     d: "M 478,158 L 476,142 L 474,126 L 482,114 L 490,108 L 486,100 L 494,94 L 505,90 L 518,88 L 532,87 L 546,85 L 558,82 L 568,76 L 574,66 L 568,60 L 554,62 L 540,65 L 526,66 L 514,68 L 525,72 L 538,70 L 550,68 L 564,66 L 572,75 L 568,84 L 558,88 L 548,92 L 558,98 L 572,106 L 582,118 L 590,130 L 592,142 L 582,152 L 566,158 L 546,160 L 526,158 L 506,158 Z",
   },
   {
@@ -36,7 +33,6 @@ const LAND: { id: string; d: string }[] = [
   },
   {
     id: "asia",
-    // Eurasia from Anatolia/Turkey east to Pacific — does not re-trace Europe
     d: "M 568,76 L 590,68 L 614,62 L 640,56 L 668,50 L 698,46 L 730,43 L 762,41 L 794,41 L 824,44 L 852,47 L 880,51 L 906,55 L 930,59 L 954,63 L 976,67 L 1000,70 L 1000,100 L 997,120 L 988,135 L 970,143 L 950,146 L 930,143 L 910,139 L 892,139 L 874,143 L 856,149 L 838,156 L 820,165 L 804,173 L 786,181 L 768,188 L 750,192 L 732,192 L 714,188 L 697,182 L 682,174 L 668,170 L 654,171 L 641,177 L 629,185 L 620,196 L 616,210 L 613,222 L 610,202 L 603,184 L 590,170 L 573,158 L 554,150 L 533,146 L 510,146 L 488,150 L 472,162 L 460,178 L 452,198 L 450,180 L 458,163 L 470,150 L 482,140 L 492,130 L 500,120 L 506,110 L 514,102 L 524,94 L 538,90 L 550,88 L 562,85 L 568,76 Z",
   },
   {
@@ -45,7 +41,6 @@ const LAND: { id: string; d: string }[] = [
   },
   {
     id: "sea",
-    // Indochina peninsula
     d: "M 750,192 L 764,198 L 776,212 L 782,228 L 780,244 L 769,255 L 753,258 L 739,251 L 731,239 L 731,224 L 737,210 Z",
   },
   {
@@ -54,7 +49,6 @@ const LAND: { id: string; d: string }[] = [
   },
   {
     id: "indonesia",
-    // Sumatra → Java → Borneo simplified as one band
     d: "M 792,248 L 820,244 L 848,242 L 874,247 L 886,258 L 878,268 L 856,270 L 828,268 L 800,263 L 785,254 Z",
   },
   {
@@ -85,6 +79,7 @@ function toXY(lat: number, lng: number) {
   };
 }
 
+/** Light, low-contrast map — land muted grey-blue, accents align with trip-detail sky */
 export function StatsWorldMap({ points = [], className = "" }: Props) {
   return (
     <svg
@@ -96,8 +91,8 @@ export function StatsWorldMap({ points = [], className = "" }: Props) {
       aria-hidden="true"
     >
       <defs>
-        <filter id="swm-glow" x="-120%" y="-120%" width="340%" height="340%">
-          <feGaussianBlur stdDeviation="5" result="blur" />
+        <filter id="swm-glow-light" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
@@ -109,9 +104,9 @@ export function StatsWorldMap({ points = [], className = "" }: Props) {
         <path
           key={id}
           d={d}
-          fill="#1A1A1E"
-          stroke="rgba(255,255,255,0.055)"
-          strokeWidth="0.75"
+          fill="#D8E4EE"
+          stroke="rgba(14, 165, 233, 0.12)"
+          strokeWidth="0.65"
           strokeLinejoin="round"
         />
       ))}
@@ -123,11 +118,11 @@ export function StatsWorldMap({ points = [], className = "" }: Props) {
             key={`${p.name}-${i}`}
             cx={x}
             cy={y}
-            r="5"
-            fill="#FFB800"
-            filter="url(#swm-glow)"
+            r="4.5"
+            fill="#0ea5e9"
+            filter="url(#swm-glow-light)"
             initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 0.92, scale: 1 }}
+            animate={{ opacity: 0.88, scale: 1 }}
             transition={{
               duration: 0.45,
               ease: [0.25, 0.46, 0.45, 0.94],
