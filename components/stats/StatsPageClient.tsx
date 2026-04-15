@@ -161,6 +161,18 @@ function EmptyState({ mapPoints }: { mapPoints: TravelMapPoint[] }) {
       </motion.div>
 
       <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: EASE, delay: 0.52 }}
+        className="relative z-10 mt-10 px-5"
+      >
+        <TravelMap
+          points={mapPoints}
+          heading={{ eyebrow: "Travel map", title: "Your destinations", titleId: "travel-map-heading" }}
+        />
+      </motion.div>
+
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, ease: EASE, delay: 0.72 }}
@@ -177,7 +189,7 @@ function EmptyState({ mapPoints }: { mapPoints: TravelMapPoint[] }) {
               key={line}
               initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.35, ease: EASE, delay: 0.9 + i * 0.06 }}
+              transition={{ duration: 0.35, ease: EASE, delay: 0.82 + i * 0.06 }}
               className="flex gap-3"
             >
               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-500/70 dark:bg-sky-400/80" />
@@ -266,13 +278,6 @@ function RichState({ s, mapPoints }: { s: UserStats; mapPoints: TravelMapPoint[]
           )}
         </div>
       </FadeUp>
-
-      <div className="mt-6">
-        <TravelMap
-          points={mapPoints}
-          heading={{ eyebrow: "Travel map", title: "Your destinations", titleId: "travel-map-heading" }}
-        />
-      </div>
 
       <div className="mt-3 grid grid-cols-5 gap-3">
         <div className="col-span-3">
@@ -395,6 +400,13 @@ function RichState({ s, mapPoints }: { s: UserStats; mapPoints: TravelMapPoint[]
           )}
         </div>
       )}
+
+      <div className="mt-6">
+        <TravelMap
+          points={mapPoints}
+          heading={{ eyebrow: "Travel map", title: "Your destinations", titleId: "travel-map-heading" }}
+        />
+      </div>
 
       <FadeUp delay={0.22} className="mt-3">
         <div
