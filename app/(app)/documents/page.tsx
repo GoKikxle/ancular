@@ -9,7 +9,7 @@ export default async function DocumentsPage() {
   const tripOptions = trips.map((t) => ({ id: t.id, slug: t.slug, title: t.title }));
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white">
+    <main className="min-h-full bg-neutral-950 pb-24 text-white">
       <PageContainer>
         <header className={screenHeaderWrap}>
           <p className={screenEyebrow}>Vault</p>

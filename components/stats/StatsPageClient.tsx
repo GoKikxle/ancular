@@ -188,7 +188,7 @@ function EmptyState() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, ease: EASE, delay: 1.0 }}
-        className="px-6 pb-16 pt-6"
+        className="px-6 pb-28 pt-6"
       >
         <div className="space-y-2.5">
           {[
@@ -257,7 +257,7 @@ function RichState({ s }: { s: UserStats }) {
   const daysPct = Math.min(100, Math.round((s.daysTraveled / 50) * 100));
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col px-5 pb-10">
+    <div className="mx-auto flex w-full max-w-md flex-col px-5 pb-28">
       {/* HERO */}
       <FadeUp delay={0}>
         <div className="relative overflow-hidden rounded-3xl border border-white/[0.07] bg-[#0F0F11] px-7 pb-8 pt-10 text-center">

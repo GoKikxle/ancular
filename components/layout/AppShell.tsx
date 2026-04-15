@@ -17,9 +17,8 @@ type AppShellProps = {
 export function AppShell({ children, avatarId = null, hasUnreadNotifications = false }: AppShellProps) {
   return (
     <div
-      className="flex min-h-dvh flex-col bg-[#F8F8F8] text-[#111111] dark:bg-neutral-950 dark:text-white"
+      className="flex h-dvh max-h-dvh min-h-0 flex-col overflow-hidden bg-[#F8F8F8] text-[#111111] dark:bg-neutral-950 dark:text-white"
       style={{
-        minHeight: "100dvh",
         paddingTop: "var(--safe-area-top)",
         paddingLeft: "var(--safe-area-left)",
         paddingRight: "var(--safe-area-right)",
