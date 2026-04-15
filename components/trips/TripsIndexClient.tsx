@@ -93,17 +93,6 @@ function filterTrips(trips: DbTrip[], query: string): DbTrip[] {
   );
 }
 
-// ─── CIRCLE COLOR PALETTE ────────────────────────────────────────────────────
-
-const CIRCLE_COLORS = [
-  { bg: "#FFD5E8", num: "#C42050" },  // pink
-  { bg: "#C4EDD8", num: "#1A7840" },  // mint
-  { bg: "#FFD9B4", num: "#C05010" },  // orange
-  { bg: "#D4E4FF", num: "#2050B8" },  // sky
-  { bg: "#E8D8FF", num: "#6030C0" },  // lavender
-  { bg: "#FFF5C0", num: "#806800" },  // gold
-] as const;
-
 // ─── PATTERN PANEL ────────────────────────────────────────────────────────────
 
 function PatternPanel({ word }: { word: string }) {
@@ -194,14 +183,7 @@ function ActiveTripCard({ trip }: { trip: DbTrip }) {
 
 // ─── UPCOMING TRIP ROW ────────────────────────────────────────────────────────
 
-function UpcomingTripRow({
-  trip,
-  colorIndex,
-}: {
-  trip: DbTrip;
-  colorIndex: number;
-}) {
-  const { bg, num } = CIRCLE_COLORS[colorIndex % CIRCLE_COLORS.length];
+function UpcomingTripRow({ trip }: { trip: DbTrip }) {
   const cityLabel = formatCity(trip.destination, trip.title);
   const dateLabel = formatRowDate(trip.start_date, trip.end_date);
   const days = daysUntil(trip.start_date);
@@ -214,13 +196,10 @@ function UpcomingTripRow({
       style={{ WebkitTapHighlightColor: "transparent" }}
     >
       <div
-        className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full"
-        style={{ background: bg }}
+        className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full border-[1.5px] border-[#D0D0D0] bg-[#FAFAFA] dark:border-white/[0.18] dark:bg-white/[0.06]"
+        aria-hidden
       >
-        <span
-          className="text-[15px] font-black leading-none tabular-nums"
-          style={{ color: num }}
-        >
+        <span className="text-[15px] font-bold leading-none tabular-nums text-[#4A4A4A] dark:text-white/65">
           {countdown}
         </span>
       </div>
@@ -388,8 +367,8 @@ function ActiveTripsView({
       ) : (
         <div className="flex flex-col gap-[10px] px-5 pb-10">
           {activeTrip && <ActiveTripCard trip={activeTrip} />}
-          {listTrips.map((trip, i) => (
-            <UpcomingTripRow key={trip.id} trip={trip} colorIndex={i} />
+          {listTrips.map((trip) => (
+            <UpcomingTripRow key={trip.id} trip={trip} />
           ))}
         </div>
       )}
