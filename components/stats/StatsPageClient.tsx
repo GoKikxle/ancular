@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
+import TravelMap, { type TravelMapPoint } from "@/components/TravelMap";
 import type { UserStats } from "@/lib/stats";
 import { buildYearlyTravelNarrative } from "@/lib/yearly-travel-story";
 import { surfaceCardLight } from "@/lib/screen-styles";
 import { CountUp } from "./CountUp";
-import { StatsWorldMap } from "@/components/stats/StatsWorldMap";
 
 const EASE = [0.25, 0.46, 0.45, 0.94] as const;
 
@@ -52,7 +52,7 @@ function AccentBar({ pct, delay = 0 }: { pct: number; delay?: number }) {
 
 // ─── EMPTY STATE ────────────────────────────────────────────────────────────
 
-function EmptyState() {
+function EmptyState({ mapPoints }: { mapPoints: TravelMapPoint[] }) {
   return (
     <div className="relative w-full">
       <div className="pointer-events-none absolute left-0 top-0 h-[220px] w-[280px] opacity-40 dark:opacity-25">
@@ -161,20 +161,9 @@ function EmptyState() {
       </motion.div>
 
       <motion.div
-        className="relative z-10 mx-5 mt-10 overflow-hidden rounded-2xl border border-[#EBEBEB] bg-white shadow-[0_1px_0_rgba(0,0,0,0.03)] dark:border-white/[0.1] dark:bg-white/[0.05] dark:shadow-none"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, ease: EASE, delay: 0.55 }}
-      >
-        <div className="bg-[#F0F6FB] px-2 pt-3 pb-2 dark:bg-sky-950/20">
-          <StatsWorldMap />
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, ease: EASE, delay: 0.85 }}
+        transition={{ duration: 0.6, ease: EASE, delay: 0.72 }}
         className="px-5 pb-28 pt-8"
       >
         <div className={`${surfaceCardLight} space-y-3 px-5 py-5`}>
@@ -239,7 +228,7 @@ function StatTile({
   );
 }
 
-function RichState({ s }: { s: UserStats }) {
+function RichState({ s, mapPoints }: { s: UserStats; mapPoints: TravelMapPoint[] }) {
   const year = new Date().getFullYear();
   const yearlyNarrative = buildYearlyTravelNarrative(s.yearlyTravel);
   const tripDelta = s.completedTripsThisYear - s.completedTripsLastYear;
@@ -277,6 +266,13 @@ function RichState({ s }: { s: UserStats }) {
           )}
         </div>
       </FadeUp>
+
+      <div className="mt-6">
+        <TravelMap
+          points={mapPoints}
+          heading={{ eyebrow: "Travel map", title: "Your destinations", titleId: "travel-map-heading" }}
+        />
+      </div>
 
       <div className="mt-3 grid grid-cols-5 gap-3">
         <div className="col-span-3">
@@ -473,11 +469,11 @@ function RichState({ s }: { s: UserStats }) {
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
-type Props = { stats: UserStats };
+type Props = { stats: UserStats; mapPoints: TravelMapPoint[] };
 
-export function StatsPageClient({ stats: s }: Props) {
+export function StatsPageClient({ stats: s, mapPoints }: Props) {
   if (s.completedTripCount === 0) {
-    return <EmptyState />;
+    return <EmptyState mapPoints={mapPoints} />;
   }
-  return <RichState s={s} />;
+  return <RichState s={s} mapPoints={mapPoints} />;
 }
