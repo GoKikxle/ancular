@@ -21,17 +21,11 @@ export function formatTravelersFieldValue(n: number): string {
 }
 
 type TravelerCountStepperProps = {
-  /** Form field name (submitted with create/update actions). */
   name: string;
-  /** Create flow — starting count. */
   defaultCount?: number;
-  /** Edit flow — existing DB string. */
   initialLabel?: string | null;
 };
 
-/**
- * Plus/minus stepper for traveler count. Submits the same string format as before ("1 traveler" / "N travelers").
- */
 export function TravelerCountStepper({
   name,
   defaultCount = MIN,
@@ -46,21 +40,21 @@ export function TravelerCountStepper({
   return (
     <>
       <input type="hidden" name={name} value={formatTravelersFieldValue(count)} />
-      <div className="flex h-12 w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04]">
+      <div className="flex h-12 w-full overflow-hidden rounded-2xl border border-[#E5E5E5] bg-white shadow-[0_1px_0_rgba(0,0,0,0.02)] dark:border-white/[0.1] dark:bg-white/[0.05]">
         <button
           type="button"
           aria-label="Fewer travelers"
           disabled={count <= MIN}
           onClick={() => setCount((c) => Math.max(MIN, c - 1))}
-          className="flex w-[3.25rem] shrink-0 items-center justify-center text-[20px] font-medium leading-none text-white/85 transition-colors hover:bg-white/[0.06] active:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-25"
+          className="flex w-[3.25rem] shrink-0 items-center justify-center text-[20px] font-medium leading-none text-[#111111] transition-colors hover:bg-[#F5F5F5] active:bg-[#EBEBEB] disabled:cursor-not-allowed disabled:opacity-30 dark:text-white dark:hover:bg-white/[0.06] dark:active:bg-white/[0.08]"
         >
           −
         </button>
-        <div className="flex min-w-0 flex-1 flex-col items-center justify-center border-x border-white/[0.06] px-2">
-          <span className="text-[17px] font-semibold tabular-nums tracking-tight text-white">
+        <div className="flex min-w-0 flex-1 flex-col items-center justify-center border-x border-[#EBEBEB] px-2 dark:border-white/[0.08]">
+          <span className="text-[17px] font-semibold tabular-nums tracking-tight text-[#111111] dark:text-white">
             {count}
           </span>
-          <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-white/35">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9A9A9A] dark:text-white/40">
             {count === 1 ? "traveler" : "travelers"}
           </span>
         </div>
@@ -69,7 +63,7 @@ export function TravelerCountStepper({
           aria-label="More travelers"
           disabled={count >= MAX}
           onClick={() => setCount((c) => Math.min(MAX, c + 1))}
-          className="flex w-[3.25rem] shrink-0 items-center justify-center text-[20px] font-medium leading-none text-white/85 transition-colors hover:bg-white/[0.06] active:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-25"
+          className="flex w-[3.25rem] shrink-0 items-center justify-center text-[20px] font-medium leading-none text-[#111111] transition-colors hover:bg-[#F5F5F5] active:bg-[#EBEBEB] disabled:cursor-not-allowed disabled:opacity-30 dark:text-white dark:hover:bg-white/[0.06] dark:active:bg-white/[0.08]"
         >
           +
         </button>
