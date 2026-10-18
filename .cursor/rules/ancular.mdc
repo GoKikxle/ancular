@@ -1,0 +1,47 @@
+---
+description: Ancular project context, architecture and privacy rules
+alwaysApply: true
+---
+
+# Ancular
+
+Invite-only event photo finder for Nigerian weddings, church programmes and parties.
+Hosts upload photos; guests take one selfie and see only the photos they appear in.
+Primary users: photographers and church media teams (buyers), guests on phones and mobile data.
+The old travel app lives on the `archive/travel-app` branch; ignore it.
+
+## Stack
+Next.js 16 App Router (Turbopack, `proxy.ts` not middleware) · TypeScript · Tailwind CSS 4 ·
+Supabase (auth, Postgres + pgvector, RLS) · Cloudflare R2 via S3 SDK (Supabase Storage fallback) ·
+`@vladmandic/face-api` (TensorFlow.js) running in the browser.
+
+## Layout
+- `app/page.tsx` landing · `app/privacy` · `app/(auth)` login/signup (support `?next=`)
+- `app/(app)/dashboard`, `app/(app)/events/new`, `app/(app)/events/[id]` (tabs: photos, guests, share, settings)
+- `app/e/[code]` guest invite: join → consent → selfie → results
+- `app/api/events/[id]/photos` creates a photo row + signed upload URLs
+- `app/api/photos/[id]/[variant]` signed view/download; access decided by RLS
+- `lib/face.ts` face finding (host: SSD + tiled scan; guest: tiny detector) · `lib/storage.ts` · `lib/events.ts`
+- `supabase/migrations/0001_ancular_core.sql` schema, RLS, `match_my_face`, `purge_expired_face_data`
+- `public/models` face models, `public/tfjs` WebAssembly engine for phones without WebGL
+
+## Privacy rules (do not break)
+- Guest selfies never leave the device. Only a 128-number face code is sent to `match_my_face()`; never store it.
+- Searching requires an approved membership AND an active consent row. Keep consent an unticked, separate checkbox.
+- Guests can only read photos they matched. Never add a policy that exposes `faces` to guests.
+- Face data auto-deletes after `face_retention_days`. Bump `CONSENT_VERSION` in `lib/events.ts` when consent wording changes.
+- Under-18s can't create accounts.
+
+## Brand
+Adire-inspired. Tokens in `app/globals.css`: indigo #1e2a78, resist white #f3f5fb, ink #18204a, aso-oke gold #f2b632.
+One typeface: Bricolage Grotesque (`.display` = condensed headline cut). Gold ring = "found".
+Copy: plain, sentence case, Nigerian context (aso-ebi, owambe, church programmes), no hype.
+
+## Commands
+`npm run dev` · `npm run build` · `npm run lint` · `npm run typecheck`
+
+## Status / next steps
+- Not yet connected to a live Supabase project or R2 bucket (see README setup).
+- Test matching accuracy on real Nigerian event photos; tune thresholds in `match_my_face` (sure ≤ 0.45, maybe ≤ 0.55).
+- Ideas: phone-number sign-in (Termii), pay-per-photo for photographers (Paystack), church "spaces" with recurring events,
+  optional offline venue mode.
