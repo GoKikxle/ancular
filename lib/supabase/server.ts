@@ -14,8 +14,7 @@ export async function createClient() {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          // Next.js forbids mutating cookies outside Server Actions / Route Handlers.
-          // Refresh runs in middleware; swallow per-cookie failures so RSC never crashes.
+          // Cookies can only be set in Server Actions / Route Handlers; middleware refreshes sessions.
           cookiesToSet.forEach(({ name, value, options }) => {
             try {
               cookieStore.set(name, value, options);
@@ -29,11 +28,17 @@ export async function createClient() {
   );
 }
 
-/** Server-only admin client (bypasses RLS). Use for trusted ops after verifying auth. */
-export function createAdminClient(): ReturnType<typeof createSupabaseClient> {
+/** Server-only admin client (bypasses RLS). Only use after checking permissions yourself. */
+export function createAdminClient() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for document upload; add it to .env.local");
+  if (!key) throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing from the environment");
   return createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
+}
+
+export async function getUser() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  return { supabase, user: data.user };
 }

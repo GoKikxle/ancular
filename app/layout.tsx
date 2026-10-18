@@ -1,56 +1,32 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
-import { AuthProvider } from "@/components/providers/AuthProvider";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-plus-jakarta",
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Ancular",
-  description: "Your mobile-first travel command center.",
+  title: {
+    default: "Ancular: find every photo of you with one selfie",
+    template: "%s · Ancular",
+  },
+  description:
+    "Private, invite-only photo sharing for weddings, church programmes and parties. Guests take one selfie and get every photo they appear in.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  openGraph: {
+    title: "Ancular",
+    description: "Find every photo of you from the event with one selfie.",
+    siteName: "Ancular",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
   viewportFit: "cover",
+  themeColor: "#1e2a78",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      className={`${plusJakartaSans.variable} ${geistMono.variable}`}
-      suppressHydrationWarning
-    >
-      {/* Anti-flash: read saved theme and apply class before first paint */}
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('ancular-theme');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}`,
-          }}
-        />
-      </head>
-      <body className="font-sans antialiased">
-        <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </ThemeProvider>
-      </body>
+    <html lang="en-NG">
+      <body>{children}</body>
     </html>
   );
 }

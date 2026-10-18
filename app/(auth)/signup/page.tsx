@@ -1,27 +1,22 @@
+import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth/AuthForm";
-import Link from "next/link";
 
-export default function SignupPage() {
-  const redirectUrl = "https://ancular.vercel.app/auth/callback";
+export const metadata: Metadata = { title: "Create an account" };
 
+export default async function SignupPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  const { next } = await searchParams;
+  const invited = next?.startsWith("/e/");
   return (
-    <div className="flex w-full flex-col gap-9 pb-2 pt-1">
-      <header className="text-center">
-        <Link
-          href="/"
-          className="inline-block text-[22px] font-semibold tracking-[-0.02em] text-[#111111] transition-opacity hover:opacity-80 dark:text-white"
-        >
-          Ancular
-        </Link>
-        <h1 className="mt-7 text-[22px] font-bold tracking-[-0.02em] text-[#111111] dark:text-white">
-          Create account
-        </h1>
-        <p className="mt-2 max-w-[280px] mx-auto text-[15px] leading-snug text-[#9A9A9A] dark:text-white/45">
-          Get started with Ancular
-        </p>
-      </header>
-
-      <AuthForm mode="signup" redirectUrl={redirectUrl} />
-    </div>
+    <>
+      <h1 className="display text-[2.4rem] text-indigo">
+        {invited ? "Create an account to find your photos" : "Create your Ancular account"}
+      </h1>
+      <p className="mb-8 mt-2 text-ink-muted">
+        {invited
+          ? "It takes a minute. You'll use the same account for every event you're invited to."
+          : "Host an event, upload the photos and share one link with your guests."}
+      </p>
+      <AuthForm mode="signup" next={next ?? "/dashboard"} />
+    </>
   );
 }

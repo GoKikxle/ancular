@@ -1,0 +1,65 @@
+import { NextResponse } from "next/server";
+import { getUser } from "@/lib/supabase/server";
+import { VARIANTS, photoKey, signUpload } from "@/lib/storage";
+
+/**
+ * Start uploading one photo: creates the photo record (hosts only, enforced by RLS)
+ * and returns short-lived upload URLs for the original, preview and thumbnail.
+ */
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id: eventId } = await params;
+  const { supabase, user } = await getUser();
+  if (!user) return NextResponse.json({ error: "Sign in again to upload." }, { status: 401 });
+
+  const body = (await request.json().catch(() => ({}))) as {
+    name?: string;
+    width?: number;
+    height?: number;
+    bytes?: number;
+    originalType?: string;
+  };
+
+  const MAX_BYTES = 40 * 1024 * 1024;
+  if (body.bytes && body.bytes > MAX_BYTES) {
+    return NextResponse.json({ error: "Photos must be under 40 MB." }, { status: 413 });
+  }
+
+  const { data: photo, error } = await supabase
+    .from("photos")
+    .insert({
+      event_id: eventId,
+      uploaded_by: user.id,
+      original_name: body.name?.slice(0, 200) ?? null,
+      width: body.width ?? null,
+      height: body.height ?? null,
+      bytes: body.bytes ?? null,
+    })
+    .select("id")
+    .single();
+
+  if (error || !photo) {
+    const status = error?.code === "42501" ? 403 : 400;
+    return NextResponse.json(
+      { error: status === 403 ? "Only hosts can add photos to this event." : error?.message ?? "Upload failed" },
+      { status }
+    );
+  }
+
+  try {
+    const uploads = Object.fromEntries(
+      await Promise.all(
+        VARIANTS.map(async (variant) => {
+          const type = variant === "original" && body.originalType ? body.originalType : "image/jpeg";
+          return [variant, await signUpload(photoKey(eventId, photo.id, variant), type)] as const;
+        })
+      )
+    );
+    return NextResponse.json({ photoId: photo.id, uploads });
+  } catch (err) {
+    await supabase.from("photos").update({ status: "failed" }).eq("id", photo.id);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Storage isn't set up yet" },
+      { status: 500 }
+    );
+  }
+}

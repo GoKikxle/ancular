@@ -2,31 +2,19 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
-  try {
-    const { searchParams, origin } = new URL(request.url);
-    const code = searchParams.get("code");
-    const errorParam = searchParams.get("error");
-    const errorCode = searchParams.get("error_code");
-    const next = searchParams.get("next") ?? "/";
-    const base = origin.replace(/\/+$/, "");
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get("code");
+  const rawNext = searchParams.get("next") ?? "/dashboard";
+  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/dashboard";
 
-    if (!code || errorParam || errorCode) {
-      return NextResponse.redirect(`${base}/login?error=auth_callback_error`);
-    }
-
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (error) {
-      console.error("[auth/callback] exchange failed", error);
-      return NextResponse.redirect(`${base}/login?error=auth_callback_error`);
-    }
-
-    const redirectTo = next.startsWith("/") ? next : `/${next}`;
-    return NextResponse.redirect(`${base}${redirectTo}`);
-  } catch (err) {
-    console.error("[auth/callback] unhandled error", err);
-    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ancular.vercel.app";
-    return NextResponse.redirect(`${origin.replace(/\/+$/, "")}/login?error=auth_callback_error`);
+  if (!code || searchParams.get("error")) {
+    return NextResponse.redirect(`${origin}/login?error=link&next=${encodeURIComponent(next)}`);
   }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) {
+    return NextResponse.redirect(`${origin}/login?error=link&next=${encodeURIComponent(next)}`);
+  }
+  return NextResponse.redirect(`${origin}${next}`);
 }
