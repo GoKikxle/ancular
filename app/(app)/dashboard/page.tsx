@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getUser } from "@/lib/supabase/server";
 import { KIND_LABELS, formatEventDate, type EventRow } from "@/lib/events";
+import { listPreviewEvents } from "@/lib/preview-events";
+import { listPreviewPhotos } from "@/lib/preview-photos";
 
 export const metadata: Metadata = { title: "Your events" };
 
@@ -10,21 +12,34 @@ type Membership = { role: "host" | "guest"; status: string; events: EventRow | n
 export default async function DashboardPage() {
   const { supabase, user } = await getUser();
 
-  const { data } = await supabase
-    .from("event_members")
-    .select("role, status, events(*)")
-    .eq("user_id", user!.id)
-    .order("requested_at", { ascending: false });
-
-  const memberships = ((data ?? []) as unknown as Membership[]).filter((m) => m.events);
-  const hosting = memberships.filter((m) => m.role === "host");
-  const attending = memberships.filter((m) => m.role === "guest");
-
-  // Counts for hosted events in one query each
-  const hostedIds = hosting.map((m) => m.events!.id);
+  let hosting: Membership[] = [];
+  let attending: Membership[] = [];
   const photoCounts = new Map<string, number>();
   const pendingCounts = new Map<string, number>();
-  if (hostedIds.length) {
+
+  if (!user) {
+    hosting = (await listPreviewEvents()).map((event) => ({
+      role: "host",
+      status: "approved",
+      events: event,
+    }));
+    for (const photo of await listPreviewPhotos()) {
+      if (photo.status === "ready") photoCounts.set(photo.event_id, (photoCounts.get(photo.event_id) ?? 0) + 1);
+    }
+  } else {
+    const { data } = await supabase
+      .from("event_members")
+      .select("role, status, events(*)")
+      .eq("user_id", user.id)
+      .order("requested_at", { ascending: false });
+    const memberships = ((data ?? []) as unknown as Membership[]).filter((m) => m.events);
+    hosting = memberships.filter((m) => m.role === "host");
+    attending = memberships.filter((m) => m.role === "guest");
+  }
+
+  // Counts for hosted events in one query each
+  const hostedIds = user ? hosting.map((m) => m.events!.id) : [];
+  if (user && hostedIds.length) {
     const [{ data: photos }, { data: pending }] = await Promise.all([
       supabase.from("photos").select("event_id").in("event_id", hostedIds).eq("status", "ready"),
       supabase.from("event_members").select("event_id").in("event_id", hostedIds).eq("status", "pending"),

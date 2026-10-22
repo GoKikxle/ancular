@@ -5,6 +5,14 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { deletePrefix, eventPrefix } from "@/lib/storage";
 import type { EventKind, JoinMode } from "@/lib/events";
+import {
+  createPreviewEvent,
+  deletePreviewEvent,
+  getPreviewEvent,
+  previewEnabled,
+  updatePreviewEvent,
+} from "@/lib/preview-events";
+import { deletePreviewPhoto, deletePreviewPhotosForEvent } from "@/lib/preview-photos";
 
 export type FormState = { error?: string; saved?: boolean } | undefined;
 
@@ -23,13 +31,17 @@ function readEventFields(form: FormData) {
 }
 
 export async function createEvent(_: FormState, form: FormData): Promise<FormState> {
-  const { supabase, user } = await getUser();
-  if (!user) return { error: "Sign in again to create an event." };
-
   const f = readEventFields(form);
   if (f.name.length < 2) return { error: "Give the event a name, for example “Tolu & Femi’s wedding”." };
   if (form.get("guests_told") !== "on") {
     return { error: "Confirm that guests will be told photos are shared with face matching." };
+  }
+
+  const { supabase, user } = await getUser();
+  if (!user) {
+    if (!previewEnabled()) return { error: "Sign in again to create an event." };
+    const event = await createPreviewEvent(f);
+    redirect(`/events/${event.id}?tab=photos`);
   }
 
   const { data, error } = await supabase
@@ -52,9 +64,17 @@ export async function createEvent(_: FormState, form: FormData): Promise<FormSta
 }
 
 export async function updateEvent(eventId: string, _: FormState, form: FormData): Promise<FormState> {
-  const { supabase } = await getUser();
   const f = readEventFields(form);
   if (f.name.length < 2) return { error: "The event needs a name." };
+
+  const { supabase, user } = await getUser();
+  if (!user) {
+    if (!previewEnabled()) return { error: "Sign in again to save this event." };
+    const updated = await updatePreviewEvent(eventId, f);
+    if (!updated) return { error: "This event isn't on this computer anymore." };
+    revalidatePath(`/events/${eventId}`);
+    return { saved: true };
+  }
 
   const { error } = await supabase
     .from("events")
@@ -104,10 +124,22 @@ export async function removeGuest(eventId: string, userId: string) {
 
 export async function deleteEvent(eventId: string, _: FormState, form: FormData): Promise<FormState> {
   const { supabase, user } = await getUser();
-  const { data: event } = await supabase.from("events").select("id, name, owner_id").eq("id", eventId).single();
-  if (!event || event.owner_id !== user?.id) return { error: "Only the person who created the event can delete it." };
+  const preview = !user && previewEnabled() ? await getPreviewEvent(eventId) : null;
+  const { data: remote } = user
+    ? await supabase.from("events").select("id, name, owner_id").eq("id", eventId).single()
+    : { data: null };
+  const event = preview ?? remote;
+  if (!event || (user && event.owner_id !== user.id) || (!user && !preview)) {
+    return { error: "Only the person who created the event can delete it." };
+  }
   if (String(form.get("confirm_name") ?? "").trim() !== event.name) {
     return { error: "Type the event name exactly to confirm." };
+  }
+
+  if (preview) {
+    await deletePreviewPhotosForEvent(eventId);
+    await deletePreviewEvent(eventId);
+    redirect("/dashboard");
   }
 
   // Photos first (storage), then the database rows. Face codes and matches cascade.
@@ -122,7 +154,12 @@ export async function deleteEvent(eventId: string, _: FormState, form: FormData)
 }
 
 export async function deletePhoto(eventId: string, photoId: string) {
-  const { supabase } = await getUser();
+  const { supabase, user } = await getUser();
+  if (!user && previewEnabled()) {
+    await deletePreviewPhoto(eventId, photoId);
+    revalidatePath(`/events/${eventId}`);
+    return;
+  }
   const { error } = await supabase.from("photos").delete().eq("id", photoId).eq("event_id", eventId);
   if (!error) {
     await deletePrefix(`${eventPrefix(eventId)}${photoId}/`).catch(() => undefined);

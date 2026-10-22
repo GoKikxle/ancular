@@ -6,6 +6,8 @@ import { GuestFinder, type Match } from "@/components/guest/GuestFinder";
 import { JoinForm } from "@/components/guest/JoinForm";
 import { getUser } from "@/lib/supabase/server";
 import { KIND_LABELS, formatEventDate, type EventKind } from "@/lib/events";
+import { PREVIEW_OWNER_ID, getPreviewEventByInviteCode, previewEnabled } from "@/lib/preview-events";
+import { continueWithoutAccountHref, getPreviewMembership, previewGuestActive } from "@/lib/preview-guest";
 
 type Invite = {
   id: string;
@@ -24,10 +26,36 @@ export const metadata: Metadata = {
 
 export default async function InvitePage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
-  const { supabase, user } = await getUser();
+  const { supabase, user: sessionUser } = await getUser();
+  // Preview events store a placeholder owner. That id is not a signed-in visitor.
+  const user = sessionUser && !(previewEnabled() && sessionUser.id === PREVIEW_OWNER_ID) ? sessionUser : null;
 
-  const { data } = await supabase.rpc("get_event_invite", { p_code: code });
-  const invite = (data as Invite[] | null)?.[0];
+  let invite: Invite | undefined;
+  try {
+    const { data, error } = await supabase.rpc("get_event_invite", { p_code: code });
+    if (!error) invite = (data as Invite[] | null)?.[0];
+  } catch {
+    invite = undefined;
+  }
+
+  // Only events missing from Supabase come from the local preview store.
+  // A live invite must not be replaced, even for a signed-out visitor.
+  let fromPreviewStore = false;
+  if (!invite && previewEnabled()) {
+    const preview = await getPreviewEventByInviteCode(code);
+    if (preview) {
+      fromPreviewStore = true;
+      invite = {
+        id: preview.id,
+        name: preview.name,
+        host_name: preview.host_name,
+        kind: preview.kind,
+        event_date: preview.event_date,
+        join_mode: preview.join_mode,
+        status: preview.status,
+      };
+    }
+  }
 
   if (!invite || invite.status !== "active") {
     return (
@@ -45,6 +73,58 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
 
   const header = <EventHeader invite={invite} />;
   const next = `/e/${code}`;
+  // The preview-guest cookie is for local sample events only. On a live invite it must not
+  // show the preview join form, which cannot see this event.
+  const previewGuest = fromPreviewStore && !user && (await previewGuestActive());
+
+  if (previewGuest) {
+    const membership = await getPreviewMembership(invite.id);
+
+    if (!membership) {
+      return (
+        <Shell header={header}>
+          <h2 className="text-2xl font-bold">Join to find your photos</h2>
+          <p className="mt-2 text-ink-muted">Add your name and you can search straight away.</p>
+          <JoinForm code={code} defaultName="" />
+        </Shell>
+      );
+    }
+
+    if (membership.status === "pending") {
+      return (
+        <Shell header={header}>
+          <h2 className="text-2xl font-bold">Waiting for the host to let you in</h2>
+          <p className="mt-2 text-ink-muted">
+            We&apos;ve told them you asked to join. Check back on this page later, or nudge the host on WhatsApp.
+          </p>
+          <Link href={next} className="btn btn-quiet mt-6">
+            Check again
+          </Link>
+        </Shell>
+      );
+    }
+
+    if (membership.status === "declined") {
+      return (
+        <Shell header={header}>
+          <h2 className="text-2xl font-bold">The host hasn&apos;t added you to this event</h2>
+          <p className="mt-2 text-ink-muted">If you think that&apos;s a mistake, contact the host directly.</p>
+        </Shell>
+      );
+    }
+
+    return (
+      <Shell header={header} wide>
+        <GuestFinder
+          eventId={invite.id}
+          eventName={invite.name}
+          hasConsent={membership.consent}
+          initialMatches={[]}
+          preview
+        />
+      </Shell>
+    );
+  }
 
   if (!user) {
     return (
@@ -55,7 +135,15 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
           stays on your phone.
         </p>
         <div className="mt-6 flex flex-col gap-3">
-          <Link href={`/signup?next=${encodeURIComponent(next)}`} className="btn btn-primary">
+          {fromPreviewStore ? (
+            <Link href={continueWithoutAccountHref(next)} className="btn btn-primary">
+              Continue as a guest
+            </Link>
+          ) : null}
+          <Link
+            href={`/signup?next=${encodeURIComponent(next)}`}
+            className={fromPreviewStore ? "btn btn-quiet" : "btn btn-primary"}
+          >
             Create an account
           </Link>
           <Link href={`/login?next=${encodeURIComponent(next)}`} className="btn btn-quiet">
@@ -73,17 +161,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (membership?.role === "host") {
-    return (
-      <Shell header={header}>
-        <h2 className="text-2xl font-bold">You&apos;re hosting this event</h2>
-        <p className="mt-2 text-ink-muted">This is the page your guests see when they open the invite link.</p>
-        <Link href={`/events/${invite.id}`} className="btn btn-primary mt-6">
-          Manage the event
-        </Link>
-      </Shell>
-    );
-  }
+  const hosting = membership?.role === "host";
 
   if (!membership) {
     const suggested = (user.user_metadata?.full_name as string | undefined) ?? "";
@@ -100,7 +178,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     );
   }
 
-  if (membership.status === "pending") {
+  if (!hosting && membership.status === "pending") {
     return (
       <Shell header={header}>
         <h2 className="text-2xl font-bold">Waiting for the host to let you in</h2>
@@ -114,7 +192,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     );
   }
 
-  if (membership.status === "declined") {
+  if (!hosting && membership.status === "declined") {
     return (
       <Shell header={header}>
         <h2 className="text-2xl font-bold">The host hasn&apos;t added you to this event</h2>
@@ -142,6 +220,9 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
 
   return (
     <Shell header={header} wide>
+      {hosting && (
+        <p className="mb-6 text-sm text-ink-muted">You host this event. Guests who open this link see this page.</p>
+      )}
       <GuestFinder
         eventId={invite.id}
         eventName={invite.name}

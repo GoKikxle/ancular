@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { grantPreviewConsent, withdrawPreviewConsent } from "@/app/e/[code]/actions";
 import { createClient } from "@/lib/supabase/client";
 import { CONSENT_VERSION } from "@/lib/events";
 import { toVectorLiteral } from "@/lib/face";
@@ -22,9 +23,11 @@ type Props = {
   eventName: string;
   hasConsent: boolean;
   initialMatches: Match[];
+  /** Local preview: consent stays on this device's session. The selfie is not uploaded or saved. */
+  preview?: boolean;
 };
 
-export function GuestFinder({ eventId, eventName, hasConsent, initialMatches }: Props) {
+export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, preview = false }: Props) {
   const [stage, setStage] = useState<Stage>(
     !hasConsent ? "consent" : initialMatches.length ? "results" : "selfie"
   );
@@ -34,6 +37,15 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches }: 
 
   async function agree() {
     setError(null);
+    if (preview) {
+      const result = await grantPreviewConsent(eventId);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setStage("selfie");
+      return;
+    }
     const { error: err } = await createClient().rpc("grant_face_consent", {
       p_event: eventId,
       p_wording_version: CONSENT_VERSION,
@@ -48,6 +60,13 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches }: 
   async function search(embedding: number[]) {
     setStage("searching");
     setError(null);
+    if (preview) {
+      // The face code never leaves this function. Nothing is saved or sent.
+      setMatches([]);
+      setSearchedOnce(true);
+      setStage("results");
+      return;
+    }
     const { data, error: err } = await createClient().rpc("match_my_face", {
       p_event: eventId,
       p_embedding: toVectorLiteral(embedding),
@@ -63,6 +82,17 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches }: 
   }
 
   async function withdraw() {
+    if (preview) {
+      const result = await withdrawPreviewConsent(eventId);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setMatches([]);
+      setSearchedOnce(false);
+      setStage("consent");
+      return;
+    }
     const { error: err } = await createClient().rpc("withdraw_face_consent", { p_event: eventId });
     if (err) {
       setError(err.message);

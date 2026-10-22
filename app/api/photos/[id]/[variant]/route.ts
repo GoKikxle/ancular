@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { getPreviewEvent, previewEnabled } from "@/lib/preview-events";
+import { getPreviewPhoto, readPreviewFile } from "@/lib/preview-photos";
 import { VARIANTS, photoKey, signDownload, type Variant } from "@/lib/storage";
 
 /**
@@ -13,6 +15,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
 
   const { supabase, user } = await getUser();
+  if (!user && previewEnabled()) {
+    const photo = await getPreviewPhoto(id);
+    if (!photo) return NextResponse.json({ error: "Photo not found" }, { status: 404 });
+    const bytes = await readPreviewFile(photo.event_id, photo.id, variant as Variant);
+    if (!bytes) return NextResponse.json({ error: "Photo not found" }, { status: 404 });
+    const event = await getPreviewEvent(photo.event_id);
+    const download = new URL(request.url).searchParams.has("download");
+    const headers = new Headers({
+      "Content-Type": "image/jpeg",
+      "Cache-Control": "private, max-age=300",
+    });
+    if (download) {
+      const eventName = event?.name ?? "event";
+      const filename = `${eventName.replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-").toLowerCase() || "ancular"}-${id.slice(0, 6)}.jpg`;
+      headers.set("Content-Disposition", `attachment; filename="${filename}"`);
+    }
+    return new NextResponse(new Uint8Array(bytes), { headers });
+  }
   if (!user) return NextResponse.json({ error: "Sign in to view photos" }, { status: 401 });
 
   const { data: photo } = await supabase

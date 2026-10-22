@@ -363,3 +363,22 @@ grant execute on function public.grant_face_consent(uuid, text) to authenticated
 grant execute on function public.withdraw_face_consent(uuid) to authenticated;
 grant execute on function public.match_my_face(uuid, vector, numeric, numeric) to authenticated;
 revoke execute on function public.purge_expired_face_data() from anon, authenticated;
+
+-- New projects (from May 2026) do not grant Data API access on new tables.
+-- RLS still decides which rows a signed-in user can touch. anon gets no table access.
+grant select, insert, update, delete on
+  public.events,
+  public.event_members,
+  public.photos,
+  public.faces,
+  public.consents,
+  public.photo_matches
+to authenticated;
+
+-- faces.id is an identity column; inserts need the sequence as well as the table.
+grant usage, select on all sequences in schema public to authenticated;
+
+-- Policies call these. The caller still needs execute, even though they are security definer.
+grant execute on function public.is_event_host(uuid) to authenticated;
+grant execute on function public.is_approved_member(uuid) to authenticated;
+grant execute on function public.has_membership(uuid) to authenticated;

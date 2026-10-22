@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { KIND_LABELS, formatEventDate, inviteUrl, type EventRow, type MemberRow, type PhotoRow } from "@/lib/events";
+import { getPreviewEvent } from "@/lib/preview-events";
+import { listPreviewPhotos } from "@/lib/preview-photos";
 import { PhotoUploader } from "@/components/events/PhotoUploader";
 import { SharePanel } from "@/components/events/SharePanel";
 import { GuestList } from "@/components/events/GuestList";
@@ -19,7 +21,11 @@ const TABS: { id: Tab; label: string }[] = [
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const { supabase } = await getUser();
+  const { supabase, user } = await getUser();
+  if (!user) {
+    const preview = await getPreviewEvent(id);
+    return { title: preview?.name ?? "Event" };
+  }
   const { data } = await supabase.from("events").select("name").eq("id", id).maybeSingle();
   return { title: data?.name ?? "Event" };
 }
@@ -36,35 +42,52 @@ export default async function EventPage({
   const tab: Tab = TABS.some((t) => t.id === rawTab) ? (rawTab as Tab) : "photos";
 
   const { supabase, user } = await getUser();
-  const { data: event } = await supabase.from("events").select("*").eq("id", id).maybeSingle<EventRow>();
-  if (!event) notFound();
+  const preview = user ? null : await getPreviewEvent(id);
 
-  const { data: me } = await supabase
-    .from("event_members")
-    .select("role, status")
-    .eq("event_id", id)
-    .eq("user_id", user!.id)
-    .maybeSingle();
-  if (me?.role !== "host") notFound();
+  let event: EventRow | null = preview;
+  let readyPhotos: PhotoRow[] = [];
+  let guests: MemberRow[] = [];
+  let consentCount = 0;
 
-  const [{ data: photos }, { data: members }, { count: consentCount }] = await Promise.all([
-    supabase
-      .from("photos")
-      .select("id, event_id, original_name, width, height, face_count, status, created_at")
-      .eq("event_id", id)
-      .order("created_at", { ascending: false })
-      .limit(500),
-    supabase
+  if (user) {
+    const { data } = await supabase.from("events").select("*").eq("id", id).maybeSingle<EventRow>();
+    event = data;
+    if (!event) notFound();
+
+    const { data: me } = await supabase
       .from("event_members")
-      .select("event_id, user_id, role, status, display_name, requested_at")
+      .select("role, status")
       .eq("event_id", id)
-      .eq("role", "guest")
-      .order("requested_at", { ascending: false }),
-    supabase.from("consents").select("id", { count: "exact", head: true }).eq("event_id", id).is("withdrawn_at", null),
-  ]);
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (me?.role !== "host") notFound();
 
-  const readyPhotos = ((photos ?? []) as PhotoRow[]).filter((p) => p.status === "ready");
-  const guests = (members ?? []) as MemberRow[];
+    const [{ data: photos }, { data: members }, { count }] = await Promise.all([
+      supabase
+        .from("photos")
+        .select("id, event_id, original_name, width, height, face_count, status, created_at")
+        .eq("event_id", id)
+        .order("created_at", { ascending: false })
+        .limit(500),
+      supabase
+        .from("event_members")
+        .select("event_id, user_id, role, status, display_name, requested_at")
+        .eq("event_id", id)
+        .eq("role", "guest")
+        .order("requested_at", { ascending: false }),
+      supabase.from("consents").select("id", { count: "exact", head: true }).eq("event_id", id).is("withdrawn_at", null),
+    ]);
+
+    readyPhotos = ((photos ?? []) as PhotoRow[]).filter((p) => p.status === "ready");
+    guests = (members ?? []) as MemberRow[];
+    consentCount = count ?? 0;
+  }
+
+  if (preview) {
+    readyPhotos = (await listPreviewPhotos(id)).filter((photo) => photo.status === "ready");
+  }
+
+  if (!event) notFound();
   const pending = guests.filter((g) => g.status === "pending").length;
   const facesTotal = readyPhotos.reduce((n, p) => n + p.face_count, 0);
 
@@ -84,7 +107,7 @@ export default async function EventPage({
         {[
           { label: "photos", value: readyPhotos.length },
           { label: "faces found", value: facesTotal },
-          { label: "guests searching", value: consentCount ?? 0 },
+          { label: "guests searching", value: consentCount },
         ].map((s) => (
           <div key={s.label} className="bg-paper px-4 py-3">
             <dd className="text-2xl font-bold text-indigo">{s.value.toLocaleString()}</dd>
@@ -127,7 +150,7 @@ export default async function EventPage({
             joinMode={event.join_mode}
           />
         )}
-        {tab === "settings" && <SettingsPanel event={event} isOwner={event.owner_id === user!.id} />}
+        {tab === "settings" && <SettingsPanel event={event} isOwner={!user || event.owner_id === user.id} />}
       </div>
     </div>
   );

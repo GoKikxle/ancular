@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
+import { getPreviewEvent, previewEnabled } from "@/lib/preview-events";
+import { createPreviewPhoto } from "@/lib/preview-photos";
 import { VARIANTS, photoKey, signUpload } from "@/lib/storage";
 
 /**
@@ -9,7 +11,6 @@ import { VARIANTS, photoKey, signUpload } from "@/lib/storage";
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: eventId } = await params;
   const { supabase, user } = await getUser();
-  if (!user) return NextResponse.json({ error: "Sign in again to upload." }, { status: 401 });
 
   const body = (await request.json().catch(() => ({}))) as {
     name?: string;
@@ -22,6 +23,31 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const MAX_BYTES = 40 * 1024 * 1024;
   if (body.bytes && body.bytes > MAX_BYTES) {
     return NextResponse.json({ error: "Photos must be under 40 MB." }, { status: 413 });
+  }
+
+  if (!user) {
+    if (!previewEnabled() || !(await getPreviewEvent(eventId))) {
+      return NextResponse.json({ error: "Sign in again to upload." }, { status: 401 });
+    }
+    const photo = await createPreviewPhoto({
+      eventId,
+      name: body.name?.slice(0, 200) ?? null,
+      width: body.width ?? null,
+      height: body.height ?? null,
+    });
+    const uploads = Object.fromEntries(
+      VARIANTS.map((variant) => {
+        const type = variant === "original" && body.originalType ? body.originalType : "image/jpeg";
+        return [
+          variant,
+          {
+            url: `/api/events/${eventId}/photos/${photo.id}/${variant}`,
+            headers: { "Content-Type": type },
+          },
+        ] as const;
+      })
+    );
+    return NextResponse.json({ photoId: photo.id, uploads, local: true });
   }
 
   const { data: photo, error } = await supabase

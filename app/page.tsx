@@ -154,7 +154,10 @@ export default function Home() {
             Your next event can be the one where everyone gets their pictures.
           </h2>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/signup" className="btn btn-primary">
+            <Link
+              href={process.env.NODE_ENV === "development" ? "/events/new" : "/signup"}
+              className="btn btn-primary"
+            >
               Create an event
             </Link>
             <Link href="/login" className="btn btn-quiet">

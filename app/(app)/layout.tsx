@@ -5,9 +5,11 @@ import { signOut } from "./actions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { user } = await getUser();
-  if (!user) redirect("/login");
+  if (!user && process.env.NODE_ENV !== "development") redirect("/login");
 
-  const name = (user.user_metadata?.full_name as string | undefined)?.trim() || user.email;
+  const name = user
+    ? (user.user_metadata?.full_name as string | undefined)?.trim() || user.email
+    : "Local preview";
 
   return (
     <div className="min-h-dvh">
@@ -16,11 +18,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Logo href="/dashboard" />
           <div className="flex items-center gap-3">
             <span className="hidden max-w-[16rem] truncate text-sm text-ink-muted sm:inline">{name}</span>
-            <form action={signOut}>
-              <button className="btn btn-quiet btn-sm" type="submit">
-                Sign out
-              </button>
-            </form>
+            {user ? (
+              <form action={signOut}>
+                <button className="btn btn-quiet btn-sm" type="submit">
+                  Sign out
+                </button>
+              </form>
+            ) : null}
           </div>
         </div>
       </header>

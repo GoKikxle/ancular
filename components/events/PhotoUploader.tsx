@@ -79,6 +79,18 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
         await Promise.all([put(uploads.thumb, thumb), put(uploads.preview, preview)]);
         await put(uploads.original, item.file);
 
+        if (data.local) {
+          const done = await fetch(`/api/events/${eventId}/photos/${photoId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ faceCount: faces.length }),
+          });
+          const doneData = await done.json().catch(() => ({}));
+          if (!done.ok) throw new Error(doneData.error ?? "Upload failed");
+          update(item.id, { state: "done", faces: faces.length });
+          return;
+        }
+
         if (faces.length) {
           const { error } = await createClient().from("faces").insert(
             faces.map((f) => ({
@@ -97,7 +109,20 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
 
         update(item.id, { state: "done", faces: faces.length });
       } catch (err) {
-        if (photoId) await createClient().from("photos").update({ status: "failed" }).eq("id", photoId);
+        if (photoId) {
+          const failed = await fetch(`/api/events/${eventId}/photos/${photoId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "failed" }),
+          }).catch(() => null);
+          if (!failed?.ok) {
+            await createClient()
+              .from("photos")
+              .update({ status: "failed" })
+              .eq("id", photoId)
+              .then(() => undefined, () => undefined);
+          }
+        }
         update(item.id, {
           state: "failed",
           error:

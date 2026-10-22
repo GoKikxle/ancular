@@ -18,8 +18,12 @@ function redirectWithCookies(url: URL, response: NextResponse) {
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request });
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    // Not configured yet: let public pages render so the site can still be previewed.
+  if (
+    process.env.NODE_ENV === "development" ||
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ) {
+    // Local preview, or not configured yet: don't force the login pages.
     return response;
   }
 

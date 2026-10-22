@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local preview events (no Supabase session)
+/data
+
+# local credential transfer and CLI temp files
+/ancular-env-transfer.json
+/supabase/.temp

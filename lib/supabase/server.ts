@@ -39,6 +39,11 @@ export function createAdminClient() {
 
 export async function getUser() {
   const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  return { supabase, user: data.user };
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) return { supabase, user: null };
+    return { supabase, user: data.user };
+  } catch {
+    return { supabase, user: null };
+  }
 }
