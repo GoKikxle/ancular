@@ -3,6 +3,7 @@ import { getUser } from "@/lib/supabase/server";
 import { getPreviewEvent, previewEnabled } from "@/lib/preview-events";
 import { createPreviewPhoto } from "@/lib/preview-photos";
 import { VARIANTS, photoKey, signUpload } from "@/lib/storage";
+import { capBlock, formatAllowance, photoFileError, type StorageUsage } from "@/lib/limits";
 
 /**
  * Start uploading one photo: creates the photo record (hosts only, enforced by RLS)
@@ -20,9 +21,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     originalType?: string;
   };
 
-  const MAX_BYTES = 40 * 1024 * 1024;
-  if (body.bytes && body.bytes > MAX_BYTES) {
-    return NextResponse.json({ error: "Photos must be under 40 MB." }, { status: 413 });
+  if (body.bytes) {
+    const fileError = photoFileError(body.bytes);
+    if (fileError) return NextResponse.json({ error: fileError }, { status: 413 });
   }
 
   if (!user) {
@@ -49,6 +50,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     );
     return NextResponse.json({ photoId: photo.id, uploads, local: true });
   }
+
+  const usage = await readHostUsage(supabase);
+  const blocked = usage ? capBlock(usage, body.bytes ?? 0) : null;
+  if (blocked) return NextResponse.json({ error: blocked.error }, { status: 403 });
 
   const { data: photo, error } = await supabase
     .from("photos")
@@ -88,4 +93,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       { status: 500 }
     );
   }
+}
+
+export async function GET() {
+  const { supabase, user } = await getUser();
+  if (!user) return NextResponse.json({ allowance: null });
+  const usage = await readHostUsage(supabase);
+  if (!usage) return NextResponse.json({ allowance: null });
+  return NextResponse.json({ allowance: formatAllowance(usage) });
+}
+
+async function readHostUsage(supabase: Awaited<ReturnType<typeof getUser>>["supabase"]): Promise<StorageUsage | null> {
+  const { data, error } = await supabase.rpc("host_storage_usage");
+  if (error || !data) return null;
+  const row = (Array.isArray(data) ? data[0] : data) as { photos?: number; bytes?: number } | undefined;
+  if (!row) return null;
+  return { photos: Number(row.photos ?? 0), bytes: Number(row.bytes ?? 0) };
 }

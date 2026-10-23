@@ -136,7 +136,6 @@ function PhotoViewer({
   const prev = index > 0 ? ids[index - 1] : null;
   const next = index < ids.length - 1 ? ids[index + 1] : null;
   const [sharing, setSharing] = useState(false);
-  const canShareFiles = typeof navigator !== "undefined" && "canShare" in navigator;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -153,17 +152,36 @@ function PhotoViewer({
   }, [prev, next, onClose, onNavigate]);
 
   async function share() {
+    const viewUrl = `${window.location.origin}/api/photos/${photoId}/preview`;
+    if (typeof navigator.share !== "function") {
+      const message = `A photo of you. ${viewUrl}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+      return;
+    }
+
     setSharing(true);
     try {
-      const blob = await fetch(`/api/photos/${photoId}/preview`).then((r) => r.blob());
-      const file = new File([blob], `ancular-${photoId.slice(0, 6)}.jpg`, { type: "image/jpeg" });
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file] });
+      let file: File | null = null;
+      try {
+        const response = await fetch(`/api/photos/${photoId}/preview`);
+        if (response.ok) {
+          const blob = await response.blob();
+          file = new File([blob], `ancular-${photoId.slice(0, 6)}.jpg`, { type: blob.type || "image/jpeg" });
+        }
+      } catch {
+        file = null;
       }
-    } catch {
-      /* user cancelled */
+
+      if (file && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] });
+      } else {
+        await navigator.share({ text: "A photo of you.", url: viewUrl });
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+    } finally {
+      setSharing(false);
     }
-    setSharing(false);
   }
 
   return (
@@ -194,11 +212,9 @@ function PhotoViewer({
         <a href={`/api/photos/${photoId}/original?download`} className="btn btn-gold flex-1">
           Save full size
         </a>
-        {canShareFiles && (
-          <button type="button" onClick={share} disabled={sharing} className="btn btn-on-indigo flex-1">
-            {sharing ? "Preparing…" : "Share"}
-          </button>
-        )}
+        <button type="button" onClick={share} disabled={sharing} className="btn btn-on-indigo flex-1">
+          {sharing ? "Preparing…" : "Share"}
+        </button>
       </div>
     </div>
   );

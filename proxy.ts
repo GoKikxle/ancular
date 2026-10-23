@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 /** Pages anyone can open. Invite pages handle signed-out visitors themselves. */
-const PUBLIC_PREFIXES = ["/login", "/signup", "/auth", "/privacy", "/e/", "/api/"];
+const PUBLIC_PREFIXES = ["/login", "/signup", "/auth", "/privacy", "/waitlist", "/e/", "/api/"];
 const AUTH_PAGES = ["/login", "/signup"];
 
 function isPublic(pathname: string) {

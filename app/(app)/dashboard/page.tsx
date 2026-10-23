@@ -4,6 +4,7 @@ import { getUser } from "@/lib/supabase/server";
 import { KIND_LABELS, formatEventDate, type EventRow } from "@/lib/events";
 import { listPreviewEvents } from "@/lib/preview-events";
 import { listPreviewPhotos } from "@/lib/preview-photos";
+import { getHostStatus, HOST_DECLINED_MESSAGE, HOST_PENDING_MESSAGE } from "@/lib/host-access";
 
 export const metadata: Metadata = { title: "Your events" };
 
@@ -38,6 +39,7 @@ export default async function DashboardPage() {
   }
 
   // Counts for hosted events in one query each
+  const hostStatus = user ? await getHostStatus(supabase) : "approved";
   const hostedIds = user ? hosting.map((m) => m.events!.id) : [];
   if (user && hostedIds.length) {
     const [{ data: photos }, { data: pending }] = await Promise.all([
@@ -52,21 +54,32 @@ export default async function DashboardPage() {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <h1 className="display text-[2.4rem] text-indigo">Your events</h1>
-        <Link href="/events/new" className="btn btn-primary">
-          Create an event
-        </Link>
+        {hostStatus === "pending" || hostStatus === "declined" ? null : (
+          <Link href="/events/new" className="btn btn-primary">
+            Create an event
+          </Link>
+        )}
       </div>
+      {hostStatus === "pending" && (
+        <p className="mt-6 rounded-2xl bg-indigo-soft px-5 py-4 text-indigo">{HOST_PENDING_MESSAGE}</p>
+      )}
+      {hostStatus === "declined" && (
+        <p className="mt-6 rounded-2xl bg-danger-soft px-5 py-4 text-danger">{HOST_DECLINED_MESSAGE}</p>
+      )}
 
       {hosting.length === 0 && attending.length === 0 && (
         <div className="mt-10 rounded-3xl border-2 border-dashed border-line bg-paper px-6 py-12 text-center">
           <h2 className="text-xl font-bold">No events yet</h2>
           <p className="mx-auto mt-2 max-w-md text-ink-muted">
-            Create an event to upload photos and get an invite link for your guests. If someone sent you an invite
-            link, open it and you&apos;ll find the event here afterwards.
+            {hostStatus === "pending"
+              ? "Once you're approved, you can create an event and send guests an invite link."
+              : "Create an event to upload photos and get an invite link for your guests. If someone sent you an invite link, open it and you'll find the event here afterwards."}
           </p>
-          <Link href="/events/new" className="btn btn-gold mt-6">
-            Create your first event
-          </Link>
+          {hostStatus === "pending" || hostStatus === "declined" ? null : (
+            <Link href="/events/new" className="btn btn-gold mt-6">
+              Create your first event
+            </Link>
+          )}
         </div>
       )}
 

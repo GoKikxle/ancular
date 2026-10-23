@@ -145,8 +145,8 @@ export default async function EventPage({
         {tab === "share" && (
           <SharePanel
             url={inviteUrl(event.invite_code)}
+            inviteCode={event.invite_code}
             eventName={event.name}
-            hostName={event.host_name}
             joinMode={event.join_mode}
           />
         )}

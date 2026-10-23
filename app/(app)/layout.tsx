@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import { getUser } from "@/lib/supabase/server";
@@ -19,11 +20,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-3">
             <span className="hidden max-w-[16rem] truncate text-sm text-ink-muted sm:inline">{name}</span>
             {user ? (
-              <form action={signOut}>
-                <button className="btn btn-quiet btn-sm" type="submit">
-                  Sign out
-                </button>
-              </form>
+              <>
+                <Link href="/settings" className="btn btn-quiet btn-sm">
+                  Settings
+                </Link>
+                <form action={signOut}>
+                  <button className="btn btn-quiet btn-sm" type="submit">
+                    Sign out
+                  </button>
+                </form>
+              </>
             ) : null}
           </div>
         </div>

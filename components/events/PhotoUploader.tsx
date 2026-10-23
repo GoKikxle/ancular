@@ -28,6 +28,7 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
   const [items, setItems] = useState<Item[]>([]);
   const [modelState, setModelState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [dragging, setDragging] = useState(false);
+  const [allowance, setAllowance] = useState<string | null>(null);
   const running = useRef(0);
   const queue = useRef<Item[]>([]);
 
@@ -36,7 +37,19 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
   const failed = items.filter((i) => i.state === "failed").length;
   const facesFound = items.reduce((n, i) => n + (i.faces ?? 0), 0);
 
-  // Warn before closing the tab mid-upload.
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/events/${eventId}/photos`)
+      .then((res) => res.json())
+      .then((data: { allowance?: string | null }) => {
+        if (!cancelled && data.allowance) setAllowance(data.allowance);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
   useEffect(() => {
     if (!busy) return;
     const warn = (e: BeforeUnloadEvent) => e.preventDefault();
@@ -221,6 +234,7 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
         />
         <span className="text-lg font-bold text-indigo">Add photos</span>
         <span className="mt-1 text-ink-muted">Drop JPEGs here or tap to choose. You can add hundreds at once.</span>
+        {allowance && <span className="mt-2 text-sm text-ink-muted">{allowance}</span>}
       </label>
 
       {modelState === "loading" && (

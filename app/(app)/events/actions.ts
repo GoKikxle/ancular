@@ -13,6 +13,7 @@ import {
   updatePreviewEvent,
 } from "@/lib/preview-events";
 import { deletePreviewPhoto, deletePreviewPhotosForEvent } from "@/lib/preview-photos";
+import { getHostStatus, HOST_DECLINED_MESSAGE, HOST_PENDING_MESSAGE } from "@/lib/host-access";
 
 export type FormState = { error?: string; saved?: boolean } | undefined;
 
@@ -43,6 +44,10 @@ export async function createEvent(_: FormState, form: FormData): Promise<FormSta
     const event = await createPreviewEvent(f);
     redirect(`/events/${event.id}?tab=photos`);
   }
+
+  const access = await getHostStatus(supabase);
+  if (access === "pending") return { error: HOST_PENDING_MESSAGE };
+  if (access === "declined") return { error: HOST_DECLINED_MESSAGE };
 
   const { data, error } = await supabase
     .from("events")

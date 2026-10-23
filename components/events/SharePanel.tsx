@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 
-type Props = { url: string; eventName: string; hostName: string | null; joinMode: "open" | "approval" };
+type Props = { url: string; inviteCode: string; eventName: string; joinMode: "open" | "approval" };
 
-export function SharePanel({ url, eventName, hostName, joinMode }: Props) {
+export function SharePanel({ url, inviteCode, eventName, joinMode }: Props) {
   const [svg, setSvg] = useState<string>("");
   const [copied, setCopied] = useState(false);
+  const [whatsAppHref, setWhatsAppHref] = useState<string | null>(null);
 
   useEffect(() => {
     QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#1e2a78", light: "#ffffff" } })
@@ -15,7 +16,11 @@ export function SharePanel({ url, eventName, hostName, joinMode }: Props) {
       .catch(() => setSvg(""));
   }, [url]);
 
-  const message = `Find your photos from ${eventName}${hostName ? ` (${hostName})` : ""} on Ancular. Take one selfie and see every photo you're in: ${url}`;
+  useEffect(() => {
+    const invite = `${window.location.origin}/e/${inviteCode}`;
+    const message = `Find your photos from ${eventName}. Open this link, take one selfie, and you'll only see the pictures you're in. ${invite}`;
+    setWhatsAppHref(`https://wa.me/?text=${encodeURIComponent(message)}`);
+  }, [eventName, inviteCode]);
 
   async function copy() {
     await navigator.clipboard.writeText(url);
@@ -48,10 +53,14 @@ export function SharePanel({ url, eventName, hostName, joinMode }: Props) {
           </button>
         </div>
         <a
-          href={`https://wa.me/?text=${encodeURIComponent(message)}`}
+          href={whatsAppHref ?? undefined}
           target="_blank"
           rel="noreferrer"
           className="btn btn-quiet mt-3"
+          aria-disabled={whatsAppHref ? undefined : true}
+          onClick={(e) => {
+            if (!whatsAppHref) e.preventDefault();
+          }}
         >
           Share on WhatsApp
         </a>
