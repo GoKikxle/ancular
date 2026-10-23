@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { plainError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/client";
 
 type Mode = "login" | "signup";
@@ -61,7 +62,7 @@ export function AuthForm({ mode, next, initialError }: Props) {
       }
       window.location.href = destination;
     } catch (err) {
-      setError(err instanceof Error ? friendly(err.message) : "Something went wrong. Try again.");
+      setError(err instanceof Error ? plainError(err.message, "Something went wrong. Try again.") : "Something went wrong. Try again.");
       setLoading(false);
     }
   }
@@ -79,7 +80,7 @@ export function AuthForm({ mode, next, initialError }: Props) {
     });
     setLoading(false);
     if (err) {
-      setError(friendly(err.message));
+      setError(plainError(err.message, "Could not send the sign-in link. Try again."));
       return;
     }
     setSentTo(email);
@@ -190,11 +191,3 @@ export function AuthForm({ mode, next, initialError }: Props) {
   );
 }
 
-function friendly(message: string) {
-  const m = message.toLowerCase();
-  if (m.includes("invalid login")) return "That email and password don't match. Try again or use a sign-in link.";
-  if (m.includes("already registered")) return "There's already an account with this email. Sign in instead.";
-  if (m.includes("rate limit") || m.includes("too many")) return "Too many attempts. Wait a minute and try again.";
-  if (m.includes("password")) return message;
-  return message;
-}

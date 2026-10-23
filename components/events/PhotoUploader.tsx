@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { plainError } from "@/lib/errors";
 import { detectAllFaces, loadFaceApi, toVectorLiteral } from "@/lib/face";
 import { DETECT_MAX, PREVIEW_MAX, THUMB_MAX, canvasToJpeg, drawScaled, loadBitmap } from "@/lib/image";
 
@@ -20,7 +21,7 @@ const CONCURRENCY = 2;
 
 async function put(target: UploadTarget, body: Blob) {
   const res = await fetch(target.url, { method: "PUT", headers: target.headers, body });
-  if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+  if (!res.ok) throw new Error("Upload failed");
 }
 
 export function PhotoUploader({ eventId }: { eventId: string }) {
@@ -113,7 +114,7 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
               box: f.box,
             }))
           );
-          if (error) throw new Error(error.message);
+          if (error) throw new Error(plainError(error.message, "The upload failed. Try again."));
         }
         await createClient()
           .from("photos")
@@ -141,9 +142,7 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
           error:
             err instanceof Error && /decode|source image/i.test(err.message)
               ? "This file type can't be read. Export it as JPEG and try again."
-              : err instanceof Error
-                ? err.message
-                : "Upload failed",
+              : plainError(err instanceof Error ? err.message : null, "The upload failed. Try again."),
         });
       }
     },
@@ -247,7 +246,7 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
             <p className="font-semibold">
               {busy ? `Uploading: ${done + failed} of ${total} done` : `${done} of ${total} uploaded`}
             </p>
-            <p className="text-sm text-ink-muted">{facesFound} faces found</p>
+            <p className="text-sm text-ink-muted">{facesFound} faces in these photos</p>
           </div>
           <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-indigo-soft">
             <div className="h-full rounded-full bg-indigo transition-[width] duration-300" style={{ width: `${pct}%` }} />

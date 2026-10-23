@@ -29,7 +29,7 @@ export function PhotoGrid({ eventId, photos }: { eventId: string; photos: PhotoR
             <form action={deletePhoto.bind(null, eventId, p.id)} className="absolute right-1 top-1">
               <button
                 type="submit"
-                className="rounded-full bg-paper/90 px-2 py-0.5 text-[0.7rem] font-semibold text-danger opacity-0 focus:opacity-100 group-hover:opacity-100"
+                className="rounded-full bg-paper/95 px-2 py-0.5 text-[0.7rem] font-semibold text-danger sm:opacity-0 sm:focus:opacity-100 sm:group-hover:opacity-100"
               >
                 Remove
               </button>

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getUser } from "@/lib/supabase/server";
 import { PREVIEW_OWNER_ID, getPreviewEvent, getPreviewEventByInviteCode, previewEnabled } from "@/lib/preview-events";
+import { plainError } from "@/lib/errors";
 import { joinPreviewGuest, previewGuestActive, setPreviewGuestConsent } from "@/lib/preview-guest";
 
 export type JoinState = { error?: string } | undefined;
@@ -34,7 +35,7 @@ export async function joinEvent(code: string, _: JoinState, form: FormData): Pro
   }
 
   const { error } = await supabase.rpc("join_event", { p_code: code, p_display_name: name });
-  if (error) return { error: error.message };
+  if (error) return { error: plainError(error.message, "Could not join this event. Try again.") };
   revalidatePath(`/e/${code}`);
 }
 

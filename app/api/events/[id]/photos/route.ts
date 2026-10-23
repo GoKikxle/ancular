@@ -3,6 +3,7 @@ import { getUser } from "@/lib/supabase/server";
 import { getPreviewEvent, previewEnabled } from "@/lib/preview-events";
 import { createPreviewPhoto } from "@/lib/preview-photos";
 import { VARIANTS, photoKey, signUpload } from "@/lib/storage";
+import { plainError } from "@/lib/errors";
 import { capBlock, formatAllowance, photoFileError, type StorageUsage } from "@/lib/limits";
 
 /**
@@ -71,7 +72,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (error || !photo) {
     const status = error?.code === "42501" ? 403 : 400;
     return NextResponse.json(
-      { error: status === 403 ? "Only hosts can add photos to this event." : error?.message ?? "Upload failed" },
+      {
+        error:
+          status === 403
+            ? "Only hosts can add photos to this event."
+            : plainError(error?.message, "The upload failed. Try again."),
+      },
       { status }
     );
   }
@@ -86,10 +92,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       )
     );
     return NextResponse.json({ photoId: photo.id, uploads });
-  } catch (err) {
+  } catch {
     await supabase.from("photos").update({ status: "failed" }).eq("id", photo.id);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Storage isn't set up yet" },
+      { error: "The upload failed. Try again." },
       { status: 500 }
     );
   }

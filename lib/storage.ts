@@ -57,7 +57,7 @@ export async function signUpload(key: string, contentType: string) {
   }
   const admin = createAdminClient();
   const { data, error } = await admin.storage.from(SUPABASE_BUCKET).createSignedUploadUrl(key, { upsert: true });
-  if (error || !data) throw new Error(error?.message ?? "Could not prepare the upload");
+  if (error || !data) throw new Error("Could not prepare the upload.");
   return { url: data.signedUrl, headers: { "Content-Type": contentType, "x-upsert": "true" } };
 }
 
@@ -80,7 +80,7 @@ export async function signDownload(key: string, downloadName?: string) {
   const { data, error } = await admin.storage
     .from(SUPABASE_BUCKET)
     .createSignedUrl(key, 60 * 10, downloadName ? { download: downloadName } : undefined);
-  if (error || !data) throw new Error(error?.message ?? "Photo not found");
+  if (error || !data) throw new Error("Photo not found.");
   return data.signedUrl;
 }
 

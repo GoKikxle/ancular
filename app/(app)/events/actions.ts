@@ -13,6 +13,7 @@ import {
   updatePreviewEvent,
 } from "@/lib/preview-events";
 import { deletePreviewPhoto, deletePreviewPhotosForEvent } from "@/lib/preview-photos";
+import { plainError } from "@/lib/errors";
 import { getHostStatus, HOST_DECLINED_MESSAGE, HOST_PENDING_MESSAGE } from "@/lib/host-access";
 
 export type FormState = { error?: string; saved?: boolean } | undefined;
@@ -64,7 +65,10 @@ export async function createEvent(_: FormState, form: FormData): Promise<FormSta
     .select("id")
     .single();
 
-  if (error || !data) return { error: error?.message ?? "Could not create the event. Try again." };
+  if (error?.code === "42501") {
+    return { error: "You can't create an event until your account is approved." };
+  }
+  if (error || !data) return { error: plainError(error?.message, "Could not create the event. Try again.") };
   redirect(`/events/${data.id}?tab=photos`);
 }
 
@@ -94,7 +98,7 @@ export async function updateEvent(eventId: string, _: FormState, form: FormData)
     })
     .eq("id", eventId);
 
-  if (error) return { error: error.message };
+  if (error) return { error: plainError(error.message, "Could not save this event. Try again.") };
   revalidatePath(`/events/${eventId}`);
   return { saved: true };
 }
@@ -151,10 +155,10 @@ export async function deleteEvent(eventId: string, _: FormState, form: FormData)
   try {
     await deletePrefix(eventPrefix(eventId));
   } catch (err) {
-    return { error: `Couldn't delete the photo files: ${err instanceof Error ? err.message : "unknown error"}` };
+    return { error: "Couldn't delete the photo files. Try again." };
   }
   const { error } = await supabase.from("events").delete().eq("id", eventId);
-  if (error) return { error: error.message };
+  if (error) return { error: plainError(error.message, "Could not delete this event. Try again.") };
   redirect("/dashboard");
 }
 

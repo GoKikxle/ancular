@@ -4,6 +4,7 @@ import { useState } from "react";
 import { grantPreviewConsent, withdrawPreviewConsent } from "@/app/e/[code]/actions";
 import { createClient } from "@/lib/supabase/client";
 import { CONSENT_VERSION } from "@/lib/events";
+import { plainError } from "@/lib/errors";
 import { toVectorLiteral } from "@/lib/face";
 import { ConsentStep } from "./ConsentStep";
 import { SelfieCamera } from "./SelfieCamera";
@@ -51,7 +52,7 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, pr
       p_wording_version: CONSENT_VERSION,
     });
     if (err) {
-      setError(err.message);
+      setError(plainError(err.message, "Could not save that. Try again."));
       return;
     }
     setStage("selfie");
@@ -72,7 +73,7 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, pr
       p_embedding: toVectorLiteral(embedding),
     });
     if (err) {
-      setError(err.message);
+      setError(plainError(err.message, "Could not search just now. Try again."));
       setStage("selfie");
       return;
     }
@@ -95,7 +96,7 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, pr
     }
     const { error: err } = await createClient().rpc("withdraw_face_consent", { p_event: eventId });
     if (err) {
-      setError(err.message);
+      setError(plainError(err.message, "Could not withdraw that. Try again."));
       return;
     }
     setMatches([]);

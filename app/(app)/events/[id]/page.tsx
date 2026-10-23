@@ -106,7 +106,7 @@ export default async function EventPage({
       <dl className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-2xl bg-line shadow-[0_0_0_1.5px_var(--line)] sm:max-w-xl">
         {[
           { label: "photos", value: readyPhotos.length },
-          { label: "faces found", value: facesTotal },
+          { label: "faces in photos", value: facesTotal },
           { label: "guests searching", value: consentCount },
         ].map((s) => (
           <div key={s.label} className="bg-paper px-4 py-3">

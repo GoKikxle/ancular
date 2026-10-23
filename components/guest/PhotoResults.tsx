@@ -121,6 +121,25 @@ export function PhotoResults({ matches, onChange, onSearchAgain, onWithdraw }: P
   );
 }
 
+const UNSIGNED_LINK_NOTE =
+  "Couldn't make a link that opens without your login. WhatsApp will still open with this photo's address.";
+
+function directPhotoUrl(value: unknown) {
+  if (typeof value !== "string") return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    if (url.pathname.includes("/api/photos/")) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function whatsAppPhotoHref(photoUrl: string) {
+  return `https://wa.me/?text=${encodeURIComponent(`A photo of you. ${photoUrl}`)}`;
+}
+
 function PhotoViewer({
   photoId,
   ids,
@@ -136,6 +155,8 @@ function PhotoViewer({
   const prev = index > 0 ? ids[index - 1] : null;
   const next = index < ids.length - 1 ? ids[index + 1] : null;
   const [sharing, setSharing] = useState(false);
+  const [whatsAppHref, setWhatsAppHref] = useState<string | null>(null);
+  const [linkNote, setLinkNote] = useState<string | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -151,14 +172,42 @@ function PhotoViewer({
     };
   }, [prev, next, onClose, onNavigate]);
 
-  async function share() {
-    const viewUrl = `${window.location.origin}/api/photos/${photoId}/preview`;
-    if (typeof navigator.share !== "function") {
-      const message = `A photo of you. ${viewUrl}`;
-      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
-      return;
-    }
+  useEffect(() => {
+    let cancelled = false;
+    setWhatsAppHref(null);
+    setLinkNote(null);
 
+    const fallback = `${window.location.origin}/api/photos/${photoId}/preview`;
+    (async () => {
+      let photoUrl = fallback;
+      let note: string | null = UNSIGNED_LINK_NOTE;
+      try {
+        const response = await fetch(`/api/photos/${photoId}/preview?link`, { cache: "no-store" });
+        if (response.ok) {
+          const data = (await response.json()) as { url?: unknown };
+          const signed = directPhotoUrl(data.url);
+          if (signed) {
+            photoUrl = signed;
+            note = null;
+          }
+        }
+      } catch {
+        photoUrl = fallback;
+      }
+      if (cancelled) return;
+      setLinkNote(note);
+      setWhatsAppHref(whatsAppPhotoHref(photoUrl));
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [photoId]);
+
+  async function share() {
+    if (typeof navigator.share !== "function") return;
+
+    const viewUrl = `${window.location.origin}/api/photos/${photoId}/preview`;
     setSharing(true);
     try {
       let file: File | null = null;
@@ -185,7 +234,7 @@ function PhotoViewer({
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Photo" className="fixed inset-0 z-50 flex flex-col bg-indigo-deep/97">
+    <div role="dialog" aria-modal="true" aria-label="Photo" className="fixed inset-0 z-50 flex flex-col bg-indigo-deep">
       <div className="flex items-center justify-between px-4 py-3 text-white">
         <span className="text-sm text-white/70">
           {index + 1} of {ids.length}
@@ -208,13 +257,28 @@ function PhotoViewer({
           </button>
         )}
       </div>
-      <div className="flex gap-3 px-4 pb-[calc(1rem+var(--safe-bottom))] pt-3">
-        <a href={`/api/photos/${photoId}/original?download`} className="btn btn-gold flex-1">
-          Save full size
+      <div className="flex flex-col gap-3 px-4 pb-[calc(1rem+var(--safe-bottom))] pt-3">
+        <a
+          href={whatsAppHref ?? undefined}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`btn btn-gold w-full${whatsAppHref ? "" : " pointer-events-none opacity-55"}`}
+          aria-disabled={whatsAppHref ? undefined : true}
+          onClick={(event) => {
+            if (!whatsAppHref) event.preventDefault();
+          }}
+        >
+          {whatsAppHref ? "Send on WhatsApp" : "Preparing…"}
         </a>
-        <button type="button" onClick={share} disabled={sharing} className="btn btn-on-indigo flex-1">
-          {sharing ? "Preparing…" : "Share"}
-        </button>
+        {linkNote && <p className="text-center text-sm text-white/80">{linkNote}</p>}
+        <div className="flex gap-3">
+          <a href={`/api/photos/${photoId}/original?download`} className="btn btn-gold flex-1">
+            Save full size
+          </a>
+          <button type="button" onClick={share} disabled={sharing} className="btn btn-on-indigo flex-1">
+            {sharing ? "Preparing…" : "Share"}
+          </button>
+        </div>
       </div>
     </div>
   );

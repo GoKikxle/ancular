@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { plainError } from "@/lib/errors";
 import { createAdminClient, getUser } from "@/lib/supabase/server";
 
 export type SettingsState = { error?: string; saved?: string } | undefined;
@@ -19,7 +20,7 @@ export async function updateProfile(_: SettingsState, form: FormData): Promise<S
       ? { data: { full_name: name.slice(0, 80) } }
       : { email, data: { full_name: name.slice(0, 80) } }
   );
-  if (error) return { error: error.message };
+  if (error) return { error: plainError(error.message, "Could not save your details. Try again.") };
 
   if (email !== user.email) {
     return { saved: "Name saved. Check your inbox to confirm the new email." };
@@ -50,7 +51,7 @@ export async function deleteAccount(_: SettingsState, form: FormData): Promise<S
   try {
     const admin = createAdminClient();
     const { error } = await admin.auth.admin.deleteUser(user.id);
-    if (error) return { error: error.message };
+    if (error) return { error: plainError(error.message, "Could not delete the account. Try again.") };
   } catch {
     return { error: "Account deletion isn't set up on this server yet." };
   }
