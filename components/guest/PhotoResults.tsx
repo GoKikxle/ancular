@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Match } from "./GuestFinder";
+import { SaveAll } from "./SaveAll";
 
 type Props = {
   eventName: string;
@@ -12,12 +13,16 @@ type Props = {
   onWithdraw: () => Promise<void>;
 };
 
+/**
+ * The page every guest judges Ancular by. One job: get them their photos.
+ * Order: how many photos, Save all, the photos, unsure ones, then "missing some?".
+ */
 export function PhotoResults({ eventName, matches, onChange, onSearchAgain, onWithdraw }: Props) {
   const [open, setOpen] = useState<string | null>(null);
-  const [confirmWithdraw, setConfirmWithdraw] = useState(false);
 
   const yours = matches.filter((m) => m.confidence === "sure" || m.confirmed);
   const maybe = matches.filter((m) => m.confidence === "maybe" && !m.confirmed);
+  const ids = yours.map((m) => m.photo_id);
 
   async function answer(photoId: string, isMe: boolean) {
     await createClient()
@@ -33,95 +38,198 @@ export function PhotoResults({ eventName, matches, onChange, onSearchAgain, onWi
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="display text-[2.2rem] text-indigo">
-            {yours.length === 0 ? "No photos found yet" : `${yours.length} ${yours.length === 1 ? "photo" : "photos"} of you`}
-          </h2>
-          <p className="mt-1 text-ink-muted">
-            {yours.length === 0
-              ? "The host may still be uploading. Check back later, or try a clearer selfie."
-              : "Tap a photo to see it full size and save it."}
-          </p>
-        </div>
-        <button type="button" className="btn btn-quiet btn-sm" onClick={onSearchAgain}>
-          Search again
-        </button>
-      </div>
-
       {yours.length > 0 && (
-        <ul className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {yours.map((m) => (
-            <li key={m.photo_id}>
-              <button
-                type="button"
-                onClick={() => setOpen(m.photo_id)}
-                className="block aspect-square w-full overflow-hidden rounded-xl bg-indigo-soft shadow-[0_0_0_2px_var(--gold)]"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/api/photos/${m.photo_id}/thumb`} alt="A photo you're in" loading="lazy" className="h-full w-full object-cover" />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+        <>
+          <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-10">
+            <div>
+              <h1 className="display">
+                {yours.length} {yours.length === 1 ? "photo" : "photos"} of you
+              </h1>
+              <p className="t-lead t-muted mt-4">Only you can see these.</p>
+            </div>
+            <SaveAll photoIds={ids} eventName={eventName} />
+          </header>
 
-      {maybe.length > 0 && (
-        <section className="mt-12">
-          <h3 className="text-xl font-bold">Is this you?</h3>
-          <p className="mt-1 text-ink-muted">We&apos;re not sure about these. Tell us and we&apos;ll sort them.</p>
-          <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {maybe.map((m) => (
-              <li key={m.photo_id} className="overflow-hidden rounded-xl bg-paper shadow-[0_0_0_1.5px_var(--line)]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/api/photos/${m.photo_id}/thumb`} alt="A photo that might include you" loading="lazy" className="aspect-square w-full object-cover" />
-                <div className="grid grid-cols-2 gap-px bg-line">
-                  <button type="button" className="bg-paper py-2.5 text-sm font-semibold text-ink-muted" onClick={() => answer(m.photo_id, false)}>
-                    Not me
-                  </button>
-                  <button type="button" className="bg-paper py-2.5 text-sm font-semibold text-indigo" onClick={() => answer(m.photo_id, true)}>
-                    That&apos;s me
-                  </button>
-                </div>
+          <ul aria-label="Your photos" className="mt-8 columns-2 gap-2 md:mt-12 md:columns-3 md:gap-8 lg:columns-4">
+            {yours.map((m, i) => (
+              <li key={m.photo_id} className="mb-2 break-inside-avoid md:mb-8">
+                <button
+                  type="button"
+                  onClick={() => setOpen(m.photo_id)}
+                  className="block w-full"
+                  aria-label={`Open photo ${i + 1} of ${yours.length}`}
+                >
+                  <Photo id={m.photo_id} alt="A photo you're in" />
+                </button>
               </li>
             ))}
           </ul>
-        </section>
+
+          {maybe.length > 0 && <UnsureRow maybe={maybe} onAnswer={answer} />}
+        </>
       )}
 
-      <section className="mt-16 border-t border-line pt-6">
-        {!confirmWithdraw ? (
-          <button type="button" className="text-sm font-semibold text-ink-muted underline underline-offset-4" onClick={() => setConfirmWithdraw(true)}>
-            Delete my face data for this event
-          </button>
-        ) : (
-          <div className="rounded-2xl bg-danger-soft p-4">
-            <p className="font-semibold">Delete your face data and results for this event?</p>
-            <p className="mt-1 text-sm">Your list of photos here will be cleared. You can search again later if you agree again.</p>
-            <div className="mt-3 flex gap-2">
-              <button type="button" className="btn btn-sm btn-quiet" onClick={() => setConfirmWithdraw(false)}>
-                Keep it
-              </button>
-              <button type="button" className="btn btn-sm btn-danger" onClick={onWithdraw}>
-                Delete
-              </button>
+      {yours.length === 0 && maybe.length > 0 && (
+        <>
+          <h1 className="display">We might have found you</h1>
+          <p className="t-lead t-muted mt-4 max-w-md">
+            We&apos;re not sure about {maybe.length === 1 ? "this one" : `these ${maybe.length}`}. Tell us which are you.
+          </p>
+          <ul className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 md:mt-12 lg:grid-cols-3">
+            {maybe.map((m) => (
+              <li key={m.photo_id}>
+                <UnsureCard photoId={m.photo_id} onAnswer={answer} large />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {yours.length === 0 && maybe.length === 0 && (
+        <>
+          <h1 className="display">No photos of you yet</h1>
+          <p className="t-lead t-muted mt-4">That usually means one of two things.</p>
+          <dl className="mt-8 max-w-md border-t border-hairline">
+            <div className="border-b border-hairline py-4">
+              <dt className="t-item">The photos are still going up</dt>
+              <dd className="t-item-sub mt-1">Hosts often upload over a few days. Open this link again later.</dd>
             </div>
-          </div>
-        )}
-      </section>
+            <div className="border-b border-hairline py-4">
+              <dt className="t-item">The selfie was hard to read</dt>
+              <dd className="t-item-sub mt-1">Try again facing a window, with just you in the picture.</dd>
+            </div>
+          </dl>
+          <button type="button" className="btn btn-primary btn-lg mt-8" onClick={onSearchAgain}>
+            Take another selfie
+          </button>
+        </>
+      )}
+
+      <PageFoot showRetry={yours.length > 0 || maybe.length > 0} onSearchAgain={onSearchAgain} onWithdraw={onWithdraw} />
 
       {open && (
-        <PhotoViewer
-          eventName={eventName}
-          photoId={open}
-          ids={yours.map((m) => m.photo_id)}
-          onNavigate={setOpen}
-          onClose={() => setOpen(null)}
-        />
+        <PhotoViewer eventName={eventName} photoId={open} ids={ids} onNavigate={setOpen} onClose={() => setOpen(null)} />
       )}
     </div>
   );
 }
+
+/** Thumbnail on phones, the larger preview on wide screens. Grey until it arrives. */
+function Photo({ id, alt }: { id: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <span className={`media block ${loaded ? "" : "skeleton aspect-[4/5]"}`}>
+      <picture>
+        <source media="(min-width: 768px)" srcSet={`/api/photos/${id}/preview`} />
+        <img
+          src={`/api/photos/${id}/thumb`}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          ref={(el) => {
+            if (el?.complete && el.naturalWidth > 0 && !loaded) requestAnimationFrame(() => setLoaded(true));
+          }}
+          data-loaded={loaded}
+          className="fade-in block h-auto w-full"
+        />
+      </picture>
+    </span>
+  );
+}
+
+function UnsureRow({ maybe, onAnswer }: { maybe: Match[]; onAnswer: (id: string, isMe: boolean) => void }) {
+  return (
+    <section className="mt-16 border-t border-hairline pt-8 md:mt-24 md:pt-10">
+      <h2 className="t-title">
+        Is this you? <span className="text-ink-4">{maybe.length}</span>
+      </h2>
+      <p className="t-item-sub mt-2">We&apos;re not sure about these. Tap yes and they join your photos.</p>
+      <ul className="-mx-4 mt-6 flex snap-x gap-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
+        {maybe.map((m) => (
+          <li key={m.photo_id} className="w-[44%] shrink-0 snap-start sm:w-56">
+            <UnsureCard photoId={m.photo_id} onAnswer={onAnswer} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function UnsureCard({
+  photoId,
+  onAnswer,
+  large = false,
+}: {
+  photoId: string;
+  onAnswer: (id: string, isMe: boolean) => void;
+  large?: boolean;
+}) {
+  return (
+    <div>
+      <div className="media aspect-[4/5]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`/api/photos/${photoId}/${large ? "preview" : "thumb"}`}
+          alt="A photo that might include you"
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <div className="mt-2 flex gap-2">
+        <button type="button" className="btn btn-sm btn-quiet flex-1" onClick={() => onAnswer(photoId, false)}>
+          {large ? "Not me" : "No"}
+        </button>
+        <button type="button" className="btn btn-sm btn-primary flex-1" onClick={() => onAnswer(photoId, true)}>
+          {large ? "Yes, that's me" : "Yes"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PageFoot({
+  showRetry,
+  onSearchAgain,
+  onWithdraw,
+}: {
+  showRetry: boolean;
+  onSearchAgain: () => void;
+  onWithdraw: () => Promise<void>;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  return (
+    <footer className="mt-16 flex flex-col gap-6 border-t border-hairline pt-8 md:mt-24 md:flex-row md:items-center md:justify-between">
+      {showRetry ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="t-item">Missing some photos?</p>
+          <button type="button" className="btn btn-sm btn-quiet" onClick={onSearchAgain}>
+            Take another selfie
+          </button>
+        </div>
+      ) : (
+        <span />
+      )}
+      {!confirming ? (
+        <button type="button" className="t-meta self-start underline underline-offset-4 hover:text-ink-2 md:self-auto" onClick={() => setConfirming(true)}>
+          Delete my face data for this event
+        </button>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="t-ui mr-2">Delete your face data and results for this event?</p>
+          <button type="button" className="btn btn-sm btn-quiet" onClick={() => setConfirming(false)}>
+            Keep it
+          </button>
+          <button type="button" className="btn btn-sm btn-danger" onClick={onWithdraw}>
+            Delete
+          </button>
+        </div>
+      )}
+    </footer>
+  );
+}
+
+/* ---------- Sending one photo ---------- */
 
 /** Accept only a direct storage URL, never our own login-only /api/photos address. */
 function directPhotoUrl(value: unknown) {
@@ -205,40 +313,43 @@ function SendPhoto({ photoId, eventName }: { photoId: string; eventName: string 
     }
   }
 
+  const note =
+    problem ??
+    (mode.kind === "file"
+      ? "Choose WhatsApp, or any app, from the list."
+      : mode.kind === "link"
+        ? `Sends a link to this photo that works for ${mode.days} days.`
+        : mode.kind === "none"
+          ? "Save the photo, then send it from WhatsApp."
+          : " ");
+
   return (
-    <div className="flex flex-col gap-3 px-4 pb-[calc(1rem+var(--safe-bottom))] pt-3">
-      {mode.kind === "file" && (
-        <button type="button" className="btn btn-gold w-full" onClick={() => shareFile(mode.file)}>
-          Send on WhatsApp
-        </button>
-      )}
-      {mode.kind === "link" && (
-        <a href={mode.href} target="_blank" rel="noopener noreferrer" className="btn btn-gold w-full">
-          Send on WhatsApp
-        </a>
-      )}
-      {mode.kind === "loading" && (
-        <button type="button" className="btn btn-gold w-full" disabled>
-          Getting the photo ready…
-        </button>
-      )}
-
-      {mode.kind === "file" && <p className="text-center text-sm text-white/70">Choose WhatsApp, or any app, from the list.</p>}
-      {mode.kind === "link" && (
-        <p className="text-center text-sm text-white/70">Sends a link to this photo that works for {mode.days} days.</p>
-      )}
-      {mode.kind === "none" && (
-        <p className="text-center text-sm text-white/80">Save the photo, then send it from WhatsApp.</p>
-      )}
-      {problem && (
-        <p role="alert" className="text-center text-sm text-white">
-          {problem}
+    <div className="border-t border-hairline px-4 pb-[calc(16px+var(--safe-bottom))] pt-4">
+      <div className="mx-auto flex max-w-md flex-col gap-2">
+        <div className="flex gap-2">
+          {mode.kind === "file" && (
+            <button type="button" className="btn btn-primary btn-lg flex-1" onClick={() => shareFile(mode.file)}>
+              Send on WhatsApp
+            </button>
+          )}
+          {mode.kind === "link" && (
+            <a href={mode.href} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg flex-1">
+              Send on WhatsApp
+            </a>
+          )}
+          {mode.kind === "loading" && (
+            <button type="button" className="btn btn-primary btn-lg flex-1" disabled>
+              Getting it ready…
+            </button>
+          )}
+          <a href={`/api/photos/${photoId}/original?download`} className="btn btn-quiet btn-lg flex-1">
+            Save full size
+          </a>
+        </div>
+        <p role={problem ? "alert" : undefined} className="t-meta text-center">
+          {note}
         </p>
-      )}
-
-      <a href={`/api/photos/${photoId}/original?download`} className="btn btn-on-indigo w-full">
-        Save full size
-      </a>
+      </div>
     </div>
   );
 }
@@ -259,6 +370,7 @@ function PhotoViewer({
   const index = ids.indexOf(photoId);
   const prev = index > 0 ? ids[index - 1] : null;
   const next = index < ids.length - 1 ? ids[index + 1] : null;
+  const touchX = useRef<number | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -275,30 +387,66 @@ function PhotoViewer({
   }, [prev, next, onClose, onNavigate]);
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Photo" className="fixed inset-0 z-50 flex flex-col bg-indigo-deep">
-      <div className="flex items-center justify-between px-4 py-3 text-white">
-        <span className="text-sm text-white/70">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Photo ${index + 1} of ${ids.length}`}
+      className="fixed inset-0 z-50 flex flex-col bg-page"
+      onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+      onTouchEnd={(e) => {
+        if (touchX.current === null) return;
+        const dx = e.changedTouches[0].clientX - touchX.current;
+        if (dx > 50 && prev) onNavigate(prev);
+        if (dx < -50 && next) onNavigate(next);
+        touchX.current = null;
+      }}
+    >
+      <div className="flex h-[49px] shrink-0 items-center justify-between border-b border-hairline px-3 sm:px-4">
+        <span className="t-ui">
           {index + 1} of {ids.length}
         </span>
-        <button type="button" onClick={onClose} className="btn btn-sm btn-on-indigo">
+        <button type="button" onClick={onClose} className="btn btn-sm btn-quiet">
           Close
         </button>
       </div>
-      <div className="relative flex min-h-0 flex-1 items-center justify-center px-2">
+      <div className="relative flex min-h-0 flex-1 items-center justify-center p-4 md:p-10">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`/api/photos/${photoId}/preview`} alt="A photo you're in" className="max-h-full max-w-full rounded-lg object-contain" />
+        <img
+          key={photoId}
+          src={`/api/photos/${photoId}/preview`}
+          alt={`Photo ${index + 1} of ${ids.length}`}
+          className="max-h-full max-w-full rounded-[2px] object-contain"
+        />
         {prev && (
-          <button type="button" onClick={() => onNavigate(prev)} aria-label="Previous photo" className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-2xl text-white">
-            ‹
+          <button
+            type="button"
+            onClick={() => onNavigate(prev)}
+            aria-label="Previous photo"
+            className="absolute left-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-fill hover:bg-[var(--fill-hover)] sm:grid"
+          >
+            <Chevron dir="left" />
           </button>
         )}
         {next && (
-          <button type="button" onClick={() => onNavigate(next)} aria-label="Next photo" className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-2xl text-white">
-            ›
+          <button
+            type="button"
+            onClick={() => onNavigate(next)}
+            aria-label="Next photo"
+            className="absolute right-3 top-1/2 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-fill hover:bg-[var(--fill-hover)] sm:grid"
+          >
+            <Chevron dir="right" />
           </button>
         )}
       </div>
       <SendPhoto key={photoId} photoId={photoId} eventName={eventName} />
     </div>
+  );
+}
+
+function Chevron({ dir }: { dir: "left" | "right" }) {
+  return (
+    <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={dir === "left" ? "M10 3 5 8l5 5" : "M6 3l5 5-5 5"} />
+    </svg>
   );
 }

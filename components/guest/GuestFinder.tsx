@@ -107,7 +107,7 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, pr
   return (
     <div>
       {error && (
-        <p role="alert" className="mb-6 rounded-xl bg-danger-soft px-4 py-3 text-danger">
+        <p role="alert" className="t-ui mb-6 rounded-[4px] bg-danger-soft px-3 py-2.5 !text-danger">
           {error}
         </p>
       )}
@@ -132,21 +132,16 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, pr
       )}
 
       {stage === "searching" && (
-        <div className="py-16 text-center" aria-live="polite">
-          <svg viewBox="0 0 48 48" className="mx-auto h-16 w-16" aria-hidden="true">
-            <circle cx="24" cy="24" r="9" fill="var(--indigo)" />
-            <circle
-              cx="24"
-              cy="24"
-              r="20"
-              fill="none"
-              stroke="var(--gold)"
-              strokeWidth="4"
-              strokeDasharray="30 96"
-              className="origin-center animate-spin motion-reduce:animate-none"
-            />
-          </svg>
-          <p className="mt-4 text-lg font-semibold">Looking through the event photos…</p>
+        <div aria-live="polite" aria-busy="true">
+          <h1 className="display">Looking for you…</h1>
+          <p className="t-lead t-muted mt-4">Checking every photo from the event. This takes a few seconds.</p>
+          <ul aria-hidden="true" className="mt-8 columns-2 gap-2 md:mt-12 md:columns-3 md:gap-8 lg:columns-4">
+            {[5, 4, 6, 4, 5, 6, 4, 5].map((h, i) => (
+              <li key={i} className="mb-2 break-inside-avoid md:mb-8">
+                <span className="skeleton block rounded-[2px]" style={{ aspectRatio: `4 / ${h}` }} />
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

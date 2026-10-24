@@ -1,46 +1,83 @@
 @import "tailwindcss";
-@import "@fontsource-variable/bricolage-grotesque/standard.css";
+@import "@fontsource-variable/inter/index.css";
 
 /*
-  Ancular brand tokens
-  Adire: Yoruba indigo resist-dyed cloth. Indigo is the brand surface,
-  "resist white" is the page, aso-oke gold marks the moment you are found.
+  Ancular visual system, measured from swipe.hex.inc.
+
+  Monochrome: white page, black ink, greys made from black at fixed opacities.
+  The photos are the only colour. One family (Inter, standing in for TWK Lausanne)
+  at three weights. Corners: 4px for buttons, 2px for media, round for pills.
+
+  The old token names (indigo, gold, resist…) are kept and pointed at the new
+  palette so every page picks up the new tone without a rename.
 */
 :root {
-  --indigo: #1e2a78;
-  --indigo-deep: #141d57;
-  --indigo-soft: #dfe3f5;
-  --resist: #f3f5fb;
-  --paper: #ffffff;
-  --ink: #18204a;
-  --ink-muted: #59618a;
-  --line: #d6dbee;
-  --gold: #f2b632;
-  --gold-deep: #c98a0c;
-  --green: #1f8a5b;
-  --green-soft: #dcf1e6;
-  --danger: #b4233c;
-  --danger-soft: #fbe4e8;
+  /* Ink: black at the opacities swipe.hex uses */
+  --ink: #000000;
+  --ink-2: rgba(0, 0, 0, 0.78); /* nav, labels */
+  --ink-3: rgba(0, 0, 0, 0.55); /* secondary text */
+  --ink-4: rgba(0, 0, 0, 0.35); /* meta, counts */
 
+  /* Surfaces */
+  --page: #ffffff;
+  --fill: rgba(0, 0, 0, 0.043); /* chips, quiet buttons, fields */
+  --fill-hover: rgba(0, 0, 0, 0.07);
+  --fill-active: rgba(0, 0, 0, 0.06); /* current nav item */
+  --media: #efefef; /* behind photos */
+  --hairline: rgba(0, 0, 0, 0.07);
+  --hairline-strong: rgba(0, 0, 0, 0.14);
+
+  /* Functional only, never decoration */
+  --danger: #c4192f;
+  --danger-soft: rgba(196, 25, 47, 0.08);
+  --success: #157a43;
+
+  /* Legacy names, mapped onto the system */
+  --indigo: var(--ink);
+  --indigo-deep: var(--ink);
+  --indigo-soft: var(--media);
+  --resist: var(--page);
+  --paper: var(--page);
+  --ink-muted: var(--ink-3);
+  --line: var(--hairline);
+  --line-strong: var(--hairline-strong);
+  --gold: var(--ink);
+  --gold-deep: var(--ink);
+  --green: var(--success);
+  --green-soft: rgba(21, 122, 67, 0.08);
+
+  --radius-control: 4px;
+  --radius-media: 2px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @theme inline {
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+  --color-page: var(--page);
+  --color-fill: var(--fill);
+  --color-media: var(--media);
+  --color-hairline: var(--hairline);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+
   --color-indigo: var(--indigo);
   --color-indigo-deep: var(--indigo-deep);
   --color-indigo-soft: var(--indigo-soft);
   --color-resist: var(--resist);
   --color-paper: var(--paper);
-  --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --color-gold: var(--gold);
   --color-gold-deep: var(--gold-deep);
   --color-green: var(--green);
   --color-green-soft: var(--green-soft);
-  --color-danger: var(--danger);
-  --color-danger-soft: var(--danger-soft);
-  --font-sans: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --font-sans: "Inter Variable", Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 html {
@@ -48,12 +85,13 @@ html {
 }
 
 body {
-  background: var(--resist);
+  background: var(--page);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-optical-sizing: auto;
-  line-height: 1.55;
+  font-size: 15px;
+  line-height: 1.35;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100dvh;
 }
 
@@ -61,7 +99,8 @@ body {
   h1,
   h2,
   h3 {
-    line-height: 1.08;
+    font-weight: 600;
+    line-height: 1.1;
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
@@ -69,123 +108,319 @@ body {
     text-wrap: pretty;
   }
   :focus-visible {
-    outline: 3px solid var(--gold);
+    outline: 2px solid var(--ink);
     outline-offset: 2px;
-    border-radius: 6px;
+    border-radius: var(--radius-control);
+  }
+  ::selection {
+    background: var(--ink);
+    color: var(--page);
+  }
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--ink);
   }
 }
 
-/* Condensed display cut of Bricolage for headlines */
-.display {
-  font-stretch: 78%;
-  font-weight: 760;
-  letter-spacing: -0.025em;
-}
+@layer components {
+  /* ---------- Type scale ---------- */
 
-/* Buttons: one primary, one quiet. Sizes tuned for thumbs. */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 48px;
-  padding: 0 1.25rem;
-  border-radius: 999px;
-  font-weight: 620;
-  font-size: 1rem;
-  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
-  white-space: nowrap;
-}
-.btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-.btn-primary {
-  background: var(--indigo);
-  color: #fff;
-}
-.btn-primary:hover:not(:disabled) {
-  background: var(--indigo-deep);
-}
-.btn-gold {
-  background: var(--gold);
-  color: var(--indigo-deep);
-}
-.btn-gold:hover:not(:disabled) {
-  background: #f6c552;
-}
-.btn-quiet {
-  background: transparent;
-  color: var(--indigo);
-  box-shadow: inset 0 0 0 1.5px var(--line);
-}
-.btn-quiet:hover:not(:disabled) {
-  box-shadow: inset 0 0 0 1.5px var(--indigo);
-}
-.btn-on-indigo {
-  background: transparent;
-  color: #fff;
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.45);
-}
-.btn-on-indigo:hover {
-  box-shadow: inset 0 0 0 1.5px #fff;
-}
-.btn-sm {
-  min-height: 38px;
-  padding: 0 0.9rem;
-  font-size: 0.9rem;
-}
-.btn-danger {
-  background: var(--danger);
-  color: #fff;
-}
+  /* Display: 76px semibold, -4% tracking (swipe.hex h1). Scales down on phones. */
+  .display,
+  .t-display {
+    font-size: clamp(2.75rem, 5.2vw + 1rem, 4.75rem);
+    font-weight: 600;
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+  }
+  /* Section title */
+  .t-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+  /* Lead: 15px semibold (swipe.hex intro copy). Pair with .t-muted for the second line. */
+  .t-lead {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  /* Item title and sub (swipe.hex card captions) */
+  .t-item {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .t-item-sub {
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--ink-3);
+  }
+  /* UI text: nav, labels, small actions */
+  .t-ui {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--ink-2);
+  }
+  /* Meta: counts, quiet notes */
+  .t-meta {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.35;
+    color: var(--ink-4);
+  }
+  .t-muted {
+    color: var(--ink-3);
+  }
 
-.field {
-  width: 100%;
-  min-height: 48px;
-  border-radius: 12px;
-  border: 1.5px solid var(--line);
-  background: var(--paper);
-  padding: 0.65rem 0.9rem;
-  font-size: 1rem;
-  color: var(--ink);
-}
-.field:focus {
-  outline: none;
-  border-color: var(--indigo);
-}
-.label {
-  display: block;
-  font-size: 0.92rem;
-  font-weight: 600;
-  margin-bottom: 0.4rem;
-}
-.hint {
-  font-size: 0.85rem;
-  color: var(--ink-muted);
-}
+  /* ---------- Layout ---------- */
 
-/* The "found" ring: plays once, respects reduced motion */
-@keyframes found-ring {
-  0% {
-    transform: scale(2.6);
+  .container-page {
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: 16px;
+  }
+  @media (min-width: 768px) {
+    .container-page {
+      padding-inline: 40px;
+    }
+  }
+
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    height: 49px;
+    background: var(--page);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  /* ---------- Buttons ---------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: var(--radius-control);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.12s ease, color 0.12s ease, opacity 0.12s ease;
+  }
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .btn-primary,
+  .btn-gold {
+    background: var(--ink);
+    color: var(--page);
+  }
+  .btn-primary:hover:not(:disabled),
+  .btn-gold:hover:not(:disabled) {
+    background: #222222;
+  }
+  .btn-quiet {
+    background: var(--fill);
+    color: var(--ink);
+  }
+  .btn-quiet:hover:not(:disabled) {
+    background: var(--fill-hover);
+  }
+  .btn-on-indigo {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+  }
+  .btn-on-indigo:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  .btn-danger {
+    background: var(--danger);
+    color: #ffffff;
+  }
+  /* swipe.hex "Get in touch": 32px tall, 7×10 padding */
+  .btn-sm {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 0.875rem;
+  }
+  .btn-lg {
+    min-height: 48px;
+    padding: 0 20px;
+    font-size: 0.9375rem;
+  }
+
+  /* ---------- Pills (swipe.hex filters) ---------- */
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+    padding: 0 11px;
+    border-radius: 999px;
+    background: var(--fill);
+    color: var(--ink-2);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background-color 0.12s ease;
+  }
+  .pill:hover {
+    background: var(--fill-hover);
+  }
+  .pill[aria-pressed="true"],
+  .pill[aria-current="page"],
+  .pill[aria-current="true"] {
+    background: var(--ink);
+    color: var(--page);
+  }
+  .pill .count {
+    font-size: 0.6875rem;
+    color: var(--ink-4);
+    font-variant-numeric: tabular-nums;
+  }
+  .pill[aria-pressed="true"] .count,
+  .pill[aria-current] .count {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  /* Nav link (swipe.hex top nav) */
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 8px;
+    border-radius: var(--radius-control);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .nav-link:hover {
+    color: var(--ink);
+  }
+  .nav-link[aria-current="page"] {
+    background: var(--fill-active);
+    color: var(--ink);
+  }
+
+  /* ---------- Fields ---------- */
+
+  .field {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: var(--fill);
+    color: var(--ink);
+    font-size: 1rem; /* 16px stops iOS zooming in */
+    font-weight: 500;
+  }
+  textarea.field {
+    padding-block: 10px;
+    line-height: 1.4;
+  }
+  .field::placeholder {
+    color: var(--ink-4);
+  }
+  .field:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 1.5px var(--ink);
+  }
+  .field[aria-invalid="true"] {
+    box-shadow: inset 0 0 0 1.5px var(--danger);
+  }
+  select.field {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 36px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+  }
+  .label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .hint {
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+  }
+
+  /* ---------- Media ---------- */
+
+  .media {
+    background: var(--media);
+    border-radius: var(--radius-media);
+    overflow: hidden;
+  }
+
+  @keyframes shimmer {
+    from {
+      background-position: 150% 0;
+    }
+    to {
+      background-position: -50% 0;
+    }
+  }
+  .skeleton {
+    background: linear-gradient(100deg, var(--media) 30%, #f6f6f6 50%, var(--media) 70%) var(--media);
+    background-size: 250% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+  .fade-in {
     opacity: 0;
+    transition: opacity 0.3s ease;
   }
-  60% {
+  .fade-in[data-loaded="true"] {
     opacity: 1;
   }
-  100% {
-    transform: scale(1);
-    opacity: 1;
+
+  /* The "found" ring (landing page pattern) */
+  @keyframes found-ring {
+    0% {
+      transform: scale(2.6);
+      opacity: 0;
+    }
+    60% {
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
-}
-.found-ring {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: found-ring 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s both;
-}
-@media (prefers-reduced-motion: reduce) {
   .found-ring {
-    animation: none;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: found-ring 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton,
+    .found-ring {
+      animation: none;
+    }
+    .fade-in {
+      transition: none;
+    }
   }
 }

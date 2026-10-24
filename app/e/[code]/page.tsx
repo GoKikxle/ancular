@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AdirePattern } from "@/components/brand/AdirePattern";
-import { Logo } from "@/components/brand/Logo";
+import { AccountButton, SiteHeader } from "@/components/layout/SiteHeader";
 import { GuestFinder, type Match } from "@/components/guest/GuestFinder";
 import { JoinForm } from "@/components/guest/JoinForm";
 import { getUser } from "@/lib/supabase/server";
@@ -71,7 +70,8 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     );
   }
 
-  const header = <EventHeader invite={invite} />;
+  const accountName = user ? ((user.user_metadata?.full_name as string | undefined)?.trim() || user.email || "") : null;
+  const header = <EventHeader invite={invite} accountName={accountName} next={`/e/${code}`} />;
   const next = `/e/${code}`;
   // The preview-guest cookie is for local sample events only. On a live invite it must not
   // show the preview join form, which cannot see this event.
@@ -233,31 +233,38 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   );
 }
 
-function EventHeader({ invite }: { invite: Invite }) {
+function EventHeader({ invite, accountName, next }: { invite: Invite; accountName: string | null; next: string }) {
+  const date = formatEventDate(invite.event_date);
   return (
-    <div className="relative overflow-hidden bg-indigo text-white">
-      <AdirePattern className="absolute inset-0 h-full w-full opacity-40" cols={12} rows={5} found={[9, 2]} />
-      <div className="relative mx-auto max-w-3xl px-4 pb-10 pt-5 sm:px-6">
-        <Logo onIndigo />
-        <p className="mt-10 font-semibold text-gold">
-          {[KIND_LABELS[invite.kind], formatEventDate(invite.event_date)].filter(Boolean).join(", ")}
+    <>
+      <SiteHeader
+        action={
+          accountName !== null ? (
+            <AccountButton name={accountName} />
+          ) : (
+            <Link href={`/login?next=${encodeURIComponent(next)}`} className="btn btn-sm btn-quiet">
+              Sign in
+            </Link>
+          )
+        }
+      />
+      <div className="container-page pt-6 md:pt-10">
+        <p className="t-ui">
+          {invite.name}
+          {date ? `, ${date}` : ` (${KIND_LABELS[invite.kind]})`}
         </p>
-        <h1 className="display mt-2 text-[2.4rem] sm:text-[3.2rem]">{invite.name}</h1>
-        {invite.host_name && <p className="mt-1 text-white/80">Hosted by {invite.host_name}</p>}
       </div>
-    </div>
+    </>
   );
 }
 
 function Shell({ children, header, wide }: { children: React.ReactNode; header?: React.ReactNode; wide?: boolean }) {
   return (
     <div className="min-h-dvh">
-      {header ?? (
-        <div className="mx-auto max-w-3xl px-4 pt-5 sm:px-6">
-          <Logo />
-        </div>
-      )}
-      <main className={`mx-auto px-4 py-10 sm:px-6 ${wide ? "max-w-3xl" : "max-w-md"}`}>{children}</main>
+      {header ?? <SiteHeader />}
+      <main className="container-page pb-16 pt-3 md:pb-24">
+        <div className={wide ? "" : "max-w-md"}>{children}</div>
+      </main>
     </div>
   );
 }
