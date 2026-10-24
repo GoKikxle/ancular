@@ -55,7 +55,7 @@ export function PhotoResults({ matches, onChange, onSearchAgain, onWithdraw }: P
               <button
                 type="button"
                 onClick={() => setOpen(m.photo_id)}
-                className="block aspect-square w-full overflow-hidden rounded-xl bg-indigo-soft"
+                className="block aspect-square w-full overflow-hidden rounded-xl bg-indigo-soft shadow-[0_0_0_2px_var(--gold)]"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/api/photos/${m.photo_id}/thumb`} alt="A photo you're in" loading="lazy" className="h-full w-full object-cover" />
@@ -247,12 +247,12 @@ function PhotoViewer({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={`/api/photos/${photoId}/preview`} alt="A photo you're in" className="max-h-full max-w-full rounded-lg object-contain" />
         {prev && (
-          <button type="button" onClick={() => onNavigate(prev)} aria-label="Previous photo" className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/15 px-3 py-2 text-2xl text-white">
+          <button type="button" onClick={() => onNavigate(prev)} aria-label="Previous photo" className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-2xl text-white">
             ‹
           </button>
         )}
         {next && (
-          <button type="button" onClick={() => onNavigate(next)} aria-label="Next photo" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/15 px-3 py-2 text-2xl text-white">
+          <button type="button" onClick={() => onNavigate(next)} aria-label="Next photo" className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-2xl text-white">
             ›
           </button>
         )}
@@ -272,11 +272,11 @@ function PhotoViewer({
         </a>
         {linkNote && <p className="text-center text-sm text-white/80">{linkNote}</p>}
         <div className="flex gap-3">
-          <a href={`/api/photos/${photoId}/original?download`} className="btn btn-gold flex-1">
+          <a href={`/api/photos/${photoId}/original?download`} className="btn btn-on-indigo flex-1">
             Save full size
           </a>
           <button type="button" onClick={share} disabled={sharing} className="btn btn-on-indigo flex-1">
-            {sharing ? "Preparing…" : "Share"}
+            {sharing ? "Preparing…" : "Other apps"}
           </button>
         </div>
       </div>

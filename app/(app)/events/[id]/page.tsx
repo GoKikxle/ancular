@@ -106,8 +106,8 @@ export default async function EventPage({
       <dl className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-2xl bg-line shadow-[0_0_0_1.5px_var(--line)] sm:max-w-xl">
         {[
           { label: "photos", value: readyPhotos.length },
-          { label: "faces in photos", value: facesTotal },
-          { label: "guests searching", value: consentCount },
+          { label: "faces", value: facesTotal },
+          { label: "guests", value: consentCount },
         ].map((s) => (
           <div key={s.label} className="bg-paper px-4 py-3">
             <dd className="text-2xl font-bold text-indigo">{s.value.toLocaleString()}</dd>
@@ -115,6 +115,9 @@ export default async function EventPage({
           </div>
         ))}
       </dl>
+      <p className="mt-3 max-w-xl text-sm text-ink-muted">
+        Faces are people found in the photos. Guests are people who agreed and searched.
+      </p>
 
       <nav className="mt-8 flex gap-1 overflow-x-auto border-b border-line" aria-label="Event sections">
         {TABS.map((t) => (

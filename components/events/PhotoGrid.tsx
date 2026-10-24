@@ -23,15 +23,16 @@ export function PhotoGrid({ eventId, photos }: { eventId: string; photos: PhotoR
               loading="lazy"
               className="h-full w-full object-cover"
             />
-            <span className="absolute bottom-1 left-1 rounded-full bg-indigo/85 px-2 py-0.5 text-[0.7rem] font-semibold text-white">
+            <span className="absolute bottom-1.5 left-1.5 rounded-full bg-indigo/90 px-2 py-0.5 text-[0.7rem] font-semibold text-white">
               {p.face_count} {p.face_count === 1 ? "face" : "faces"}
             </span>
-            <form action={deletePhoto.bind(null, eventId, p.id)} className="absolute right-1 top-1">
+            <form action={deletePhoto.bind(null, eventId, p.id)} className="absolute right-1.5 top-1.5">
               <button
                 type="submit"
-                className="rounded-full bg-paper/95 px-2 py-0.5 text-[0.7rem] font-semibold text-danger sm:opacity-0 sm:focus:opacity-100 sm:group-hover:opacity-100"
+                aria-label={`Remove ${p.original_name ?? "this photo"}`}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-paper/95 text-lg font-bold leading-none text-danger shadow-sm sm:opacity-0 sm:focus:opacity-100 sm:group-hover:opacity-100"
               >
-                Remove
+                ×
               </button>
             </form>
           </li>
