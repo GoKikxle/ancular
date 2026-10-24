@@ -13,9 +13,13 @@ export function PhotoGrid({ eventId, photos }: { eventId: string; photos: PhotoR
   return (
     <section>
       <h2 className="sr-only">Uploaded photos</h2>
-      <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 md:gap-4">
+      <ul className="columns-2 gap-2 sm:columns-3 md:columns-4 md:gap-4 lg:columns-5">
         {photos.map((p) => (
-          <li key={p.id} className="media group relative aspect-square">
+          <li
+            key={p.id}
+            className="media group relative mb-2 break-inside-avoid md:mb-4"
+            style={{ aspectRatio: p.width && p.height ? `${p.width} / ${p.height}` : "4 / 5" }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/photos/${p.id}/thumb`}
