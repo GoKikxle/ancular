@@ -154,7 +154,7 @@ export async function deleteEvent(eventId: string, _: FormState, form: FormData)
   // Photos first (storage), then the database rows. Face codes and matches cascade.
   try {
     await deletePrefix(eventPrefix(eventId));
-  } catch (err) {
+  } catch {
     return { error: "Couldn't delete the photo files. Try again." };
   }
   const { error } = await supabase.from("events").delete().eq("id", eventId);

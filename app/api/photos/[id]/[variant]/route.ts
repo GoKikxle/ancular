@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { getPreviewEvent, previewEnabled } from "@/lib/preview-events";
 import { getPreviewPhoto, readPreviewFile } from "@/lib/preview-photos";
-import { VARIANTS, photoKey, signDownload, type Variant } from "@/lib/storage";
+import { SHARE_LINK_SECONDS, VARIANTS, photoKey, signDownload, type Variant } from "@/lib/storage";
 
 /**
  * View or download a photo. Access is decided by row level security:
  * hosts can open any photo in their event, guests only photos they matched.
- * `?link` returns that photo's short-lived storage URL as JSON, for someone
- * who is not signed in. It does not change who can request the link.
+ * `?link` returns a storage URL for that photo as JSON, valid for 7 days, so a guest
+ * can send it to someone who isn't signed in. It does not change who can request the link.
  */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string; variant: string }> }) {
   const { id, variant } = await params;
@@ -60,12 +60,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   let url: string;
   try {
-    url = await signDownload(photoKey(photo.event_id, photo.id, variant as Variant), wantLink ? undefined : filename);
+    url = wantLink
+      ? await signDownload(photoKey(photo.event_id, photo.id, variant as Variant), undefined, SHARE_LINK_SECONDS)
+      : await signDownload(photoKey(photo.event_id, photo.id, variant as Variant), filename);
   } catch {
     return NextResponse.json({ error: "That photo isn't available right now." }, { status: 500 });
   }
   if (wantLink) {
-    return NextResponse.json({ url }, { headers: { "Cache-Control": "private, no-store" } });
+    return NextResponse.json(
+      { url, expiresInDays: SHARE_LINK_SECONDS / 86400 },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
   }
   const res = NextResponse.redirect(url, 302);
   res.headers.set("Cache-Control", "private, max-age=300");

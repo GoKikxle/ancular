@@ -152,6 +152,7 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, pr
 
       {stage === "results" && (
         <PhotoResults
+          eventName={eventName}
           matches={matches}
           onChange={setMatches}
           onSearchAgain={() => setStage("selfie")}

@@ -61,8 +61,11 @@ export async function signUpload(key: string, contentType: string) {
   return { url: data.signedUrl, headers: { "Content-Type": contentType, "x-upsert": "true" } };
 }
 
-/** A short-lived URL to view or download a stored photo. */
-export async function signDownload(key: string, downloadName?: string) {
+/** Longest a signed link can last: R2 (S3) presigned URLs cap at 7 days. */
+export const SHARE_LINK_SECONDS = 7 * 24 * 60 * 60;
+
+/** A URL to view or download a stored photo. Short-lived unless a longer life is asked for. */
+export async function signDownload(key: string, downloadName?: string, expiresIn = 60 * 10) {
   const r = r2();
   if (r) {
     return getSignedUrl(
@@ -73,13 +76,13 @@ export async function signDownload(key: string, downloadName?: string) {
         ResponseContentDisposition: downloadName ? `attachment; filename="${downloadName}"` : undefined,
         ResponseCacheControl: "private, max-age=3600",
       }),
-      { expiresIn: 60 * 10 }
+      { expiresIn }
     );
   }
   const admin = createAdminClient();
   const { data, error } = await admin.storage
     .from(SUPABASE_BUCKET)
-    .createSignedUrl(key, 60 * 10, downloadName ? { download: downloadName } : undefined);
+    .createSignedUrl(key, expiresIn, downloadName ? { download: downloadName } : undefined);
   if (error || !data) throw new Error("Photo not found.");
   return data.signedUrl;
 }

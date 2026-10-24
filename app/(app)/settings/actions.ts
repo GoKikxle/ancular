@@ -28,7 +28,7 @@ export async function updateProfile(_: SettingsState, form: FormData): Promise<S
   return { saved: "Saved." };
 }
 
-export async function clearSearchData(_: SettingsState, _form: FormData): Promise<SettingsState> {
+export async function clearSearchData(): Promise<SettingsState> {
   const { supabase, user } = await getUser();
   if (!user) return { error: "Sign in again." };
   const { error } = await supabase.rpc("clear_my_search_data");

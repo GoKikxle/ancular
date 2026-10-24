@@ -12,7 +12,7 @@ export default function WaitlistPage() {
       <main className="flex flex-1 flex-col justify-center py-10">
         <h1 className="display text-[2.4rem] text-indigo">Join the waitlist</h1>
         <p className="mt-2 text-ink-muted">
-          Ancular is in early access for photographers and church media teams. Guests don't need this. If someone sent
+          Ancular is in early access for photographers and church media teams. Guests don&apos;t need this. If someone sent
           you an invite, open that link instead.
         </p>
         <WaitlistForm />

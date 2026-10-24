@@ -5,13 +5,14 @@ import { createClient } from "@/lib/supabase/client";
 import type { Match } from "./GuestFinder";
 
 type Props = {
+  eventName: string;
   matches: Match[];
   onChange: (m: Match[]) => void;
   onSearchAgain: () => void;
   onWithdraw: () => Promise<void>;
 };
 
-export function PhotoResults({ matches, onChange, onSearchAgain, onWithdraw }: Props) {
+export function PhotoResults({ eventName, matches, onChange, onSearchAgain, onWithdraw }: Props) {
   const [open, setOpen] = useState<string | null>(null);
   const [confirmWithdraw, setConfirmWithdraw] = useState(false);
 
@@ -111,6 +112,7 @@ export function PhotoResults({ matches, onChange, onSearchAgain, onWithdraw }: P
 
       {open && (
         <PhotoViewer
+          eventName={eventName}
           photoId={open}
           ids={yours.map((m) => m.photo_id)}
           onNavigate={setOpen}
@@ -121,9 +123,7 @@ export function PhotoResults({ matches, onChange, onSearchAgain, onWithdraw }: P
   );
 }
 
-const UNSIGNED_LINK_NOTE =
-  "Couldn't make a link that opens without your login. WhatsApp will still open with this photo's address.";
-
+/** Accept only a direct storage URL, never our own login-only /api/photos address. */
 function directPhotoUrl(value: unknown) {
   if (typeof value !== "string") return null;
   try {
@@ -136,16 +136,121 @@ function directPhotoUrl(value: unknown) {
   }
 }
 
-function whatsAppPhotoHref(photoUrl: string) {
-  return `https://wa.me/?text=${encodeURIComponent(`A photo of you. ${photoUrl}`)}`;
+function photoFileName(eventName: string, photoId: string) {
+  const slug = eventName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "ancular";
+  return `${slug}-${photoId.slice(0, 6)}.jpg`;
+}
+
+type SendMode =
+  | { kind: "loading" }
+  /** Phones: the photo itself goes through the share sheet. Nothing expires. */
+  | { kind: "file"; file: File }
+  /** Computers: WhatsApp only takes text from a web page, so a link that lasts a few days. */
+  | { kind: "link"; href: string; days: number }
+  | { kind: "none" };
+
+async function prepareSend(photoId: string, eventName: string): Promise<SendMode> {
+  if (typeof navigator.canShare === "function") {
+    try {
+      const response = await fetch(`/api/photos/${photoId}/preview`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const file = new File([blob], photoFileName(eventName, photoId), { type: blob.type || "image/jpeg" });
+        if (navigator.canShare({ files: [file] })) return { kind: "file", file };
+      }
+    } catch {
+      /* fall through to a link */
+    }
+  }
+
+  try {
+    const response = await fetch(`/api/photos/${photoId}/preview?link`, { cache: "no-store" });
+    if (response.ok) {
+      const data = (await response.json()) as { url?: unknown; expiresInDays?: unknown };
+      const url = directPhotoUrl(data.url);
+      const days = typeof data.expiresInDays === "number" ? Math.floor(data.expiresInDays) : 7;
+      if (url) {
+        const text = `A photo from ${eventName}, shared from Ancular. The link works for ${days} days: ${url}`;
+        return { kind: "link", days, href: `https://wa.me/?text=${encodeURIComponent(text)}` };
+      }
+    }
+  } catch {
+    /* nothing else to try */
+  }
+  return { kind: "none" };
+}
+
+/** Send on WhatsApp + Save. Keyed by photo, so it starts fresh for each one. */
+function SendPhoto({ photoId, eventName }: { photoId: string; eventName: string }) {
+  const [mode, setMode] = useState<SendMode>({ kind: "loading" });
+  const [problem, setProblem] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    prepareSend(photoId, eventName).then((next) => {
+      if (!cancelled) setMode(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [photoId, eventName]);
+
+  async function shareFile(file: File) {
+    setProblem(null);
+    try {
+      await navigator.share({ files: [file] });
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setProblem("Sharing didn't open. Save the photo, then send it from WhatsApp.");
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3 px-4 pb-[calc(1rem+var(--safe-bottom))] pt-3">
+      {mode.kind === "file" && (
+        <button type="button" className="btn btn-gold w-full" onClick={() => shareFile(mode.file)}>
+          Send on WhatsApp
+        </button>
+      )}
+      {mode.kind === "link" && (
+        <a href={mode.href} target="_blank" rel="noopener noreferrer" className="btn btn-gold w-full">
+          Send on WhatsApp
+        </a>
+      )}
+      {mode.kind === "loading" && (
+        <button type="button" className="btn btn-gold w-full" disabled>
+          Getting the photo ready…
+        </button>
+      )}
+
+      {mode.kind === "file" && <p className="text-center text-sm text-white/70">Choose WhatsApp, or any app, from the list.</p>}
+      {mode.kind === "link" && (
+        <p className="text-center text-sm text-white/70">Sends a link to this photo that works for {mode.days} days.</p>
+      )}
+      {mode.kind === "none" && (
+        <p className="text-center text-sm text-white/80">Save the photo, then send it from WhatsApp.</p>
+      )}
+      {problem && (
+        <p role="alert" className="text-center text-sm text-white">
+          {problem}
+        </p>
+      )}
+
+      <a href={`/api/photos/${photoId}/original?download`} className="btn btn-on-indigo w-full">
+        Save full size
+      </a>
+    </div>
+  );
 }
 
 function PhotoViewer({
+  eventName,
   photoId,
   ids,
   onNavigate,
   onClose,
 }: {
+  eventName: string;
   photoId: string;
   ids: string[];
   onNavigate: (id: string) => void;
@@ -154,9 +259,6 @@ function PhotoViewer({
   const index = ids.indexOf(photoId);
   const prev = index > 0 ? ids[index - 1] : null;
   const next = index < ids.length - 1 ? ids[index + 1] : null;
-  const [sharing, setSharing] = useState(false);
-  const [whatsAppHref, setWhatsAppHref] = useState<string | null>(null);
-  const [linkNote, setLinkNote] = useState<string | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -171,67 +273,6 @@ function PhotoViewer({
       document.body.style.overflow = "";
     };
   }, [prev, next, onClose, onNavigate]);
-
-  useEffect(() => {
-    let cancelled = false;
-    setWhatsAppHref(null);
-    setLinkNote(null);
-
-    const fallback = `${window.location.origin}/api/photos/${photoId}/preview`;
-    (async () => {
-      let photoUrl = fallback;
-      let note: string | null = UNSIGNED_LINK_NOTE;
-      try {
-        const response = await fetch(`/api/photos/${photoId}/preview?link`, { cache: "no-store" });
-        if (response.ok) {
-          const data = (await response.json()) as { url?: unknown };
-          const signed = directPhotoUrl(data.url);
-          if (signed) {
-            photoUrl = signed;
-            note = null;
-          }
-        }
-      } catch {
-        photoUrl = fallback;
-      }
-      if (cancelled) return;
-      setLinkNote(note);
-      setWhatsAppHref(whatsAppPhotoHref(photoUrl));
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [photoId]);
-
-  async function share() {
-    if (typeof navigator.share !== "function") return;
-
-    const viewUrl = `${window.location.origin}/api/photos/${photoId}/preview`;
-    setSharing(true);
-    try {
-      let file: File | null = null;
-      try {
-        const response = await fetch(`/api/photos/${photoId}/preview`);
-        if (response.ok) {
-          const blob = await response.blob();
-          file = new File([blob], `ancular-${photoId.slice(0, 6)}.jpg`, { type: blob.type || "image/jpeg" });
-        }
-      } catch {
-        file = null;
-      }
-
-      if (file && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file] });
-      } else {
-        await navigator.share({ text: "A photo of you.", url: viewUrl });
-      }
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return;
-    } finally {
-      setSharing(false);
-    }
-  }
 
   return (
     <div role="dialog" aria-modal="true" aria-label="Photo" className="fixed inset-0 z-50 flex flex-col bg-indigo-deep">
@@ -257,29 +298,7 @@ function PhotoViewer({
           </button>
         )}
       </div>
-      <div className="flex flex-col gap-3 px-4 pb-[calc(1rem+var(--safe-bottom))] pt-3">
-        <a
-          href={whatsAppHref ?? undefined}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`btn btn-gold w-full${whatsAppHref ? "" : " pointer-events-none opacity-55"}`}
-          aria-disabled={whatsAppHref ? undefined : true}
-          onClick={(event) => {
-            if (!whatsAppHref) event.preventDefault();
-          }}
-        >
-          {whatsAppHref ? "Send on WhatsApp" : "Preparing…"}
-        </a>
-        {linkNote && <p className="text-center text-sm text-white/80">{linkNote}</p>}
-        <div className="flex gap-3">
-          <a href={`/api/photos/${photoId}/original?download`} className="btn btn-on-indigo flex-1">
-            Save full size
-          </a>
-          <button type="button" onClick={share} disabled={sharing} className="btn btn-on-indigo flex-1">
-            {sharing ? "Preparing…" : "Other apps"}
-          </button>
-        </div>
-      </div>
+      <SendPhoto key={photoId} photoId={photoId} eventName={eventName} />
     </div>
   );
 }

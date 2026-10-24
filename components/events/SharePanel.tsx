@@ -1,29 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import QRCode from "qrcode";
 
 type Props = { url: string; inviteCode: string; eventName: string; joinMode: "open" | "approval" };
 
+const noSubscribe = () => () => undefined;
+
+/**
+ * One invite link for the QR code, the copy box and WhatsApp.
+ * In the browser it uses the address the host is actually on (so a phone on the same
+ * Wi-Fi gets a link that opens); on the server it uses the configured site address.
+ */
+function useInviteLink(serverUrl: string, inviteCode: string) {
+  const origin = useSyncExternalStore(
+    noSubscribe,
+    () => window.location.origin,
+    () => new URL(serverUrl).origin
+  );
+  return `${origin}/e/${inviteCode}`;
+}
+
 export function SharePanel({ url, inviteCode, eventName, joinMode }: Props) {
+  const link = useInviteLink(url, inviteCode);
   const [svg, setSvg] = useState<string>("");
   const [copied, setCopied] = useState(false);
-  const [whatsAppHref, setWhatsAppHref] = useState<string | null>(null);
 
   useEffect(() => {
-    QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#1e2a78", light: "#ffffff" } })
-      .then(setSvg)
-      .catch(() => setSvg(""));
-  }, [url]);
+    let cancelled = false;
+    QRCode.toString(link, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#1e2a78", light: "#ffffff" } })
+      .then((out) => !cancelled && setSvg(out))
+      .catch(() => !cancelled && setSvg(""));
+    return () => {
+      cancelled = true;
+    };
+  }, [link]);
 
-  useEffect(() => {
-    const invite = `${window.location.origin}/e/${inviteCode}`;
-    const message = `Find your photos from ${eventName}. Open this link, take one selfie, and you'll only see the pictures you're in. ${invite}`;
-    setWhatsAppHref(`https://wa.me/?text=${encodeURIComponent(message)}`);
-  }, [eventName, inviteCode]);
+  const message = `Find your photos from ${eventName}. Open this link, take one selfie, and you'll only see the pictures you're in. ${link}`;
+  const whatsAppHref = `https://wa.me/?text=${encodeURIComponent(message)}`;
 
   async function copy() {
-    await navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(link);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -47,21 +64,12 @@ export function SharePanel({ url, inviteCode, eventName, joinMode }: Props) {
             : "Anyone who opens this link and signs in can search for their photos."}
         </p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-          <input readOnly value={url} className="field font-medium" aria-label="Invite link" onFocus={(e) => e.target.select()} />
+          <input readOnly value={link} className="field font-medium" aria-label="Invite link" onFocus={(e) => e.target.select()} />
           <button type="button" onClick={copy} className="btn btn-primary">
             {copied ? "Copied" : "Copy link"}
           </button>
         </div>
-        <a
-          href={whatsAppHref ?? undefined}
-          target="_blank"
-          rel="noreferrer"
-          className="btn btn-quiet mt-3"
-          aria-disabled={whatsAppHref ? undefined : true}
-          onClick={(e) => {
-            if (!whatsAppHref) e.preventDefault();
-          }}
-        >
+        <a href={whatsAppHref} target="_blank" rel="noreferrer" className="btn btn-quiet mt-3">
           Share on WhatsApp
         </a>
 

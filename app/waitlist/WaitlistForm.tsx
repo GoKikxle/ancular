@@ -12,8 +12,8 @@ export function WaitlistForm() {
   if (state?.done) {
     return (
       <div className="mt-8 rounded-2xl bg-paper p-6 shadow-[0_0_0_1.5px_var(--line)]">
-        <h2 className="text-xl font-bold">You're on the list</h2>
-        <p className="mt-2 text-ink-muted">We'll email you when you can create events.</p>
+        <h2 className="text-xl font-bold">You&apos;re on the list</h2>
+        <p className="mt-2 text-ink-muted">We&apos;ll email you when you can create events.</p>
       </div>
     );
   }
