@@ -7,7 +7,7 @@ export function SiteFooter() {
       <div className="container-page flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="t-meta flex items-center gap-2">
           <span className="text-ink">
-            <LogoMark size={14} />
+            <LogoMark size={14} solid />
           </span>
           Ancular. Made for Nigerian events.
         </div>

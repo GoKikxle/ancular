@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="1 -2 32 32">
+  <style>path,circle{fill:#000}@media (prefers-color-scheme:dark){path,circle{fill:#fff}}</style>
+  <path d="M10.5 6A6 6 0 0 0 10.5 18Z"/>
+  <path fill-rule="evenodd" d="M12 2H20A10 10 0 0 1 20 22H12ZM24 12A4.5 4.5 0 1 0 15 12A4.5 4.5 0 1 0 24 12Z"/>
+  <circle cx="19.5" cy="12" r="2"/>
+</svg>
