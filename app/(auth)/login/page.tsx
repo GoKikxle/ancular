@@ -14,8 +14,8 @@ export default async function LoginPage({
   const invited = !!safeInvitePath(next);
   return (
     <>
-      <h1 className="display text-[2.4rem] text-indigo">Welcome back</h1>
-      <p className="mb-8 mt-2 text-ink-muted">
+      <h1 className="display">Welcome back</h1>
+      <p className="t-lead t-muted mb-8 mt-5">
         {invited ? "Sign in to open your invite and find your photos." : "Sign in to your events."}
       </p>
       <AuthForm
@@ -24,8 +24,8 @@ export default async function LoginPage({
         initialError={error ? "That sign-in link didn't work or has expired. Request a new one." : undefined}
       />
       {process.env.NODE_ENV === "development" && (
-        <p className="mt-6 text-center text-[0.95rem]">
-          <Link href={continueWithoutAccountHref(next)} className="font-semibold text-indigo underline underline-offset-4">
+        <p className="t-meta mt-6">
+          <Link href={continueWithoutAccountHref(next)} className="underline underline-offset-4 hover:text-ink">
             Continue without an account
           </Link>
         </p>

@@ -5,6 +5,15 @@ import { ClearSearchForm, DeleteAccountForm, ProfileForm } from "./SettingsForms
 
 export const metadata: Metadata = { title: "Settings" };
 
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="grid gap-4 border-t border-hairline py-8 md:grid-cols-[1fr_2fr] md:gap-10 md:py-10">
+      <h2 className="t-title">{title}</h2>
+      <div className="max-w-md">{children}</div>
+    </section>
+  );
+}
+
 export default async function SettingsPage() {
   const { user } = await getUser();
   if (!user) redirect("/login?next=/settings");
@@ -12,26 +21,19 @@ export default async function SettingsPage() {
   const name = (user.user_metadata?.full_name as string | undefined)?.trim() ?? "";
 
   return (
-    <div className="mx-auto max-w-xl">
-      <h1 className="display text-[2.4rem] text-indigo">Settings</h1>
-      <section className="mt-8 rounded-2xl bg-paper p-6 shadow-[0_0_0_1.5px_var(--line)]">
-        <h2 className="text-lg font-bold">Account</h2>
-        <div className="mt-4">
+    <div>
+      <h1 className="display">Settings</h1>
+      <div className="mt-10 md:mt-16">
+        <Section title="Account">
           <ProfileForm name={name} email={user.email ?? ""} />
-        </div>
-      </section>
-      <section className="mt-6 rounded-2xl bg-paper p-6 shadow-[0_0_0_1.5px_var(--line)]">
-        <h2 className="text-lg font-bold">Face search</h2>
-        <div className="mt-4">
+        </Section>
+        <Section title="Face search">
           <ClearSearchForm />
-        </div>
-      </section>
-      <section className="mt-6 rounded-2xl bg-paper p-6 shadow-[0_0_0_1.5px_var(--line)]">
-        <h2 className="text-lg font-bold">Delete account</h2>
-        <div className="mt-4">
+        </Section>
+        <Section title="Delete account">
           <DeleteAccountForm />
-        </div>
-      </section>
+        </Section>
+      </div>
     </div>
   );
 }

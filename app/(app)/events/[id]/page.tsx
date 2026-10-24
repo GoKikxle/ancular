@@ -93,53 +93,46 @@ export default async function EventPage({
 
   return (
     <div>
-      <Link href="/dashboard" className="text-sm font-semibold text-indigo">
+      <Link href="/dashboard" className="t-ui hover:text-ink">
         ← Your events
       </Link>
-      <h1 className="display mt-3 text-[2.3rem] text-indigo sm:text-[2.8rem]">{event.name}</h1>
-      <p className="mt-1 text-ink-muted">
+      <h1 className="display mt-4">{event.name}</h1>
+      <p className="t-lead t-muted mt-4">
         {[KIND_LABELS[event.kind], event.host_name, formatEventDate(event.event_date), event.venue]
           .filter(Boolean)
           .join(", ")}
       </p>
 
-      <dl className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-2xl bg-line shadow-[0_0_0_1.5px_var(--line)] sm:max-w-xl">
+      <dl className="mt-8 grid max-w-xl grid-cols-3 border-t border-hairline md:mt-10">
         {[
-          { label: "photos", value: readyPhotos.length },
-          { label: "faces", value: facesTotal },
-          { label: "guests", value: consentCount },
+          { label: "Photos", value: readyPhotos.length },
+          { label: "Faces found", value: facesTotal },
+          { label: "Guests searched", value: consentCount },
         ].map((s) => (
-          <div key={s.label} className="bg-paper px-4 py-3">
-            <dd className="text-2xl font-bold text-indigo">{s.value.toLocaleString()}</dd>
-            <dt className="text-sm text-ink-muted">{s.label}</dt>
+          <div key={s.label} className="flex flex-col-reverse pt-4">
+            <dt className="t-meta">{s.label}</dt>
+            <dd className="t-title tabular-nums">{s.value.toLocaleString()}</dd>
           </div>
         ))}
       </dl>
-      <p className="mt-3 max-w-xl text-sm text-ink-muted">
-        Faces are people found in the photos. Guests are people who agreed and searched.
-      </p>
 
-      <nav className="mt-8 flex gap-1 overflow-x-auto border-b border-line" aria-label="Event sections">
+      <nav className="-mx-4 mt-10 flex gap-1.5 overflow-x-auto px-4 md:mx-0 md:mt-12 md:px-0" aria-label="Event sections">
         {TABS.map((t) => (
           <Link
             key={t.id}
             href={`/events/${id}?tab=${t.id}`}
             aria-current={tab === t.id ? "page" : undefined}
-            className={`-mb-px flex items-center gap-2 whitespace-nowrap border-b-[3px] px-4 py-3 font-semibold ${
-              tab === t.id ? "border-gold text-indigo" : "border-transparent text-ink-muted hover:text-indigo"
-            }`}
+            className="pill"
           >
             {t.label}
-            {t.id === "guests" && pending > 0 && (
-              <span className="rounded-full bg-gold px-2 text-xs font-bold text-indigo-deep">{pending}</span>
-            )}
+            {t.id === "guests" && pending > 0 && <span className="count">{pending}</span>}
           </Link>
         ))}
       </nav>
 
-      <div className="pt-8">
+      <div className="mt-6 border-t border-hairline pt-8 md:pt-10">
         {tab === "photos" && (
-          <div className="space-y-8">
+          <div className="space-y-10">
             <PhotoUploader eventId={id} />
             <PhotoGrid eventId={id} photos={readyPhotos} />
           </div>

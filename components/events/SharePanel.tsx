@@ -28,7 +28,7 @@ export function SharePanel({ url, inviteCode, eventName, joinMode }: Props) {
 
   useEffect(() => {
     let cancelled = false;
-    QRCode.toString(link, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#1e2a78", light: "#ffffff" } })
+    QRCode.toString(link, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#000000", light: "#ffffff" } })
       .then((out) => !cancelled && setSvg(out))
       .catch(() => !cancelled && setSvg(""));
     return () => {
@@ -57,37 +57,37 @@ export function SharePanel({ url, inviteCode, eventName, joinMode }: Props) {
   return (
     <div className="grid gap-8 md:grid-cols-[1fr_auto]">
       <div>
-        <h2 className="text-xl font-bold">Invite link</h2>
-        <p className="mt-1 text-ink-muted">
+        <h2 className="t-title">Invite link</h2>
+        <p className="t-item-sub mt-2 max-w-md">
           {joinMode === "approval"
             ? "Guests who open this link ask to join. You approve them on the Guests tab."
             : "Anyone who opens this link and signs in can search for their photos."}
         </p>
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-5 flex max-w-xl flex-col gap-2 sm:flex-row">
           <input readOnly value={link} className="field font-medium" aria-label="Invite link" onFocus={(e) => e.target.select()} />
-          <button type="button" onClick={copy} className="btn btn-primary">
+          <button type="button" onClick={copy} className="btn btn-primary shrink-0">
             {copied ? "Copied" : "Copy link"}
           </button>
         </div>
-        <a href={whatsAppHref} target="_blank" rel="noreferrer" className="btn btn-quiet mt-3">
+        <a href={whatsAppHref} target="_blank" rel="noreferrer" className="btn btn-quiet mt-2">
           Share on WhatsApp
         </a>
 
-        <div className="mt-8 rounded-2xl bg-indigo-soft p-5">
-          <h3 className="font-bold">Tell guests about face matching</h3>
-          <p className="mt-1 text-[0.95rem] text-ink-muted">
+        <div className="mt-10 max-w-xl border-t border-hairline pt-8">
+          <h3 className="t-item">Tell guests about face matching</h3>
+          <p className="t-item-sub mt-1">
             Add a line like this to the programme, invitation or screen so everyone knows how photos are shared:
           </p>
-          <p className="mt-3 rounded-xl bg-paper p-4 text-[0.95rem]">
+          <p className="mt-4 rounded-[4px] bg-fill p-4 text-[0.875rem] leading-[1.45]">
             &ldquo;Photos from today will be shared privately on Ancular. Scan the QR code and take a selfie to find the
             ones you&apos;re in. Face matching only runs if you agree to it.&rdquo;
           </p>
         </div>
       </div>
 
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-start md:items-center">
         <div
-          className="w-56 rounded-2xl bg-paper p-3 shadow-[0_0_0_1.5px_var(--line)] [&_svg]:h-auto [&_svg]:w-full"
+          className="media w-56 bg-white p-3 shadow-[inset_0_0_0_1px_var(--hairline)] [&_svg]:h-auto [&_svg]:w-full"
           aria-label="QR code for the invite link"
           role="img"
           dangerouslySetInnerHTML={{ __html: svg }}
@@ -95,7 +95,7 @@ export function SharePanel({ url, inviteCode, eventName, joinMode }: Props) {
         <button type="button" onClick={downloadQr} className="btn btn-quiet btn-sm mt-3" disabled={!svg}>
           Download QR code
         </button>
-        <p className="hint mt-2 max-w-56 text-center">Print it on the programme or show it on the screen.</p>
+        <p className="t-meta mt-2 max-w-56 md:text-center">Print it on the programme or show it on the screen.</p>
       </div>
     </div>
   );

@@ -217,8 +217,8 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
           setDragging(false);
           addFiles(e.dataTransfer.files);
         }}
-        className={`flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
-          dragging ? "border-indigo bg-indigo-soft" : "border-line bg-paper hover:border-indigo"
+        className={`flex cursor-pointer flex-col items-center justify-center rounded-[4px] px-6 py-12 text-center transition-colors md:py-16 ${
+          dragging ? "bg-[var(--fill-hover)] shadow-[inset_0_0_0_1.5px_var(--ink)]" : "bg-fill hover:bg-[var(--fill-hover)]"
         }`}
       >
         <input
@@ -231,31 +231,31 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
             e.target.value = "";
           }}
         />
-        <span className="text-lg font-bold text-indigo">Add photos</span>
-        <span className="mt-1 text-ink-muted">Drop JPEGs here or tap to choose. You can add hundreds at once.</span>
-        {allowance && <span className="mt-2 text-sm text-ink-muted">{allowance}</span>}
+        <span className="btn btn-primary btn-sm pointer-events-none">Add photos</span>
+        <span className="t-item-sub mt-3">Drop JPEGs here or tap to choose. You can add hundreds at once.</span>
+        {allowance && <span className="t-meta mt-1">{allowance}</span>}
       </label>
 
       {modelState === "loading" && (
-        <p className="mt-4 text-sm text-ink-muted">Getting the face finder ready. This downloads once (about 12 MB).</p>
+        <p className="t-meta mt-3">Getting the face finder ready. This downloads once (about 12 MB).</p>
       )}
 
       {total > 0 && (
-        <div className="mt-6 rounded-2xl bg-paper p-5 shadow-[0_0_0_1.5px_var(--line)]" aria-live="polite">
+        <div className="mt-6 border-t border-hairline pt-5" aria-live="polite">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <p className="font-semibold">
+            <p className="t-item">
               {busy ? `Uploading: ${done + failed} of ${total} done` : `${done} of ${total} uploaded`}
             </p>
-            <p className="text-sm text-ink-muted">{facesFound} faces in these photos</p>
+            <p className="t-meta">{facesFound} faces in these photos</p>
           </div>
-          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-indigo-soft">
-            <div className="h-full rounded-full bg-indigo transition-[width] duration-300" style={{ width: `${pct}%` }} />
+          <div className="mt-3 h-1 overflow-hidden rounded-full bg-fill">
+            <div className="h-full rounded-full bg-ink transition-[width] duration-300" style={{ width: `${pct}%` }} />
           </div>
-          {busy && <p className="mt-3 text-sm text-ink-muted">Keep this page open until the upload finishes.</p>}
+          {busy && <p className="t-meta mt-3">Keep this page open until the upload finishes.</p>}
           {failed > 0 && (
             <div className="mt-4">
-              <p className="text-sm font-semibold text-danger">{failed} didn&apos;t upload</p>
-              <ul className="mt-1 max-h-32 space-y-1 overflow-auto text-sm text-ink-muted">
+              <p className="t-ui !text-danger">{failed} didn&apos;t upload</p>
+              <ul className="t-meta mt-1 max-h-32 space-y-1 overflow-auto">
                 {items
                   .filter((i) => i.state === "failed")
                   .slice(0, 20)

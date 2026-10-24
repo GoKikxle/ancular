@@ -78,30 +78,30 @@ export function EventFields({ event }: { event?: Partial<EventRow> }) {
 
       <fieldset>
         <legend className="label">Who can join with the invite link?</legend>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="flex cursor-pointer gap-3 rounded-2xl bg-paper p-4 shadow-[0_0_0_1.5px_var(--line)] has-[:checked]:shadow-[0_0_0_2px_var(--indigo)]">
+        <div className="grid gap-2 sm:grid-cols-2">
+          <label className="flex cursor-pointer gap-3 rounded-[4px] bg-fill p-4 hover:bg-[var(--fill-hover)] has-[:checked]:shadow-[inset_0_0_0_1.5px_var(--ink)]">
             <input
               type="radio"
               name="join_mode"
               value="approval"
               defaultChecked={(event?.join_mode ?? "approval") === "approval"}
-              className="mt-1 h-5 w-5 accent-[var(--indigo)]"
+              className="mt-0.5 h-[18px] w-[18px] shrink-0"
             />
             <span>
-              <span className="block font-semibold">I approve each guest</span>
+              <span className="t-item block">I approve each guest</span>
               <span className="hint">Best for weddings and private events.</span>
             </span>
           </label>
-          <label className="flex cursor-pointer gap-3 rounded-2xl bg-paper p-4 shadow-[0_0_0_1.5px_var(--line)] has-[:checked]:shadow-[0_0_0_2px_var(--indigo)]">
+          <label className="flex cursor-pointer gap-3 rounded-[4px] bg-fill p-4 hover:bg-[var(--fill-hover)] has-[:checked]:shadow-[inset_0_0_0_1.5px_var(--ink)]">
             <input
               type="radio"
               name="join_mode"
               value="open"
               defaultChecked={event?.join_mode === "open"}
-              className="mt-1 h-5 w-5 accent-[var(--indigo)]"
+              className="mt-0.5 h-[18px] w-[18px] shrink-0"
             />
             <span>
-              <span className="block font-semibold">Anyone with the link</span>
+              <span className="t-item block">Anyone with the link</span>
               <span className="hint">Easier for big church programmes.</span>
             </span>
           </label>

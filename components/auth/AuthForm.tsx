@@ -88,13 +88,13 @@ export function AuthForm({ mode, next, initialError }: Props) {
 
   if (sentTo) {
     return (
-      <div className="rounded-2xl bg-paper p-6 text-center shadow-[0_0_0_1.5px_var(--line)]">
-        <h2 className="text-xl font-bold">Check your email</h2>
-        <p className="mt-2 text-ink-muted">
+      <div className="rounded-[4px] bg-fill p-5">
+        <h2 className="t-item">Check your email</h2>
+        <p className="t-item-sub mt-1">
           We sent a sign-in link to <strong className="text-ink">{sentTo}</strong>. Open it on this phone to continue.
         </p>
-        <p className="mt-3 text-sm text-ink-muted">Not there after a minute? Check spam or promotions.</p>
-        <button type="button" onClick={() => setSentTo(null)} className="btn btn-quiet btn-sm mt-5">
+        <p className="t-meta mt-3">Not there after a minute? Check spam or promotions.</p>
+        <button type="button" onClick={() => setSentTo(null)} className="btn btn-primary btn-sm mt-4">
           Use a different email
         </button>
       </div>
@@ -154,10 +154,10 @@ export function AuthForm({ mode, next, initialError }: Props) {
       </div>
 
       {!isLogin && (
-        <label className="flex items-start gap-3 text-[0.95rem]">
+        <label className="flex cursor-pointer items-center gap-3 text-[0.875rem] font-medium">
           <input
             type="checkbox"
-            className="mt-1 h-5 w-5 accent-[var(--indigo)]"
+            className="h-[18px] w-[18px]"
             checked={isAdult}
             onChange={(e) => setIsAdult(e.target.checked)}
           />
@@ -166,24 +166,24 @@ export function AuthForm({ mode, next, initialError }: Props) {
       )}
 
       {error && (
-        <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-[0.95rem] text-danger">
+        <p role="alert" className="t-ui rounded-[4px] bg-danger-soft px-3 py-2.5 !text-danger">
           {error}
         </p>
       )}
 
-      <button type="submit" className="btn btn-primary w-full" disabled={loading}>
+      <button type="submit" className="btn btn-primary btn-lg w-full" disabled={loading}>
         {loading ? "One moment…" : isLogin ? "Sign in" : "Create account"}
       </button>
 
       {isLogin && (
-        <button type="button" className="btn btn-quiet w-full" onClick={handleEmailLink} disabled={loading}>
+        <button type="button" className="btn btn-quiet btn-lg w-full" onClick={handleEmailLink} disabled={loading}>
           Email me a sign-in link instead
         </button>
       )}
 
-      <p className="pt-2 text-center text-[0.95rem] text-ink-muted">
+      <p className="t-meta pt-2">
         {isLogin ? "New to Ancular? " : "Already have an account? "}
-        <Link href={switchHref} className="font-semibold text-indigo underline underline-offset-4">
+        <Link href={switchHref} className="font-semibold text-ink underline underline-offset-4">
           {isLogin ? "Create an account" : "Sign in"}
         </Link>
       </p>

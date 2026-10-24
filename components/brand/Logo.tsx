@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 /** Mark: a dot inside a ring, someone found in the crowd. Monochrome, drawn in the current text colour. */
-export function LogoMark({ size = 18 }: { size?: number; onIndigo?: boolean }) {
+export function LogoMark({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" aria-hidden="true">
       <circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" strokeWidth="2.5" />
@@ -11,11 +11,11 @@ export function LogoMark({ size = 18 }: { size?: number; onIndigo?: boolean }) {
 }
 
 /** Wordmark, sized like swipe.hex's: 17px bold next to an 18px mark. */
-export function Logo({ onIndigo = false, href = "/" }: { onIndigo?: boolean; href?: string }) {
+export function Logo({ href = "/" }: { href?: string }) {
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-[7px] ${onIndigo ? "text-white" : "text-ink"}`}
+      className="inline-flex items-center gap-[7px] text-ink"
       aria-label="Ancular home"
     >
       <LogoMark />

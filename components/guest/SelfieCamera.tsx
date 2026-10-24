@@ -88,7 +88,7 @@ export function SelfieCamera({ onFace }: { onFace: (embedding: number[]) => void
   return (
     <div>
       {camera !== "blocked" && (
-        <div className="relative mx-auto aspect-[3/4] w-full max-w-sm overflow-hidden rounded-3xl bg-indigo-deep">
+        <div className="relative aspect-[3/4] w-full max-w-sm overflow-hidden rounded-[2px] bg-black">
           <video
             ref={videoRef}
             playsInline
@@ -104,39 +104,39 @@ export function SelfieCamera({ onFace }: { onFace: (embedding: number[]) => void
               rx="92"
               ry="122"
               fill="none"
-              stroke={problem ? "var(--danger)" : "var(--gold)"}
-              strokeWidth="4"
-              strokeDasharray="10 8"
+              stroke={problem ? "#ff5a6e" : "rgba(255,255,255,0.85)"}
+              strokeWidth="2"
+              strokeDasharray="6 6"
             />
           </svg>
           {camera === "starting" && (
-            <p className="absolute inset-x-0 bottom-4 text-center text-sm text-white/80">Starting camera…</p>
+            <p className="t-ui absolute inset-x-0 bottom-4 text-center !text-white/70">Starting camera…</p>
           )}
         </div>
       )}
 
       {camera === "blocked" && (
-        <div className="rounded-3xl bg-indigo-soft p-6 text-center">
-          <p className="font-semibold">The camera isn&apos;t available</p>
-          <p className="mt-1 text-[0.95rem] text-ink-muted">
+        <div className="max-w-sm rounded-[4px] bg-fill p-4">
+          <p className="t-item">The camera isn&apos;t available</p>
+          <p className="t-item-sub mt-0.5">
             Allow camera access in your browser settings, or choose a recent selfie from your phone instead.
           </p>
         </div>
       )}
 
       {problem && (
-        <p role="alert" className="mt-4 rounded-xl bg-danger-soft px-4 py-3 text-danger">
+        <p role="alert" className="t-ui mt-4 max-w-sm rounded-[4px] bg-danger-soft px-3 py-2.5 !text-danger">
           {problem}
         </p>
       )}
 
-      <div className="mt-5 flex flex-col gap-3">
+      <div className="mt-4 flex max-w-sm flex-col gap-2">
         {camera !== "blocked" && (
-          <button type="button" className="btn btn-gold w-full" onClick={capture} disabled={busy || camera !== "live"}>
+          <button type="button" className="btn btn-primary btn-lg w-full" onClick={capture} disabled={busy || camera !== "live"}>
             {!modelReady ? "Getting ready…" : camera === "checking" ? "Checking…" : "Take selfie"}
           </button>
         )}
-        <label className={`btn ${camera === "blocked" ? "btn-gold" : "btn-quiet"} w-full cursor-pointer`}>
+        <label className={`btn btn-lg ${camera === "blocked" ? "btn-primary" : "btn-quiet"} w-full cursor-pointer`}>
           <input
             type="file"
             accept="image/*"
@@ -153,7 +153,7 @@ export function SelfieCamera({ onFace }: { onFace: (embedding: number[]) => void
         </label>
       </div>
       {!modelReady && (
-        <p className="mt-3 text-center text-sm text-ink-muted">First time only: downloading about 7 MB.</p>
+        <p className="t-meta mt-3">First time only: downloading about 7 MB.</p>
       )}
     </div>
   );

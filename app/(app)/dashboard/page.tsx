@@ -50,96 +50,103 @@ export default async function DashboardPage() {
     pending?.forEach((p) => pendingCounts.set(p.event_id, (pendingCounts.get(p.event_id) ?? 0) + 1));
   }
 
+  const canCreate = !(hostStatus === "pending" || hostStatus === "declined");
+
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="display text-[2.4rem] text-indigo">Your events</h1>
-        {hostStatus === "pending" || hostStatus === "declined" ? null : (
-          <Link href="/events/new" className="btn btn-primary">
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <h1 className="display">Your events</h1>
+        {canCreate && (
+          <Link href="/events/new" className="btn btn-primary btn-lg">
             Create an event
           </Link>
         )}
       </div>
       {hostStatus === "pending" && (
-        <p className="mt-6 rounded-2xl bg-indigo-soft px-5 py-4 text-indigo">{HOST_PENDING_MESSAGE}</p>
+        <p className="t-ui mt-8 max-w-xl rounded-[4px] bg-fill px-3 py-2.5">{HOST_PENDING_MESSAGE}</p>
       )}
       {hostStatus === "declined" && (
-        <p className="mt-6 rounded-2xl bg-danger-soft px-5 py-4 text-danger">{HOST_DECLINED_MESSAGE}</p>
+        <p className="t-ui mt-8 max-w-xl rounded-[4px] bg-danger-soft px-3 py-2.5 !text-danger">{HOST_DECLINED_MESSAGE}</p>
       )}
 
       {hosting.length === 0 && attending.length === 0 && (
-        <div className="mt-10 rounded-3xl border-2 border-dashed border-line bg-paper px-6 py-12 text-center">
-          <h2 className="text-xl font-bold">No events yet</h2>
-          <p className="mx-auto mt-2 max-w-md text-ink-muted">
+        <section className="mt-10 border-t border-hairline pt-8 md:mt-16">
+          <h2 className="t-title">No events yet</h2>
+          <p className="t-item-sub mt-2 max-w-md">
             {hostStatus === "pending"
               ? "Once you're approved, you can create an event and send guests an invite link."
               : "Create an event to upload photos and get an invite link for your guests. If someone sent you an invite link, open it and you'll find the event here afterwards."}
           </p>
-          {hostStatus === "pending" || hostStatus === "declined" ? null : (
-            <Link href="/events/new" className="btn btn-gold mt-6">
+          {canCreate && (
+            <Link href="/events/new" className="btn btn-quiet btn-lg mt-6">
               Create your first event
             </Link>
           )}
-        </div>
+        </section>
       )}
 
       {hosting.length > 0 && (
-        <section className="mt-10">
-          <h2 className="text-lg font-bold text-ink-muted">Hosting</h2>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl bg-paper shadow-[0_0_0_1.5px_var(--line)]">
-            {hosting.map(({ events: e }) => {
-              const pending = pendingCounts.get(e!.id) ?? 0;
-              return (
-                <li key={e!.id}>
-                  <Link
-                    href={`/events/${e!.id}`}
-                    className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-resist"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-lg font-semibold">{e!.name}</p>
-                      <p className="text-sm text-ink-muted">
-                        {[KIND_LABELS[e!.kind], formatEventDate(e!.event_date)].filter(Boolean).join(", ")}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-3 text-sm">
-                      {pending > 0 && (
-                        <span className="rounded-full bg-gold px-2.5 py-1 font-semibold text-indigo-deep">
-                          {pending} waiting
-                        </span>
-                      )}
-                      <span className="text-ink-muted">{photoCounts.get(e!.id) ?? 0} photos</span>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+        <EventList title="Hosting" count={hosting.length}>
+          {hosting.map(({ events: e }) => {
+            const pending = pendingCounts.get(e!.id) ?? 0;
+            return (
+              <Row
+                key={e!.id}
+                href={`/events/${e!.id}`}
+                title={e!.name}
+                sub={[KIND_LABELS[e!.kind], formatEventDate(e!.event_date)].filter(Boolean).join(", ")}
+                end={
+                  <>
+                    {pending > 0 && <span className="pill !bg-ink !text-page">{pending} waiting</span>}
+                    <span className="t-meta tabular-nums">{photoCounts.get(e!.id) ?? 0} photos</span>
+                  </>
+                }
+              />
+            );
+          })}
+        </EventList>
       )}
 
       {attending.length > 0 && (
-        <section className="mt-10">
-          <h2 className="text-lg font-bold text-ink-muted">Invited to</h2>
-          <ul className="mt-3 divide-y divide-line overflow-hidden rounded-2xl bg-paper shadow-[0_0_0_1.5px_var(--line)]">
-            {attending.map(({ events: e, status }) => (
-              <li key={e!.id}>
-                <Link
-                  href={`/e/${e!.invite_code}`}
-                  className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-resist"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-lg font-semibold">{e!.name}</p>
-                    <p className="text-sm text-ink-muted">{e!.host_name ?? KIND_LABELS[e!.kind]}</p>
-                  </div>
-                  <span className="shrink-0 text-sm font-semibold text-indigo">
-                    {status === "approved" ? "Find my photos" : "Waiting for approval"}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <EventList title="Invited to" count={attending.length}>
+          {attending.map(({ events: e, status }) => (
+            <Row
+              key={e!.id}
+              href={`/e/${e!.invite_code}`}
+              title={e!.name}
+              sub={e!.host_name ?? KIND_LABELS[e!.kind]}
+              end={
+                <span className="t-ui">{status === "approved" ? "Find my photos →" : "Waiting for approval"}</span>
+              }
+            />
+          ))}
+        </EventList>
       )}
     </div>
+  );
+}
+
+function EventList({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
+  return (
+    <section className="mt-12 md:mt-16">
+      <h2 className="t-title">
+        {title} <span className="text-ink-4">{count}</span>
+      </h2>
+      <ul className="mt-4 border-t border-hairline">{children}</ul>
+    </section>
+  );
+}
+
+function Row({ href, title, sub, end }: { href: string; title: string; sub: string; end: React.ReactNode }) {
+  return (
+    <li className="border-b border-hairline">
+      <Link href={href} className="group -mx-2 flex items-center justify-between gap-4 rounded-[4px] px-2 py-4 hover:bg-fill">
+        <div className="min-w-0">
+          <p className="t-item truncate">{title}</p>
+          <p className="t-item-sub truncate">{sub}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-3">{end}</div>
+      </Link>
+    </li>
   );
 }

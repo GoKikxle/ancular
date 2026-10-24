@@ -115,16 +115,16 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, pr
       {stage === "consent" && <ConsentStep eventName={eventName} onAgree={agree} />}
 
       {stage === "selfie" && (
-        <div className="mx-auto max-w-md">
-          <h2 className="text-2xl font-bold">Take a selfie</h2>
-          <p className="mt-2 text-ink-muted">
+        <div className="max-w-xl">
+          <h1 className="display">Take a selfie</h1>
+          <p className="t-lead t-muted mt-5">
             Face the camera in good light, just you in the picture. The photo stays on your phone.
           </p>
-          <div className="mt-6">
+          <div className="mt-8">
             <SelfieCamera onFace={search} />
           </div>
           {searchedOnce && (
-            <button type="button" className="btn btn-quiet mt-4 w-full" onClick={() => setStage("results")}>
+            <button type="button" className="btn btn-quiet btn-lg mt-2 w-full max-w-sm" onClick={() => setStage("results")}>
               Back to my photos
             </button>
           )}

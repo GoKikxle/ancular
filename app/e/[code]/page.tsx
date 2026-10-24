@@ -59,11 +59,11 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   if (!invite || invite.status !== "active") {
     return (
       <Shell>
-        <h1 className="display text-[2.2rem] text-indigo">This invite link isn&apos;t working</h1>
-        <p className="mt-3 text-ink-muted">
+        <h1 className="display">This invite link isn&apos;t working</h1>
+        <p className="t-lead t-muted mt-5">
           It may have been typed wrongly or the event has closed. Ask the host to send the link again.
         </p>
-        <Link href="/" className="btn btn-quiet mt-6">
+        <Link href="/" className="btn btn-quiet btn-lg mt-8">
           Go to Ancular
         </Link>
       </Shell>
@@ -83,8 +83,8 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     if (!membership) {
       return (
         <Shell header={header}>
-          <h2 className="text-2xl font-bold">Join to find your photos</h2>
-          <p className="mt-2 text-ink-muted">Add your name and you can search straight away.</p>
+          <h1 className="display">Join to find your photos</h1>
+          <p className="t-lead t-muted mt-5">Add your name and you can search straight away.</p>
           <JoinForm code={code} defaultName="" />
         </Shell>
       );
@@ -93,11 +93,11 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     if (membership.status === "pending") {
       return (
         <Shell header={header}>
-          <h2 className="text-2xl font-bold">Waiting for the host to let you in</h2>
-          <p className="mt-2 text-ink-muted">
+          <h1 className="display">Waiting for the host to let you in</h1>
+          <p className="t-lead t-muted mt-5">
             We&apos;ve told them you asked to join. Check back on this page later, or nudge the host on WhatsApp.
           </p>
-          <Link href={next} className="btn btn-quiet mt-6">
+          <Link href={next} className="btn btn-quiet btn-lg mt-8">
             Check again
           </Link>
         </Shell>
@@ -107,8 +107,8 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     if (membership.status === "declined") {
       return (
         <Shell header={header}>
-          <h2 className="text-2xl font-bold">The host hasn&apos;t added you to this event</h2>
-          <p className="mt-2 text-ink-muted">If you think that&apos;s a mistake, contact the host directly.</p>
+          <h1 className="display">The host hasn&apos;t added you to this event</h1>
+          <p className="t-lead t-muted mt-5">If you think that&apos;s a mistake, contact the host directly.</p>
         </Shell>
       );
     }
@@ -129,24 +129,24 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   if (!user) {
     return (
       <Shell header={header}>
-        <h2 className="text-2xl font-bold">Find every photo you&apos;re in</h2>
-        <p className="mt-2 text-ink-muted">
+        <h1 className="display">Find every photo you&apos;re in</h1>
+        <p className="t-lead t-muted mt-5">
           Create a free account or sign in, then take one selfie. You&apos;ll only see photos of you, and your selfie
           stays on your phone.
         </p>
-        <div className="mt-6 flex flex-col gap-3">
+        <div className="mt-8 flex flex-col gap-2">
           {fromPreviewStore ? (
-            <Link href={continueWithoutAccountHref(next)} className="btn btn-primary">
+            <Link href={continueWithoutAccountHref(next)} className="btn btn-primary btn-lg">
               Continue as a guest
             </Link>
           ) : null}
           <Link
             href={`/signup?next=${encodeURIComponent(next)}`}
-            className={fromPreviewStore ? "btn btn-quiet" : "btn btn-primary"}
+            className={fromPreviewStore ? "btn btn-quiet btn-lg" : "btn btn-primary btn-lg"}
           >
             Create an account
           </Link>
-          <Link href={`/login?next=${encodeURIComponent(next)}`} className="btn btn-quiet">
+          <Link href={`/login?next=${encodeURIComponent(next)}`} className="btn btn-quiet btn-lg">
             I have an account
           </Link>
         </div>
@@ -167,8 +167,8 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     const suggested = (user.user_metadata?.full_name as string | undefined) ?? "";
     return (
       <Shell header={header}>
-        <h2 className="text-2xl font-bold">Join to find your photos</h2>
-        <p className="mt-2 text-ink-muted">
+        <h1 className="display">Join to find your photos</h1>
+        <p className="t-lead t-muted mt-5">
           {invite.join_mode === "approval"
             ? "The host lets each guest in. Add your name so they know it's you."
             : "Add your name and you can search straight away."}
@@ -181,11 +181,11 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   if (!hosting && membership.status === "pending") {
     return (
       <Shell header={header}>
-        <h2 className="text-2xl font-bold">Waiting for the host to let you in</h2>
-        <p className="mt-2 text-ink-muted">
+        <h1 className="display">Waiting for the host to let you in</h1>
+        <p className="t-lead t-muted mt-5">
           We&apos;ve told them you asked to join. Check back on this page later, or nudge the host on WhatsApp.
         </p>
-        <Link href={next} className="btn btn-quiet mt-6">
+        <Link href={next} className="btn btn-quiet btn-lg mt-8">
           Check again
         </Link>
       </Shell>
@@ -195,8 +195,8 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   if (!hosting && membership.status === "declined") {
     return (
       <Shell header={header}>
-        <h2 className="text-2xl font-bold">The host hasn&apos;t added you to this event</h2>
-        <p className="mt-2 text-ink-muted">If you think that&apos;s a mistake, contact the host directly.</p>
+        <h1 className="display">The host hasn&apos;t added you to this event</h1>
+        <p className="t-lead t-muted mt-5">If you think that&apos;s a mistake, contact the host directly.</p>
       </Shell>
     );
   }
@@ -221,7 +221,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   return (
     <Shell header={header} wide>
       {hosting && (
-        <p className="mb-6 text-sm text-ink-muted">You host this event. Guests who open this link see this page.</p>
+        <p className="t-meta mb-6">You host this event. Guests who open this link see this page.</p>
       )}
       <GuestFinder
         eventId={invite.id}
@@ -263,7 +263,7 @@ function Shell({ children, header, wide }: { children: React.ReactNode; header?:
     <div className="min-h-dvh">
       {header ?? <SiteHeader />}
       <main className="container-page pb-16 pt-3 md:pb-24">
-        <div className={wide ? "" : "max-w-md"}>{children}</div>
+        <div className={wide ? "" : "max-w-xl"}>{children}</div>
       </main>
     </div>
   );

@@ -11,9 +11,9 @@ export function WaitlistForm() {
 
   if (state?.done) {
     return (
-      <div className="mt-8 rounded-2xl bg-paper p-6 shadow-[0_0_0_1.5px_var(--line)]">
-        <h2 className="text-xl font-bold">You&apos;re on the list</h2>
-        <p className="mt-2 text-ink-muted">We&apos;ll email you when you can create events.</p>
+      <div className="mt-8 rounded-[4px] bg-fill p-5">
+        <h2 className="t-item">You&apos;re on the list</h2>
+        <p className="t-item-sub mt-1">We&apos;ll email you when you can create events.</p>
       </div>
     );
   }
@@ -76,11 +76,11 @@ export function WaitlistForm() {
         />
       </div>
       {state?.error && (
-        <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-danger">
+        <p role="alert" className="t-ui rounded-[4px] bg-danger-soft px-3 py-2.5 !text-danger">
           {state.error}
         </p>
       )}
-      <button type="submit" className="btn btn-primary w-full" disabled={pending}>
+      <button type="submit" className="btn btn-primary btn-lg w-full" disabled={pending}>
         {pending ? "Sending…" : "Join the waitlist"}
       </button>
     </form>

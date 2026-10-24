@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Logo } from "@/components/brand/Logo";
+import Link from "next/link";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
 export const metadata: Metadata = { title: "Privacy" };
@@ -57,21 +58,27 @@ const sections = [
 export default function PrivacyPage() {
   return (
     <>
-      <header className="border-b border-line bg-paper">
-        <div className="mx-auto max-w-3xl px-4 py-5 sm:px-6">
-          <Logo />
+      <SiteHeader
+        action={
+          <Link href="/login" className="nav-link">
+            Sign in
+          </Link>
+        }
+      />
+      <main className="container-page pb-20 pt-10 md:pt-20">
+        <h1 className="display max-w-[14ch]">How Ancular handles your data</h1>
+        <div className="mt-6 max-w-md">
+          <p className="t-lead">The plain-language version.</p>
+          <p className="t-lead t-muted">If anything here is unclear, ask us and we&apos;ll explain.</p>
         </div>
-      </header>
-      <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 md:py-16">
-        <h1 className="display text-[2.6rem] text-indigo sm:text-[3.2rem]">How Ancular handles your data</h1>
-        <p className="mt-4 text-lg text-ink-muted">
-          The plain-language version. If anything here is unclear, ask us and we&apos;ll explain.
-        </p>
-        <div className="mt-12 space-y-10">
+        <div className="mt-12 md:mt-20">
           {sections.map((s) => (
-            <section key={s.title}>
-              <h2 className="text-2xl font-bold text-indigo">{s.title}</h2>
-              <div className="mt-3 space-y-3 text-[1.05rem] leading-relaxed">
+            <section
+              key={s.title}
+              className="grid gap-3 border-t border-hairline py-8 md:grid-cols-[1fr_2fr] md:gap-10 md:py-10"
+            >
+              <h2 className="t-title">{s.title}</h2>
+              <div className="max-w-2xl space-y-3 text-[0.9375rem] leading-[1.55] text-ink-2">
                 {s.body.map((p) => (
                   <p key={p}>{p}</p>
                 ))}
