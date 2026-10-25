@@ -11,9 +11,16 @@ export const metadata: Metadata = {
     "Private, invite-only photo sharing for festivals, conferences, weddings and church services. Guests take one selfie and get every photo they appear in.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   openGraph: {
-    title: "Ancular",
-    description: "Find every photo of you from the event with one selfie.",
+    type: "website",
+    url: "/",
     siteName: "Ancular",
+    title: "Ancular: every photo of you, found with one selfie",
+    description: "Private photo sharing for festivals, conferences, weddings and church services.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ancular: every photo of you, found with one selfie",
+    description: "Private photo sharing for festivals, conferences, weddings and church services.",
   },
 };
 
