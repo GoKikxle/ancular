@@ -17,7 +17,10 @@ export function SiteHeader({
   return (
     <header className="site-header">
       <div className="flex h-full items-center justify-between gap-4 px-3 sm:px-4">
-        <Logo href={logoHref} />
+        <div className="flex items-center gap-2">
+          <Logo href={logoHref} />
+          <span className="rounded-full bg-fill px-[7px] py-[3px] text-[11px] font-semibold leading-none text-ink-2">Beta</span>
+        </div>
         {nav && nav.length > 0 && (
           <nav aria-label="Main" className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 md:flex">
             {nav.map((item) => (
