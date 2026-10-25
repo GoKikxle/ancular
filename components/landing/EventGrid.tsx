@@ -1,8 +1,8 @@
 /**
  * Landing-page media grid, laid out like swipe.hex's cards: a photo with a
  * two-line caption. Each tile is a kind of event too big for a WhatsApp group,
- * which is where Ancular earns its place. Sample photos from Pexels, stored in
- * /public/landing at 600px and 1200px wide.
+ * which is where Ancular earns its place. Photos from Pexels (free to use, no
+ * credit required), stored in /public/landing at 600px and 1200px wide.
  */
 
 type Tile = { file: string; w: number; h: number; alt: string; title: string; sub: string };
@@ -43,13 +43,6 @@ export function EventGrid({ className = "" }: { className?: string }) {
           </li>
         ))}
       </ul>
-      <p className="t-meta">
-        Sample photos from{" "}
-        <a href="https://www.pexels.com" className="underline underline-offset-4 hover:text-ink" rel="noreferrer" target="_blank">
-          Pexels
-        </a>
-        .
-      </p>
     </div>
   );
 }
