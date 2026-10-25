@@ -15,7 +15,7 @@ const sections = [
   {
     title: "Face data and how it's made",
     body: [
-      "To match a selfie to event photos, Ancular turns each face into a face code: a list of 128 numbers that describes the shape of a face. Face codes are biometric data, which Nigerian law (the Nigeria Data Protection Act 2023) treats as sensitive personal data.",
+      "To match a selfie to event photos, Ancular turns each face into a face code: a list of 128 numbers that describes the shape of a face. Face codes are biometric data. UK GDPR treats them as special category data, and the Nigeria Data Protection Act 2023 treats them as sensitive personal data.",
       "Face codes for event photos are created in the host's browser while the photos upload, and stored with the event.",
       "Your selfie is read on your own phone. The image is never uploaded. Only its face code is sent to search the event once, and it isn't saved.",
     ],

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CrowdGrid } from "@/components/brand/CrowdGrid";
+import { EventGrid } from "@/components/landing/EventGrid";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 
@@ -72,7 +72,7 @@ export default function Home() {
         <div className="pb-10 pt-10 md:pb-16 md:pt-20">
           <h1 className="display max-w-[13ch]">Every photo of you, found with one selfie.</h1>
           <div className="mt-6 max-w-md">
-            <p className="t-lead">Private, invite-only photos for weddings, church programmes and owambes.</p>
+            <p className="t-lead">Private, invite-only photos for weddings, church services and parties.</p>
             <p className="t-lead t-muted">Each guest sees only the photos they appear in.</p>
           </div>
           <div className="mt-8 flex flex-wrap gap-2">
@@ -85,12 +85,11 @@ export default function Home() {
           </div>
         </div>
 
-        <CrowdGrid className="pb-8 md:pb-12" />
+        <EventGrid className="pb-10 md:pb-16" />
 
         <Section title="2,000 photos. 500 guests. Nobody scrolls that far.">
           <p className="t-lead t-muted max-w-xl">
-            One shared gallery link is where photos go to be forgotten. Aunty in the orange aso-ebi gives up after
-            forty pictures and never finds the three great ones she&apos;s in. Ancular does the searching for her.
+            One shared gallery link is where photos go to be forgotten. Aunty gives up after forty pictures and never finds the three great ones she&apos;s in. Ancular does the searching for her.
           </p>
         </Section>
 
@@ -107,7 +106,7 @@ export default function Home() {
         </Section>
 
         <Section title="Who it's for">
-          <div className="grid gap-8 sm:grid-cols-2 sm:gap-6">
+          <div className="grid gap-8 sm:grid-cols-3 sm:gap-6">
             <div>
               <h3 className="t-item">Church media teams</h3>
               <p className="t-item-sub mt-1">
@@ -120,6 +119,13 @@ export default function Home() {
               <p className="t-item-sub mt-1">
                 Deliver to every guest, not just the couple. Each guest who finds their photos sees your name on the
                 gallery, and that is how the next booking starts.
+              </p>
+            </div>
+            <div>
+              <h3 className="t-item">Families and communities</h3>
+              <p className="t-item-sub mt-1">
+                Weddings, naming ceremonies, mehndi nights, anniversaries and community festivals, from Lagos to
+                London. Everyone gets their own photos without chasing the WhatsApp group.
               </p>
             </div>
           </div>

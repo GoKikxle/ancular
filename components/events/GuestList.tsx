@@ -2,7 +2,7 @@ import { approveAllPending, decideGuest, removeGuest } from "@/app/(app)/events/
 import type { MemberRow } from "@/lib/events";
 
 function when(iso: string) {
-  return new Date(iso).toLocaleDateString("en-NG", { day: "numeric", month: "short" });
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
 export function GuestList({

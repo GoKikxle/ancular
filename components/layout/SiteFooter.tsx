@@ -9,7 +9,7 @@ export function SiteFooter() {
           <span className="text-ink">
             <LogoMark size={14} solid />
           </span>
-          Ancular. Made for Nigerian events.
+          Ancular. From Lagos to London.
         </div>
         <nav className="-mx-2 flex">
           <Link href="/privacy" className="nav-link">

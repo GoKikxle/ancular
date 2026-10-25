@@ -45,6 +45,6 @@ export function formatBytes(bytes: number) {
 
 export function formatAllowance(usage: StorageUsage) {
   const photos = Math.max(0, HOST_PHOTO_CAP - usage.photos);
-  const photoLabel = `${photos.toLocaleString("en-NG")} ${photos === 1 ? "photo" : "photos"} left`;
+  const photoLabel = `${photos.toLocaleString("en-GB")} ${photos === 1 ? "photo" : "photos"} left`;
   return `${photoLabel} · ${formatBytes(Math.max(0, HOST_BYTE_CAP - usage.bytes))} left`;
 }

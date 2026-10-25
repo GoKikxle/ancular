@@ -49,7 +49,7 @@ export const CONSENT_VERSION = "2026-10-v1";
 
 export function formatEventDate(date: string | null) {
   if (!date) return null;
-  return new Date(`${date}T12:00:00`).toLocaleDateString("en-NG", {
+  return new Date(`${date}T12:00:00`).toLocaleDateString("en-GB", {
     weekday: "short",
     day: "numeric",
     month: "long",
