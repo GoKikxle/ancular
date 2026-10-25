@@ -414,7 +414,22 @@ body {
     animation: found-ring 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s both;
   }
 
+  /* Cookie card: shakes when someone clicks the page before choosing */
+  @keyframes cookie-shake {
+    0%, 100% { transform: translateX(0); }
+    15%, 55% { transform: translateX(-8px); }
+    35%, 75% { transform: translateX(8px); }
+    90% { transform: translateX(-3px); }
+  }
+  .cookie-shake {
+    animation: cookie-shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    .cookie-shake {
+      animation: none;
+      box-shadow: 0 0 0 2px var(--ink), 0 8px 32px rgba(0, 0, 0, 0.12);
+    }
     .skeleton,
     .found-ring {
       animation: none;
