@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -51,11 +51,11 @@ function subscribe(cb: () => void) {
 export function CookieConsent() {
   // Server and first paint render nothing, so the prompt never flashes for people who already chose.
   const decided = useSyncExternalStore(subscribe, () => read() !== null, () => true);
-  const [hidden, setHidden] = useState(false);
   const pathname = usePathname();
   // The privacy page explains the cookies, so it stays readable while the choice is open.
   const blocking = pathname !== "/privacy";
-  const open = !decided && !hidden;
+  // Reads the saved choice; "Cookie settings" clears it and the prompt reopens.
+  const open = !decided;
   const firstButton = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -74,7 +74,6 @@ export function CookieConsent() {
     try {
       localStorage.setItem(KEY, JSON.stringify({ analytics, at: new Date().toISOString() }));
     } catch {}
-    setHidden(true);
     window.dispatchEvent(new Event(EVENT));
   }
 

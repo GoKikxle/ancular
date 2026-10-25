@@ -9,7 +9,8 @@ const sections = [
   {
     title: "What Ancular does",
     body: [
-      "Hosts (couples, churches, photographers, organisers) upload photos from an event. Guests who have the host's invite link can join the event and find the photos they appear in by taking a selfie.",
+      "Hosts (organisers, churches, photographers, couples) upload photos from an event. Guests who have the host's invite link can join the event and find the photos they appear in by taking a selfie.",
+      "Ancular is available in the United Kingdom and Nigeria. This page covers both: the UK GDPR and the Data Protection Act 2018 in the UK, and the Nigeria Data Protection Act 2023 (NDPA) in Nigeria.",
     ],
   },
   {
@@ -23,7 +24,7 @@ const sections = [
   {
     title: "Your consent",
     body: [
-      "Ancular only searches for you after you tick the face matching box for that event. We record when you agreed and the wording you agreed to.",
+      "Ancular only searches for you after you tick the face matching box for that event. That tick is your explicit consent, which is the legal basis we rely on for face matching under the UK GDPR (Article 9) and the NDPA. We record when you agreed and the wording you agreed to.",
       "Saying no is fine. You can still be in the event; you just won't be able to search by selfie.",
       "You can withdraw at any time from the event page. That deletes your search results for the event straight away.",
     ],
@@ -45,6 +46,21 @@ const sections = [
     title: "People who didn't sign up",
     body: [
       "Event photos include people who never use Ancular. Their face codes are only ever compared against a guest's selfie; they are never named, tagged or shown to anyone else, and they are deleted with the rest of the event's face data. Hosts confirm that guests were told photos would be shared this way. If you'd like to be removed from an event, contact the host or us.",
+    ],
+  },
+  {
+    title: "Where your data is kept",
+    body: [
+      "Your account, event details and face codes are stored with Supabase in the European Union (Ireland). Photos are stored with our storage provider, and the website is served by Vercel. These providers only process data to run Ancular, under data processing agreements.",
+      "For users in Nigeria this is a transfer outside Nigeria, and for users in the UK a transfer to the EU. Both are made with the safeguards the NDPA and the UK GDPR require.",
+    ],
+  },
+  {
+    title: "Your rights",
+    body: [
+      "Wherever you are, you can ask to see the data we hold about you, correct it, delete it, or get a copy, and you can withdraw consent at any time. Most of this you can do yourself: withdraw on the event page, or clear your search data or delete your account in Settings.",
+      "For anything else, contact us at privacy@ancular.com. We reply within one month.",
+      "If you're unhappy with how we handle your data, you can complain to the regulator: the Information Commissioner's Office (ico.org.uk) in the UK, or the Nigeria Data Protection Commission (ndpc.gov.ng) in Nigeria.",
     ],
   },
   {
@@ -77,7 +93,7 @@ export default function PrivacyPage() {
         <h1 className="display max-w-[14ch]">How Ancular handles your data</h1>
         <div className="mt-6 max-w-md">
           <p className="t-lead">The plain-language version.</p>
-          <p className="t-lead t-muted">If anything here is unclear, ask us and we&apos;ll explain.</p>
+          <p className="t-lead t-muted">For people in the United Kingdom and Nigeria. If anything here is unclear, ask us and we&apos;ll explain.</p>
         </div>
         <div className="mt-12 md:mt-20">
           {sections.map((s) => (
