@@ -10,7 +10,7 @@ const steps = [
   },
   {
     title: "Share one invite link",
-    body: "Put the QR code on the programme, the screen or the WhatsApp group. Only people with the link can ask to join, and you can approve each one.",
+    body: "Put the QR code on the programme, the big screen, the badges or the group chat. Only people with the link can ask to join, and you can approve each one.",
   },
   {
     title: "Guests take one selfie",
@@ -72,7 +72,7 @@ export default function Home() {
         <div className="pb-10 pt-10 md:pb-16 md:pt-20">
           <h1 className="display max-w-[13ch]">Every photo of you, found with one selfie.</h1>
           <div className="mt-6 max-w-md">
-            <p className="t-lead">Private, invite-only photos for weddings, church services and parties.</p>
+            <p className="t-lead">For events too big for a group chat: festivals, conferences, weddings, church services.</p>
             <p className="t-lead t-muted">Each guest sees only the photos they appear in.</p>
           </div>
           <div className="mt-8 flex flex-wrap gap-2">
@@ -87,9 +87,9 @@ export default function Home() {
 
         <EventGrid className="pb-10 md:pb-16" />
 
-        <Section title="2,000 photos. 500 guests. Nobody scrolls that far.">
+        <Section title="20,000 photos. 3,000 people. Nobody scrolls that far.">
           <p className="t-lead t-muted max-w-xl">
-            One shared gallery link is where photos go to be forgotten. Aunty gives up after forty pictures and never finds the three great ones she&apos;s in. Ancular does the searching for her.
+            A shared gallery link is where event photos go to be forgotten. People give up after forty pictures and never find the three great ones they&apos;re in. Ancular does the searching for each of them.
           </p>
         </Section>
 
@@ -108,10 +108,10 @@ export default function Home() {
         <Section title="Who it's for">
           <div className="grid gap-8 sm:grid-cols-3 sm:gap-6">
             <div>
-              <h3 className="t-item">Church media teams</h3>
+              <h3 className="t-item">Organisers</h3>
               <p className="t-item-sub mt-1">
-                Every Sunday service, vigil and convention gets its own album. Members find their own photos, and your
-                team stops answering &ldquo;please send my picture&rdquo; on WhatsApp all week.
+                Festivals, conferences, graduations and meetups. Attendees find their own photos and post them, which is
+                the best promotion next year&apos;s event can get.
               </p>
             </div>
             <div>
@@ -122,16 +122,16 @@ export default function Home() {
               </p>
             </div>
             <div>
-              <h3 className="t-item">Families and communities</h3>
+              <h3 className="t-item">Churches and communities</h3>
               <p className="t-item-sub mt-1">
-                Weddings, naming ceremonies, mehndi nights, anniversaries and community festivals, from Lagos to
-                London. Everyone gets their own photos without chasing the WhatsApp group.
+                Every service, convention and gathering gets its own album. Members find their own photos, and the
+                media team stops answering &ldquo;please send my picture&rdquo; all week.
               </p>
             </div>
           </div>
         </Section>
 
-        <Section id="privacy" title="Built so families can trust it">
+        <Section id="privacy" title="Built so people can trust it">
           <dl className="border-t border-hairline">
             {promises.map((p) => (
               <div key={p.title} className="grid gap-1 border-b border-hairline py-4 sm:grid-cols-[1fr_1.4fr] sm:gap-6">

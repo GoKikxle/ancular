@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     template: "%s · Ancular",
   },
   description:
-    "Private, invite-only photo sharing for weddings, church services and parties. Guests take one selfie and get every photo they appear in.",
+    "Private, invite-only photo sharing for festivals, conferences, weddings and church services. Guests take one selfie and get every photo they appear in.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   openGraph: {
     title: "Ancular",

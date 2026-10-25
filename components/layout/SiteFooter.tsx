@@ -9,7 +9,7 @@ export function SiteFooter() {
           <span className="text-ink">
             <LogoMark size={14} solid />
           </span>
-          Ancular. From Lagos to London.
+          Ancular. For events everywhere.
         </div>
         <nav className="-mx-2 flex">
           <Link href="/privacy" className="nav-link">
