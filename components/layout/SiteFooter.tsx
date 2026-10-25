@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/brand/Logo";
+import { CookieSettingsLink } from "@/components/consent/CookieConsent";
 
 export function SiteFooter() {
   return (
@@ -15,6 +16,7 @@ export function SiteFooter() {
           <Link href="/privacy" className="nav-link">
             Privacy
           </Link>
+          <CookieSettingsLink className="nav-link" />
           <Link href="/login" className="nav-link">
             Sign in
           </Link>

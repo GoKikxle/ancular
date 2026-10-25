@@ -48,6 +48,14 @@ const sections = [
     ],
   },
   {
+    id: "cookies",
+    title: "Cookies",
+    body: [
+      "Ancular uses essential cookies only: small files that keep you signed in and keep your session secure (they start with \"sb-\" and come from our sign-in provider, Supabase). Without them you couldn't sign in, so they don't need your consent.",
+      "We don't use advertising cookies, and we don't track you across other sites. Your cookie choice is saved on your device, and you can change it any time from \"Cookie settings\" at the bottom of the page. If we ever add optional analytics, we'll only load them if you choose \"Accept all\".",
+    ],
+  },
+  {
     title: "Children",
     body: [
       "Only adults can create an account. Parents and guardians can search on behalf of their children.",
@@ -75,7 +83,8 @@ export default function PrivacyPage() {
           {sections.map((s) => (
             <section
               key={s.title}
-              className="grid gap-3 border-t border-hairline py-8 md:grid-cols-[1fr_2fr] md:gap-10 md:py-10"
+              id={"id" in s ? s.id : undefined}
+              className="grid scroll-mt-14 gap-3 border-t border-hairline py-8 md:grid-cols-[1fr_2fr] md:gap-10 md:py-10"
             >
               <h2 className="t-title">{s.title}</h2>
               <div className="max-w-2xl space-y-3 text-[0.9375rem] leading-[1.55] text-ink-2">
