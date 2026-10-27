@@ -162,6 +162,35 @@ export async function deleteEvent(eventId: string, _: FormState, form: FormData)
   redirect("/dashboard");
 }
 
+/** Delete many photos at once (host only; row level security refuses anyone else). */
+export async function deletePhotos(eventId: string, photoIds: string[]): Promise<{ deleted: number; error?: string }> {
+  const ids = [...new Set(photoIds)].slice(0, 1000);
+  if (ids.length === 0) return { deleted: 0 };
+  const { supabase, user } = await getUser();
+  if (!user && previewEnabled()) {
+    let deleted = 0;
+    for (const id of ids) if (await deletePreviewPhoto(eventId, id)) deleted++;
+    revalidatePath(`/events/${eventId}`);
+    return { deleted };
+  }
+  const { data, error } = await supabase
+    .from("photos")
+    .delete()
+    .eq("event_id", eventId)
+    .in("id", ids)
+    .select("id");
+  if (error) return { deleted: 0, error: "Couldn't delete those photos. Try again." };
+  const gone = (data ?? []).map((row) => row.id as string);
+  // Remove the files in small batches so one slow request doesn't hold up the rest.
+  for (let i = 0; i < gone.length; i += 10) {
+    await Promise.all(
+      gone.slice(i, i + 10).map((id) => deletePrefix(`${eventPrefix(eventId)}${id}/`).catch(() => undefined))
+    );
+  }
+  revalidatePath(`/events/${eventId}`);
+  return { deleted: gone.length };
+}
+
 export async function deletePhoto(eventId: string, photoId: string) {
   const { supabase, user } = await getUser();
   if (!user && previewEnabled()) {
