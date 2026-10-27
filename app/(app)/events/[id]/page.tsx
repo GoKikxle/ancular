@@ -10,6 +10,9 @@ import { SharePanel } from "@/components/events/SharePanel";
 import { GuestList } from "@/components/events/GuestList";
 import { PhotoGrid } from "@/components/events/PhotoGrid";
 import { SettingsPanel } from "@/components/events/SettingsPanel";
+import { EventPlanBar } from "@/components/billing/EventPlanBar";
+import { readEventAllowance, type EventAllowance } from "@/lib/allowance";
+import { PASS_PHOTOS_PER_EVENT, PASS_PRICE_PENCE, PRO_PRICE_PENCE, billingEnabled, formatPrice } from "@/lib/billing";
 
 type Tab = "photos" | "guests" | "share" | "settings";
 const TABS: { id: Tab; label: string }[] = [
@@ -35,10 +38,10 @@ export default async function EventPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; paid?: string }>;
 }) {
   const { id } = await params;
-  const { tab: rawTab } = await searchParams;
+  const { tab: rawTab, paid } = await searchParams;
   const tab: Tab = TABS.some((t) => t.id === rawTab) ? (rawTab as Tab) : "photos";
 
   const { supabase, user } = await getUser();
@@ -88,6 +91,7 @@ export default async function EventPage({
   }
 
   if (!event) notFound();
+  const allowance: EventAllowance | null = user && billingEnabled() ? await readEventAllowance(supabase, id) : null;
   const pending = guests.filter((g) => g.status === "pending").length;
   const facesTotal = readyPhotos.reduce((n, p) => n + p.face_count, 0);
 
@@ -133,6 +137,16 @@ export default async function EventPage({
       <div className="mt-6 border-t border-hairline pt-8 md:pt-10">
         {tab === "photos" && (
           <div className="space-y-10">
+            {allowance && (
+              <EventPlanBar
+                eventId={id}
+                {...allowance}
+                justPaid={paid === "1"}
+                passPrice={formatPrice(PASS_PRICE_PENCE)}
+                proPrice={formatPrice(PRO_PRICE_PENCE)}
+                passLimit={PASS_PHOTOS_PER_EVENT}
+              />
+            )}
             <PhotoUploader eventId={id} faceModel={event.face_model ?? "v1"} />
             <PhotoGrid eventId={id} photos={readyPhotos} />
           </div>

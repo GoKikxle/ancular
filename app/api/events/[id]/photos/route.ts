@@ -5,6 +5,8 @@ import { createPreviewPhoto } from "@/lib/preview-photos";
 import { VARIANTS, photoKey, signUpload } from "@/lib/storage";
 import { plainError } from "@/lib/errors";
 import { capBlock, formatAllowance, photoFileError, type StorageUsage } from "@/lib/limits";
+import { billingEnabled } from "@/lib/billing";
+import { planLabel, readEventAllowance } from "@/lib/allowance";
 
 /**
  * Start uploading one photo: creates the photo record (hosts only, enforced by RLS)
@@ -52,9 +54,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ photoId: photo.id, uploads, local: true });
   }
 
-  const usage = await readHostUsage(supabase);
-  const blocked = usage ? capBlock(usage, body.bytes ?? 0) : null;
-  if (blocked) return NextResponse.json({ error: blocked.error }, { status: 403 });
+  if (billingEnabled()) {
+    // Paid plans: each event has its own photo limit.
+    const allowance = await readEventAllowance(supabase, eventId);
+    if (allowance && allowance.used >= allowance.limit) {
+      return NextResponse.json(
+        {
+          error:
+            allowance.hostPlan === "pro"
+              ? `This event has reached ${allowance.limit.toLocaleString("en-GB")} photos, the most for one event.`
+              : `This event has reached its ${allowance.limit.toLocaleString("en-GB")} photo limit. Unlock it to add more.`,
+          code: "event_limit",
+        },
+        { status: 403 }
+      );
+    }
+  } else {
+    // Beta: one cap across all of a host's events.
+    const usage = await readHostUsage(supabase);
+    const blocked = usage ? capBlock(usage, body.bytes ?? 0) : null;
+    if (blocked) return NextResponse.json({ error: blocked.error }, { status: 403 });
+  }
 
   const { data: photo, error } = await supabase
     .from("photos")
@@ -101,9 +121,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 }
 
-export async function GET() {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id: eventId } = await params;
   const { supabase, user } = await getUser();
   if (!user) return NextResponse.json({ allowance: null });
+  if (billingEnabled()) {
+    const a = await readEventAllowance(supabase, eventId);
+    if (!a) return NextResponse.json({ allowance: null });
+    const left = Math.max(0, a.limit - a.used);
+    return NextResponse.json({
+      allowance: `${planLabel(a)} · ${left.toLocaleString("en-GB")} of ${a.limit.toLocaleString("en-GB")} photos left`,
+      plan: { ...a, canUpgrade: a.hostPlan !== "pro" },
+    });
+  }
   const usage = await readHostUsage(supabase);
   if (!usage) return NextResponse.json({ allowance: null });
   return NextResponse.json({ allowance: formatAllowance(usage) });

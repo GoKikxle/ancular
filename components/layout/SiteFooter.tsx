@@ -13,6 +13,9 @@ export function SiteFooter() {
           Ancular. For events everywhere.
         </div>
         <nav className="-mx-2 flex">
+          <Link href="/pricing" className="nav-link">
+            Pricing
+          </Link>
           <Link href="/privacy" className="nav-link">
             Privacy
           </Link>

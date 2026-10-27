@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { ClearSearchForm, DeleteAccountForm, ProfileForm } from "./SettingsForms";
+import { PlanSection } from "@/components/billing/PlanSection";
+import { FREE_PHOTOS_PER_EVENT, PRO_PHOTOS_PER_EVENT, PRO_PRICE_PENCE, billingEnabled, formatPrice } from "@/lib/billing";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -14,11 +16,18 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export default async function SettingsPage() {
-  const { user } = await getUser();
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ paid?: string }> }) {
+  const { paid } = await searchParams;
+  const { supabase, user } = await getUser();
   if (!user) redirect("/login?next=/settings");
 
   const name = (user.user_metadata?.full_name as string | undefined)?.trim() ?? "";
+  const { data: billing } = billingEnabled()
+    ? await supabase.from("host_billing").select("plan, current_period_end").eq("user_id", user.id).maybeSingle()
+    : { data: null };
+  const renews = billing?.current_period_end
+    ? new Date(billing.current_period_end as string).toLocaleDateString("en-GB", { day: "numeric", month: "long" })
+    : null;
 
   return (
     <div>
@@ -27,6 +36,18 @@ export default async function SettingsPage() {
         <Section title="Account">
           <ProfileForm name={name} email={user.email ?? ""} />
         </Section>
+        {billingEnabled() && (
+          <Section title="Plan and billing">
+            <PlanSection
+              plan={billing?.plan === "pro" ? "pro" : "free"}
+              renews={renews}
+              proPrice={formatPrice(PRO_PRICE_PENCE)}
+              proLimit={PRO_PHOTOS_PER_EVENT}
+              freeLimit={FREE_PHOTOS_PER_EVENT}
+              justPaid={paid === "1"}
+            />
+          </Section>
+        )}
         <Section title="Face search">
           <ClearSearchForm />
         </Section>
