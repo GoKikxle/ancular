@@ -119,7 +119,7 @@ export function SelfieCamera({ onFace }: { onFace: (embedding: number[]) => void
         <div className="max-w-sm rounded-[4px] bg-fill p-4">
           <p className="t-item">The camera isn&apos;t available</p>
           <p className="t-item-sub mt-0.5">
-            Allow camera access in your browser settings, or choose a recent selfie from your phone instead.
+            Allow camera access in your browser settings, or tap Take a photo to use your phone’s camera app.
           </p>
         </div>
       )}
@@ -149,7 +149,7 @@ export function SelfieCamera({ onFace }: { onFace: (embedding: number[]) => void
               e.target.value = "";
             }}
           />
-          {camera === "blocked" ? "Choose a selfie" : "Use a photo instead"}
+          {camera === "blocked" ? "Take a photo" : "Take a photo instead"}
         </label>
       </div>
       {!modelReady && (

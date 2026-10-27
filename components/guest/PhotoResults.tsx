@@ -12,13 +12,15 @@ type Props = {
   onChange: (m: Match[]) => void;
   onSearchAgain: () => void;
   onWithdraw: () => Promise<void>;
+  /** Called after the guest says "yes, that's me", so the search can look for more angles. */
+  onConfirmed?: () => void;
 };
 
 /**
  * The page every guest judges Ancular by. One job: get them their photos.
  * Order: how many photos, Save all, the photos, unsure ones, then "missing some?".
  */
-export function PhotoResults({ eventName, matches, onChange, onSearchAgain, onWithdraw }: Props) {
+export function PhotoResults({ eventName, matches, onChange, onSearchAgain, onWithdraw, onConfirmed }: Props) {
   const [open, setOpen] = useState<string | null>(null);
 
   const yours = matches.filter((m) => m.confidence === "sure" || m.confirmed);
@@ -35,6 +37,7 @@ export function PhotoResults({ eventName, matches, onChange, onSearchAgain, onWi
         ? matches.map((m) => (m.photo_id === photoId ? { ...m, confirmed: true } : m))
         : matches.filter((m) => m.photo_id !== photoId)
     );
+    if (isMe) onConfirmed?.();
   }
 
   return (

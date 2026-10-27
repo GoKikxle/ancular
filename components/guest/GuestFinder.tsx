@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { grantPreviewConsent, withdrawPreviewConsent } from "@/app/e/[code]/actions";
 import { createClient } from "@/lib/supabase/client";
 import { CONSENT_VERSION } from "@/lib/events";
@@ -35,6 +35,10 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, pr
   const [matches, setMatches] = useState<Match[]>(initialMatches);
   const [error, setError] = useState<string | null>(null);
   const [searchedOnce, setSearchedOnce] = useState(initialMatches.length > 0);
+  // The selfie's face code, kept in memory for this visit only (never saved), so a
+  // "yes, that's me" can search again for that person at other angles.
+  const faceCode = useRef<number[] | null>(null);
+  const refining = useRef(false);
 
   async function agree() {
     setError(null);
@@ -68,6 +72,7 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, pr
       setStage("results");
       return;
     }
+    faceCode.current = embedding;
     const { data, error: err } = await createClient().rpc("match_my_face", {
       p_event: eventId,
       p_embedding: toVectorLiteral(embedding),
@@ -82,7 +87,21 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, pr
     setStage("results");
   }
 
+  // Quietly search again after a confirmation: confirmed photos act as extra
+  // reference faces, which finds side profiles the selfie alone missed.
+  async function refine() {
+    if (preview || !faceCode.current || refining.current) return;
+    refining.current = true;
+    const { data } = await createClient().rpc("match_my_face", {
+      p_event: eventId,
+      p_embedding: toVectorLiteral(faceCode.current),
+    });
+    refining.current = false;
+    if (data) setMatches(data as Match[]);
+  }
+
   async function withdraw() {
+    faceCode.current = null;
     if (preview) {
       const result = await withdrawPreviewConsent(eventId);
       if (result.error) {
@@ -152,6 +171,7 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, pr
           onChange={setMatches}
           onSearchAgain={() => setStage("selfie")}
           onWithdraw={withdraw}
+          onConfirmed={refine}
         />
       )}
     </div>

@@ -84,7 +84,9 @@ export async function detectAllFaces(input: HTMLCanvasElement): Promise<Detected
   const faceapi = await loadFaceApi("host");
   const W = input.width;
   const H = input.height;
-  const options = new faceapi.SsdMobilenetv1Options({ minConfidence: 0.4, maxResults: 200 });
+  // 0.3 keeps more turned and side-on faces; a stray false "face" costs little,
+  // since it won't be close to anyone's selfie.
+  const options = new faceapi.SsdMobilenetv1Options({ minConfidence: 0.3, maxResults: 200 });
 
   const regions: { x: number; y: number; w: number; h: number }[] = [{ x: 0, y: 0, w: W, h: H }];
   if (Math.max(W, H) > 900) {
