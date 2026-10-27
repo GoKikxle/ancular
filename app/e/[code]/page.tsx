@@ -40,6 +40,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   // Only events missing from Supabase come from the local preview store.
   // A live invite must not be replaced, even for a signed-out visitor.
   let fromPreviewStore = false;
+  let previewFaceModel: "v1" | "v2" = "v1";
   if (!invite && previewEnabled()) {
     const preview = await getPreviewEventByInviteCode(code);
     if (preview) {
@@ -53,6 +54,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
         join_mode: preview.join_mode,
         status: preview.status,
       };
+      previewFaceModel = preview.face_model ?? "v1";
     }
   }
 
@@ -120,6 +122,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
           eventName={invite.name}
           hasConsent={membership.consent}
           initialMatches={[]}
+          faceModel={previewFaceModel}
           preview
         />
       </Shell>
@@ -201,7 +204,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     );
   }
 
-  const [{ data: consent }, { data: matches }] = await Promise.all([
+  const [{ data: consent }, { data: matches }, { data: eventModel }] = await Promise.all([
     supabase
       .from("consents")
       .select("id")
@@ -216,6 +219,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
       .eq("user_id", user.id)
       .eq("rejected", false)
       .order("distance"),
+    supabase.from("events").select("face_model").eq("id", invite.id).maybeSingle(),
   ]);
 
   return (
@@ -228,6 +232,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
         eventName={invite.name}
         hasConsent={!!consent}
         initialMatches={(matches ?? []) as Match[]}
+        faceModel={(eventModel?.face_model as "v1" | "v2" | undefined) ?? "v1"}
       />
     </Shell>
   );

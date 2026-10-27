@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { plainError } from "@/lib/errors";
-import { detectAllFaces, loadFaceApi, toVectorLiteral } from "@/lib/face";
+import { detectAllFaces, faceColumn, preloadFaces, toVectorLiteral, type FaceModel } from "@/lib/face";
 import { DETECT_MAX, PREVIEW_MAX, THUMB_MAX, canvasToJpeg, drawScaled, loadBitmap } from "@/lib/image";
 
 type Item = {
@@ -24,7 +24,7 @@ async function put(target: UploadTarget, body: Blob) {
   if (!res.ok) throw new Error("Upload failed");
 }
 
-export function PhotoUploader({ eventId }: { eventId: string }) {
+export function PhotoUploader({ eventId, faceModel = "v1" }: { eventId: string; faceModel?: FaceModel }) {
   const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
   const [modelState, setModelState] = useState<"idle" | "loading" | "ready" | "error">("idle");
@@ -68,7 +68,7 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
       try {
         const bitmap = await loadBitmap(item.file);
         const detectCanvas = drawScaled(bitmap, DETECT_MAX);
-        const faces = await detectAllFaces(detectCanvas);
+        const faces = await detectAllFaces(detectCanvas, faceModel);
         const preview = await canvasToJpeg(drawScaled(bitmap, PREVIEW_MAX), 0.82);
         const thumb = await canvasToJpeg(drawScaled(bitmap, THUMB_MAX), 0.78);
         const { width, height } = bitmap;
@@ -110,7 +110,7 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
             faces.map((f) => ({
               event_id: eventId,
               photo_id: photoId,
-              embedding: toVectorLiteral(f.embedding),
+              [faceColumn(faceModel)]: toVectorLiteral(f.embedding),
               box: f.box,
             }))
           );
@@ -146,7 +146,7 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
         });
       }
     },
-    [eventId]
+    [eventId, faceModel]
   );
 
   const pumpRef = useRef<() => void>(() => undefined);
@@ -178,7 +178,7 @@ export function PhotoUploader({ eventId }: { eventId: string }) {
     if (modelState !== "ready") {
       setModelState("loading");
       try {
-        await loadFaceApi("host");
+        await preloadFaces(faceModel, "host");
         setModelState("ready");
       } catch {
         setModelState("error");

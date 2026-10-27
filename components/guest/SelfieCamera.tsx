@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { SELFIE_PROBLEMS, loadFaceApi, readSelfie } from "@/lib/face";
+import { SELFIE_PROBLEMS, preloadFaces, readSelfie, type FaceModel } from "@/lib/face";
 import { drawScaled, loadBitmap } from "@/lib/image";
 
 type CameraState = "starting" | "live" | "blocked" | "checking";
@@ -10,7 +10,16 @@ type CameraState = "starting" | "live" | "blocked" | "checking";
  * Front camera with a face guide. Falls back to choosing a photo when the camera
  * is blocked or unavailable. Nothing captured here is uploaded.
  */
-export function SelfieCamera({ onFace }: { onFace: (embedding: number[]) => void }) {
+export function SelfieCamera({
+  onFace,
+  model = "v1",
+  angled = false,
+}: {
+  onFace: (embedding: number[]) => void;
+  model?: FaceModel;
+  /** Second selfie with the head turned: the face finder is allowed to be less sure. */
+  angled?: boolean;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [camera, setCamera] = useState<CameraState>("starting");
@@ -19,7 +28,7 @@ export function SelfieCamera({ onFace }: { onFace: (embedding: number[]) => void
 
   useEffect(() => {
     let cancelled = false;
-    loadFaceApi("guest")
+    preloadFaces(model, "guest")
       .then(() => !cancelled && setModelReady(true))
       .catch(() => !cancelled && setProblem("Couldn't load the face finder. Check your connection and refresh."));
 
@@ -47,12 +56,12 @@ export function SelfieCamera({ onFace }: { onFace: (embedding: number[]) => void
       cancelled = true;
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
-  }, []);
+  }, [model]);
 
   async function check(source: HTMLCanvasElement) {
     setProblem(null);
     setCamera((c) => (c === "live" ? "checking" : c));
-    const result = await readSelfie(source);
+    const result = await readSelfie(source, { model, angled });
     if (result.ok) {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       onFace(result.face.embedding);

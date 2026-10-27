@@ -8,16 +8,30 @@
 
 type FaceApi = typeof import("@vladmandic/face-api");
 
-const loaders: Partial<Record<"host" | "guest", Promise<FaceApi>>> = {};
+/**
+ * Which face model an event uses. Face codes from different models can't be compared,
+ * so every event sticks to one: "v1" is the original small model (128 numbers per face),
+ * "v2" reads each face with a stronger model (1024 numbers) that copes much better
+ * with turned heads and side profiles.
+ * New events use v2; older events move over when the host re-scans them.
+ */
+export type FaceModel = "v1" | "v2";
+
+const loaders: Partial<Record<string, Promise<FaceApi>>> = {};
 
 /**
  * host: full crowd detector (~5 MB) for group photos.
  * guest: small detector (~0.2 MB) for one close-up selfie, kinder on mobile data.
  * Both share the same landmark and recognition models, so face codes are comparable.
  */
-export function loadFaceApi(mode: "host" | "guest" = "host"): Promise<FaceApi> {
-  if (!loaders[mode]) {
-    loaders[mode] = (async () => {
+export function loadFaceApi(
+  mode: "host" | "guest" = "host",
+  { detectorOnly = false }: { detectorOnly?: boolean } = {}
+): Promise<FaceApi> {
+  // v2 reads faces with its own model, so it only needs the detector from here.
+  const key = `${mode}${detectorOnly ? ":detector" : ""}`;
+  if (!loaders[key]) {
+    loaders[key] = (async () => {
       const faceapi = await import("@vladmandic/face-api");
       // Phones without WebGL fall back to WebAssembly; serve its files from /public/tfjs.
       const tf = faceapi.tf as unknown as {
@@ -29,16 +43,20 @@ export function loadFaceApi(mode: "host" | "guest" = "host"): Promise<FaceApi> {
       const detector = mode === "host" ? faceapi.nets.ssdMobilenetv1 : faceapi.nets.tinyFaceDetector;
       await Promise.all([
         detector.isLoaded ? null : detector.loadFromUri("/models"),
-        faceapi.nets.faceLandmark68Net.isLoaded ? null : faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
-        faceapi.nets.faceRecognitionNet.isLoaded ? null : faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
+        detectorOnly || faceapi.nets.faceLandmark68Net.isLoaded
+          ? null
+          : faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
+        detectorOnly || faceapi.nets.faceRecognitionNet.isLoaded
+          ? null
+          : faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
       ]);
       return faceapi;
     })().catch((err) => {
-      delete loaders[mode];
+      delete loaders[key];
       throw err;
     });
   }
-  return loaders[mode]!;
+  return loaders[key]!;
 }
 
 export type DetectedFace = {
@@ -48,17 +66,17 @@ export type DetectedFace = {
   score: number;
 };
 
-type Drawable = HTMLCanvasElement | HTMLImageElement | HTMLVideoElement;
+export type Drawable = HTMLCanvasElement | HTMLImageElement | HTMLVideoElement;
 
-function sizeOf(input: Drawable) {
+export function sizeOf(input: Drawable) {
   if (input instanceof HTMLVideoElement) return { w: input.videoWidth, h: input.videoHeight };
   if (input instanceof HTMLImageElement) return { w: input.naturalWidth, h: input.naturalHeight };
   return { w: input.width, h: input.height };
 }
 
-type Box = { x: number; y: number; w: number; h: number };
+export type Box = { x: number; y: number; w: number; h: number };
 
-function iou(a: Box, b: Box) {
+export function iou(a: Box, b: Box) {
   const x1 = Math.max(a.x, b.x);
   const y1 = Math.max(a.y, b.y);
   const x2 = Math.min(a.x + a.w, b.x + b.w);
@@ -67,7 +85,7 @@ function iou(a: Box, b: Box) {
   return inter / (a.w * a.h + b.w * b.h - inter || 1);
 }
 
-function cropCanvas(src: HTMLCanvasElement, x: number, y: number, w: number, h: number) {
+export function cropCanvas(src: HTMLCanvasElement, x: number, y: number, w: number, h: number) {
   const c = document.createElement("canvas");
   c.width = w;
   c.height = h;
@@ -80,7 +98,11 @@ function cropCanvas(src: HTMLCanvasElement, x: number, y: number, w: number, h: 
  * The detector shrinks its input to 512px, so faces at the back of a crowd get lost.
  * We scan the whole photo and then four overlapping zoomed-in quarters, and merge duplicates.
  */
-export async function detectAllFaces(input: HTMLCanvasElement): Promise<DetectedFace[]> {
+export async function detectAllFaces(input: HTMLCanvasElement, model: FaceModel = "v1"): Promise<DetectedFace[]> {
+  if (model === "v2") {
+    const { detectAllFacesV2 } = await import("./face-v2");
+    return detectAllFacesV2(input);
+  }
   const faceapi = await loadFaceApi("host");
   const W = input.width;
   const H = input.height;
@@ -116,8 +138,18 @@ export type SelfieCheck =
   | { ok: true; face: DetectedFace }
   | { ok: false; reason: "no-face" | "many-faces" | "too-small" | "unclear" };
 
-/** One clear face from a selfie, or the reason it can't be used. */
-export async function readSelfie(input: Drawable): Promise<SelfieCheck> {
+/**
+ * One clear face from a selfie, or the reason it can't be used.
+ * `angled`: the second, head-turned selfie, where the detector is naturally less sure.
+ */
+export async function readSelfie(
+  input: Drawable,
+  { model = "v1", angled = false }: { model?: FaceModel; angled?: boolean } = {}
+): Promise<SelfieCheck> {
+  if (model === "v2") {
+    const { readSelfieV2 } = await import("./face-v2");
+    return readSelfieV2(input, angled);
+  }
   const faceapi = await loadFaceApi("guest");
   const { w, h } = sizeOf(input);
   const results = await faceapi
@@ -134,7 +166,7 @@ export async function readSelfie(input: Drawable): Promise<SelfieCheck> {
     return { ok: false, reason: "many-faces" };
   }
   if (main.detection.box.width < Math.min(w, h) * 0.18) return { ok: false, reason: "too-small" };
-  if (main.detection.score < 0.7) return { ok: false, reason: "unclear" };
+  if (main.detection.score < (angled ? 0.5 : 0.7)) return { ok: false, reason: "unclear" };
 
   return {
     ok: true,
@@ -149,6 +181,21 @@ export async function readSelfie(input: Drawable): Promise<SelfieCheck> {
       },
     },
   };
+}
+
+/** Start downloading the face finder early, so it's ready by the time it's needed. */
+export async function preloadFaces(model: FaceModel, mode: "host" | "guest") {
+  if (model === "v2") {
+    const { loadV2 } = await import("./face-v2");
+    await loadV2(mode);
+  } else {
+    await loadFaceApi(mode);
+  }
+}
+
+/** The database column a model's face codes live in. */
+export function faceColumn(model: FaceModel) {
+  return model === "v2" ? "embedding_v2" : "embedding";
 }
 
 /** pgvector text format */

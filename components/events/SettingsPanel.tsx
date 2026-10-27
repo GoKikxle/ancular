@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { EventFields } from "@/components/events/EventFields";
+import { FaceUpgrade } from "@/components/events/FaceUpgrade";
 import { deleteEvent, updateEvent, type FormState } from "@/app/(app)/events/actions";
 import type { EventRow } from "@/lib/events";
 
@@ -28,6 +29,8 @@ export function SettingsPanel({ event, isOwner }: { event: EventRow; isOwner: bo
           {saveState?.saved && <span className="t-ui">Saved</span>}
         </div>
       </form>
+
+      {event.face_model === "v1" && <FaceUpgrade eventId={event.id} />}
 
       {isOwner && (
         <form action={remove} className="border-t border-hairline pt-8">

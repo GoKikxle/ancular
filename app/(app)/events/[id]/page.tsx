@@ -133,7 +133,7 @@ export default async function EventPage({
       <div className="mt-6 border-t border-hairline pt-8 md:pt-10">
         {tab === "photos" && (
           <div className="space-y-10">
-            <PhotoUploader eventId={id} />
+            <PhotoUploader eventId={id} faceModel={event.face_model ?? "v1"} />
             <PhotoGrid eventId={id} photos={readyPhotos} />
           </div>
         )}

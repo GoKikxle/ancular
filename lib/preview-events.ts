@@ -71,6 +71,7 @@ export async function createPreviewEvent(input: PreviewEventInput): Promise<Even
     join_mode: input.joinMode,
     face_retention_days: input.retention,
     status: "active",
+    face_model: "v2",
     created_at: new Date().toISOString(),
   };
   events.unshift(event);
