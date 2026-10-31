@@ -87,6 +87,31 @@ export async function signDownload(key: string, downloadName?: string, expiresIn
   return data.signedUrl;
 }
 
+/** Many view links at once: one request to Supabase, or local signing for R2. Missing keys are left out. */
+export async function signDownloads(keys: string[], expiresIn = 60 * 60): Promise<Record<string, string>> {
+  if (keys.length === 0) return {};
+  const r = r2();
+  if (r) {
+    const pairs = await Promise.all(
+      keys.map(async (key) => [
+        key,
+        await getSignedUrl(
+          r.client,
+          new GetObjectCommand({ Bucket: r.bucket, Key: key, ResponseCacheControl: "private, max-age=3600" }),
+          { expiresIn }
+        ),
+      ])
+    );
+    return Object.fromEntries(pairs);
+  }
+  const admin = createAdminClient();
+  const { data, error } = await admin.storage.from(SUPABASE_BUCKET).createSignedUrls(keys, expiresIn);
+  if (error || !data) return {};
+  const out: Record<string, string> = {};
+  for (const d of data) if (d.path && d.signedUrl && !d.error) out[d.path] = d.signedUrl;
+  return out;
+}
+
 /** Delete every object under a prefix (used when an event or photo is deleted). */
 export async function deletePrefix(prefix: string) {
   const r = r2();

@@ -24,6 +24,7 @@ export function SelfieCamera({
   const streamRef = useRef<MediaStream | null>(null);
   const [camera, setCamera] = useState<CameraState>("starting");
   const [modelReady, setModelReady] = useState(false);
+  const [flash, setFlash] = useState(0);
   const [problem, setProblem] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,6 +75,7 @@ export function SelfieCamera({
   async function capture() {
     const video = videoRef.current;
     if (!video || !video.videoWidth) return;
+    setFlash((n) => n + 1);
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -98,6 +100,7 @@ export function SelfieCamera({
     <div>
       {camera !== "blocked" && (
         <div className="relative aspect-[3/4] w-full max-w-sm overflow-hidden rounded-[2px] bg-black">
+          {flash > 0 && <span key={flash} aria-hidden="true" className="shutter z-10" />}
           <video
             ref={videoRef}
             playsInline

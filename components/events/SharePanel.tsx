@@ -66,7 +66,7 @@ export function SharePanel({ url, inviteCode, eventName, joinMode }: Props) {
         <div className="mt-5 flex max-w-xl flex-col gap-2 sm:flex-row">
           <input readOnly value={link} className="field font-medium" aria-label="Invite link" onFocus={(e) => e.target.select()} />
           <button type="button" onClick={copy} className="btn btn-primary shrink-0">
-            {copied ? "Copied" : "Copy link"}
+            {copied ? <span className="confirm-in"><svg viewBox="0 0 16 16" className="pop h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" /></svg>Copied</span> : "Copy link"}
           </button>
         </div>
         <a href={whatsAppHref} target="_blank" rel="noreferrer" className="btn btn-quiet mt-2">

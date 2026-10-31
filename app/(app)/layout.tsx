@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AccountButton, SiteHeader } from "@/components/layout/SiteHeader";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 import { getUser } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 
@@ -23,9 +24,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           user ? (
             <>
               <form action={signOut}>
-                <button className="nav-link" type="submit">
+                <SubmitButton className="nav-link" pendingLabel="Signing out…">
                   Sign out
-                </button>
+                </SubmitButton>
               </form>
               <AccountButton name={name ?? ""} />
             </>

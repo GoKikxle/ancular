@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import type { Match } from "./GuestFinder";
 import { SaveAll } from "./SaveAll";
 import { PhotoViewer } from "@/components/photos/PhotoViewer";
+import { PhotoImg } from "@/components/photos/PhotoImg";
+import { usePhotoUrls } from "@/components/photos/usePhotoUrls";
 
 type Props = {
   eventName: string;
@@ -26,6 +28,7 @@ export function PhotoResults({ eventName, matches, onChange, onSearchAgain, onWi
   const yours = matches.filter((m) => m.confidence === "sure" || m.confirmed);
   const maybe = matches.filter((m) => m.confidence === "maybe" && !m.confirmed);
   const ids = yours.map((m) => m.photo_id);
+  const links = usePhotoUrls(matches.map((m) => m.photo_id));
 
   async function answer(photoId: string, isMe: boolean) {
     await createClient()
@@ -47,7 +50,8 @@ export function PhotoResults({ eventName, matches, onChange, onSearchAgain, onWi
           <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-10">
             <div>
               <h1 className="display">
-                {yours.length} {yours.length === 1 ? "photo" : "photos"} of you
+                <span key={yours.length} className="count-in tabular-nums">{yours.length}</span>{" "}
+                {yours.length === 1 ? "photo" : "photos"} of you
               </h1>
               <p className="t-lead t-muted mt-4">Only you can see these.</p>
             </div>
@@ -56,20 +60,20 @@ export function PhotoResults({ eventName, matches, onChange, onSearchAgain, onWi
 
           <ul aria-label="Your photos" className="mt-8 columns-2 gap-2 md:mt-12 md:columns-3 md:gap-8 lg:columns-4">
             {yours.map((m, i) => (
-              <li key={m.photo_id} className="mb-2 break-inside-avoid md:mb-8">
+              <li key={m.photo_id} className="rise-in mb-2 break-inside-avoid md:mb-8" style={{ ["--i" as string]: i }}>
                 <button
                   type="button"
                   onClick={() => setOpen(m.photo_id)}
-                  className="block w-full"
+                  className="tile block w-full"
                   aria-label={`Open photo ${i + 1} of ${yours.length}`}
                 >
-                  <Photo id={m.photo_id} alt="A photo you're in" />
+                  <Photo thumb={links.src(m.photo_id, "thumb")} preview={links.src(m.photo_id, "preview")} alt="A photo you're in" />
                 </button>
               </li>
             ))}
           </ul>
 
-          {maybe.length > 0 && <UnsureRow maybe={maybe} onAnswer={answer} />}
+          {maybe.length > 0 && <UnsureRow maybe={maybe} onAnswer={answer} src={(id) => links.src(id, "thumb")} />}
         </>
       )}
 
@@ -80,9 +84,9 @@ export function PhotoResults({ eventName, matches, onChange, onSearchAgain, onWi
             We&apos;re not sure about {maybe.length === 1 ? "this one" : `these ${maybe.length}`}. Tell us which are you.
           </p>
           <ul className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 md:mt-12 lg:grid-cols-3">
-            {maybe.map((m) => (
-              <li key={m.photo_id}>
-                <UnsureCard photoId={m.photo_id} onAnswer={answer} large />
+            {maybe.map((m, i) => (
+              <li key={m.photo_id} className="rise-in" style={{ ["--i" as string]: i }}>
+                <UnsureCard photoId={m.photo_id} onAnswer={answer} src={links.src(m.photo_id, "preview")} large />
               </li>
             ))}
           </ul>
@@ -117,6 +121,7 @@ export function PhotoResults({ eventName, matches, onChange, onSearchAgain, onWi
           ids={ids}
           onNavigate={setOpen}
           onClose={() => setOpen(null)}
+          src={(id) => links.url(id, "preview")}
           footer={(id) => <SendPhoto key={id} photoId={id} eventName={eventName} />}
         />
       )}
@@ -125,30 +130,41 @@ export function PhotoResults({ eventName, matches, onChange, onSearchAgain, onWi
 }
 
 /** Thumbnail on phones, the larger preview on wide screens. Grey until it arrives. */
-function Photo({ id, alt }: { id: string; alt: string }) {
-  const [loaded, setLoaded] = useState(false);
+function Photo({ thumb, preview, alt }: { thumb: string | null; preview: string | null; alt: string }) {
+  const [loaded, setLoaded] = useState<string | null>(null);
+  const isLoaded = thumb !== null && loaded === thumb;
+  if (!thumb || !preview) return <span className="media skeleton block aspect-[4/5]" />;
   return (
-    <span className={`media block ${loaded ? "" : "skeleton aspect-[4/5]"}`}>
+    <span className={`media block ${isLoaded ? "" : "skeleton aspect-[4/5]"}`}>
       <picture>
-        <source media="(min-width: 768px)" srcSet={`/api/photos/${id}/preview`} />
+        <source media="(min-width: 768px)" srcSet={preview} />
         <img
-          src={`/api/photos/${id}/thumb`}
+          src={thumb}
           alt={alt}
           loading="lazy"
           decoding="async"
-          onLoad={() => setLoaded(true)}
+          onLoad={() => setLoaded(thumb)}
+          onError={() => setLoaded(thumb)}
           ref={(el) => {
-            if (el?.complete && el.naturalWidth > 0 && !loaded) requestAnimationFrame(() => setLoaded(true));
+            if (el?.complete && el.naturalWidth > 0 && !isLoaded) requestAnimationFrame(() => setLoaded(thumb));
           }}
-          data-loaded={loaded}
-          className="fade-in block h-auto w-full"
+          data-loaded={isLoaded}
+          className="photo-in block h-auto w-full"
         />
       </picture>
     </span>
   );
 }
 
-function UnsureRow({ maybe, onAnswer }: { maybe: Match[]; onAnswer: (id: string, isMe: boolean) => void }) {
+function UnsureRow({
+  maybe,
+  onAnswer,
+  src,
+}: {
+  maybe: Match[];
+  onAnswer: (id: string, isMe: boolean) => void;
+  src: (id: string) => string | null;
+}) {
   return (
     <section className="mt-16 border-t border-hairline pt-8 md:mt-24 md:pt-10">
       <h2 className="t-title">
@@ -158,7 +174,7 @@ function UnsureRow({ maybe, onAnswer }: { maybe: Match[]; onAnswer: (id: string,
       <ul className="-mx-4 mt-6 flex snap-x gap-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
         {maybe.map((m) => (
           <li key={m.photo_id} className="w-[44%] shrink-0 snap-start sm:w-56">
-            <UnsureCard photoId={m.photo_id} onAnswer={onAnswer} />
+            <UnsureCard photoId={m.photo_id} onAnswer={onAnswer} src={src(m.photo_id)} />
           </li>
         ))}
       </ul>
@@ -169,28 +185,31 @@ function UnsureRow({ maybe, onAnswer }: { maybe: Match[]; onAnswer: (id: string,
 function UnsureCard({
   photoId,
   onAnswer,
+  src,
   large = false,
 }: {
   photoId: string;
   onAnswer: (id: string, isMe: boolean) => void;
+  src: string | null;
   large?: boolean;
 }) {
+  // Play the fly-off first, then hand the answer up (which removes the card).
+  const [leaving, setLeaving] = useState<"yes" | "no" | null>(null);
+  function choose(isMe: boolean) {
+    if (leaving) return;
+    setLeaving(isMe ? "yes" : "no");
+    setTimeout(() => onAnswer(photoId, isMe), 260);
+  }
   return (
-    <div>
+    <div className={leaving === "yes" ? "leave-yes" : leaving === "no" ? "leave-no" : ""}>
       <div className="media aspect-[4/5]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={`/api/photos/${photoId}/${large ? "preview" : "thumb"}`}
-          alt="A photo that might include you"
-          loading="lazy"
-          className="h-full w-full object-cover"
-        />
+        <PhotoImg src={src} alt="A photo that might include you" />
       </div>
       <div className="mt-2 flex gap-2">
-        <button type="button" className="btn btn-sm btn-quiet flex-1" onClick={() => onAnswer(photoId, false)}>
+        <button type="button" className="btn btn-sm btn-quiet flex-1" onClick={() => choose(false)}>
           {large ? "Not me" : "No"}
         </button>
-        <button type="button" className="btn btn-sm btn-primary flex-1" onClick={() => onAnswer(photoId, true)}>
+        <button type="button" className="btn btn-sm btn-primary flex-1" onClick={() => choose(true)}>
           {large ? "Yes, that's me" : "Yes"}
         </button>
       </div>

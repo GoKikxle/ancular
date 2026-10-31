@@ -119,7 +119,7 @@ export function SaveAll({ photoIds, eventName }: { photoIds: string[]; eventName
           disabled={state.step === "fetching"}
           aria-live="polite"
         >
-          {state.step === "fetching" ? `Getting photos ready… ${state.done} of ${total}` : state.step === "saved" ? "Saved. Save again" : label}
+          {state.step === "fetching" ? `Getting photos ready… ${state.done} of ${total}` : state.step === "saved" ? <span className="confirm-in"><svg viewBox="0 0 16 16" className="pop h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" /></svg>Saved. Save again</span> : label}
         </button>
       )}
       <p className="t-meta md:text-right" aria-live="polite">

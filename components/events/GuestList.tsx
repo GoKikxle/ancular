@@ -1,5 +1,6 @@
 import { approveAllPending, decideGuest, removeGuest } from "@/app/(app)/events/actions";
 import type { MemberRow } from "@/lib/events";
+import { SubmitButton } from "@/components/ui/SubmitButton";
 
 function when(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
@@ -39,9 +40,9 @@ export function GuestList({
             </h2>
             {pending.length > 1 && (
               <form action={approveAllPending.bind(null, eventId)}>
-                <button className="btn btn-quiet btn-sm" type="submit">
+                <SubmitButton className="btn btn-quiet btn-sm" pendingLabel="Letting in…">
                   Let everyone in
-                </button>
+                </SubmitButton>
               </form>
             )}
           </div>
@@ -54,14 +55,14 @@ export function GuestList({
                 </div>
                 <div className="flex gap-2">
                   <form action={decideGuest.bind(null, eventId, g.user_id, "declined")}>
-                    <button className="btn btn-quiet btn-sm" type="submit">
+                    <SubmitButton className="btn btn-quiet btn-sm" pendingLabel="Declining…">
                       Decline
-                    </button>
+                    </SubmitButton>
                   </form>
                   <form action={decideGuest.bind(null, eventId, g.user_id, "approved")}>
-                    <button className="btn btn-primary btn-sm" type="submit">
+                    <SubmitButton className="btn btn-primary btn-sm" pendingLabel="Letting in…">
                       Let in
-                    </button>
+                    </SubmitButton>
                   </form>
                 </div>
               </li>
@@ -82,9 +83,9 @@ export function GuestList({
               <li key={g.user_id} className="flex items-center justify-between gap-3 border-b border-hairline py-3">
                 <p className="t-item">{g.display_name ?? "Guest"}</p>
                 <form action={removeGuest.bind(null, eventId, g.user_id)}>
-                  <button className="nav-link hover:!text-danger" type="submit">
+                  <SubmitButton className="nav-link hover:!text-danger" pendingLabel="Removing…">
                     Remove
-                  </button>
+                  </SubmitButton>
                 </form>
               </li>
             ))}

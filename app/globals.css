@@ -96,6 +96,20 @@ body {
 }
 
 @layer base {
+  /* Tailwind 4 gives buttons the default arrow cursor; a pointer tells people it's clickable. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  label[for],
+  summary {
+    cursor: pointer;
+  }
+  a,
+  button,
+  label,
+  summary {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
   h1,
   h2,
   h3 {
@@ -217,12 +231,21 @@ body {
     line-height: 1;
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
-    transition: background-color 0.12s ease, color 0.12s ease, opacity 0.12s ease;
+    transition: background-color 0.12s ease, color 0.12s ease, opacity 0.12s ease, transform 0.08s ease;
   }
   .btn:disabled,
   .btn[aria-disabled="true"] {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+  /* Pressed: a quick press-in so every tap visibly lands. */
+  .btn:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: scale(0.97);
+  }
+  /* Waiting on the server: keep the label, dim it, show a busy cursor. */
+  .btn[aria-busy="true"] {
+    opacity: 0.7;
+    cursor: progress;
   }
   .btn-primary,
   .btn-gold {
@@ -231,7 +254,11 @@ body {
   }
   .btn-primary:hover:not(:disabled),
   .btn-gold:hover:not(:disabled) {
-    background: #222222;
+    background: #2b2b2b;
+  }
+  .btn-primary:active:not(:disabled),
+  .btn-gold:active:not(:disabled) {
+    background: #3a3a3a;
   }
   .btn-quiet {
     background: var(--fill);
@@ -239,6 +266,15 @@ body {
   }
   .btn-quiet:hover:not(:disabled) {
     background: var(--fill-hover);
+  }
+  .btn-quiet:active:not(:disabled) {
+    background: rgba(0, 0, 0, 0.11);
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: #a8142a;
+  }
+  .btn-danger:active:not(:disabled) {
+    background: #8f1023;
   }
   .btn-on-indigo {
     background: rgba(255, 255, 255, 0.12);
@@ -277,10 +313,14 @@ body {
     font-size: 0.8125rem;
     font-weight: 600;
     white-space: nowrap;
-    transition: background-color 0.12s ease;
+    transition: background-color 0.12s ease, transform 0.08s ease;
   }
   .pill:hover {
     background: var(--fill-hover);
+  }
+  .pill:active {
+    background: rgba(0, 0, 0, 0.11);
+    transform: scale(0.97);
   }
   .pill[aria-pressed="true"],
   .pill[aria-current="page"],
@@ -308,9 +348,14 @@ body {
     font-size: 0.8125rem;
     font-weight: 600;
     color: var(--ink-2);
+    transition: background-color 0.12s ease, color 0.12s ease;
   }
   .nav-link:hover {
     color: var(--ink);
+    background: var(--fill);
+  }
+  .nav-link:active {
+    background: var(--fill-hover);
   }
   .nav-link[aria-current="page"] {
     background: var(--fill-active);
@@ -372,6 +417,44 @@ body {
     border-radius: var(--radius-media);
     overflow: hidden;
   }
+  /* Photos you can open: dim slightly on hover, press in on tap. */
+  .media > button,
+  button.media,
+  a.media {
+    transition: opacity 0.12s ease, transform 0.08s ease;
+  }
+  .media > button:hover,
+  button.media:hover,
+  a.media:hover {
+    opacity: 0.92;
+  }
+  .media > button:active,
+  button.media:active,
+  a.media:active {
+    opacity: 0.8;
+  }
+
+  /* Thin bar along the top while a page loads (see NavProgress). */
+  @keyframes nav-progress {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(250%); }
+  }
+  .nav-progress {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 2px;
+    z-index: 70;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .nav-progress::after {
+    content: "";
+    display: block;
+    width: 40%;
+    height: 100%;
+    background: var(--ink);
+    animation: nav-progress 0.9s ease-in-out infinite;
+  }
 
   @keyframes shimmer {
     from {
@@ -423,6 +506,162 @@ body {
   }
   .cookie-shake {
     animation: cookie-shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+
+  /* ---------- Micro-interactions ---------- */
+  :root {
+    --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Photos settle in: fade, a touch of blur and scale, once the file arrives. */
+  .photo-in {
+    opacity: 0;
+    transform: scale(1.015);
+    filter: blur(6px);
+    transition: opacity 0.45s var(--ease-out), transform 0.6s var(--ease-out), filter 0.45s var(--ease-out);
+  }
+  .photo-in[data-loaded="true"] {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  /* Grid tiles rise in one after another (delay set per tile with --i). */
+  @keyframes rise-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+  .rise-in {
+    animation: rise-in 0.45s var(--ease-out) both;
+    animation-delay: calc(min(var(--i, 0), 14) * 35ms);
+  }
+
+  /* Photo tiles: lift a little under the pointer, press in on tap. */
+  .tile {
+    transition: transform 0.2s var(--ease-out);
+  }
+  @media (hover: hover) {
+    .tile:hover {
+      transform: translateY(-2px);
+    }
+  }
+  .tile:active {
+    transform: scale(0.98);
+    transition-duration: 0.08s;
+  }
+  .tile[data-selected="true"] {
+    transform: scale(0.94);
+  }
+
+  /* Selection tick pops when it appears. */
+  @keyframes pop {
+    0% { transform: scale(0.4); }
+    60% { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+  .pop {
+    animation: pop 0.32s var(--ease-spring);
+  }
+
+  /* Leaving: removed photos shrink away; answered "Is this you?" cards fly off. */
+  @keyframes leave-shrink {
+    to { opacity: 0; transform: scale(0.85); }
+  }
+  .leave-shrink {
+    animation: leave-shrink 0.25s var(--ease-out) forwards;
+    pointer-events: none;
+  }
+  @keyframes leave-yes {
+    to { opacity: 0; transform: translateY(-24px) scale(0.92); }
+  }
+  @keyframes leave-no {
+    to { opacity: 0; transform: translateX(-32px) rotate(-4deg); }
+  }
+  .leave-yes {
+    animation: leave-yes 0.32s var(--ease-out) forwards;
+    pointer-events: none;
+  }
+  .leave-no {
+    animation: leave-no 0.28s var(--ease-out) forwards;
+    pointer-events: none;
+  }
+
+  /* Viewer opens with a quick zoom; each new photo fades across. */
+  @keyframes viewer-in {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: none; }
+  }
+  .viewer-in {
+    animation: viewer-in 0.22s var(--ease-out);
+  }
+  @keyframes slide-from-right {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes slide-from-left {
+    from { opacity: 0; transform: translateX(-24px); }
+    to { opacity: 1; transform: none; }
+  }
+  .slide-next { animation: slide-from-right 0.28s var(--ease-out); }
+  .slide-prev { animation: slide-from-left 0.28s var(--ease-out); }
+
+  /* Arrows nudge the way they point. */
+  .nudge-left:hover svg { transform: translateX(-2px); }
+  .nudge-right:hover svg { transform: translateX(2px); }
+  .nudge-left svg,
+  .nudge-right svg { transition: transform 0.2s var(--ease-out); }
+
+  /* Camera shutter. */
+  @keyframes shutter {
+    from { opacity: 0.85; }
+    to { opacity: 0; }
+  }
+  .shutter {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    pointer-events: none;
+    animation: shutter 0.35s ease-out forwards;
+  }
+
+  /* Short confirmation (Copied, Saved): swaps in with a little bounce. */
+  @keyframes confirm-in {
+    from { opacity: 0; transform: translateY(4px) scale(0.96); }
+    to { opacity: 1; transform: none; }
+  }
+  .confirm-in {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    animation: confirm-in 0.25s var(--ease-spring);
+  }
+
+  /* Headline counts tick in. */
+  @keyframes count-in {
+    from { opacity: 0; transform: translateY(0.25em); }
+    to { opacity: 1; transform: none; }
+  }
+  .count-in {
+    display: inline-block;
+    animation: count-in 0.4s var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rise-in, .pop, .viewer-in, .slide-next, .slide-prev, .confirm-in, .count-in, .shutter {
+      animation: none;
+    }
+    .leave-shrink, .leave-yes, .leave-no {
+      animation: leave-shrink 0.01s forwards;
+    }
+    .photo-in {
+      transform: none;
+      filter: none;
+      transition: opacity 0.2s;
+    }
+    .tile, .tile:hover, .tile:active, .tile[data-selected="true"] {
+      transform: none;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

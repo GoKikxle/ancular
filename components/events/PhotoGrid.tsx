@@ -4,6 +4,9 @@ import { useRef, useState, useTransition } from "react";
 import { deletePhoto, deletePhotos } from "@/app/(app)/events/actions";
 import type { PhotoRow } from "@/lib/events";
 import { PhotoViewer } from "@/components/photos/PhotoViewer";
+import { SubmitButton } from "@/components/ui/SubmitButton";
+import { PhotoImg } from "@/components/photos/PhotoImg";
+import { usePhotoUrls } from "@/components/photos/usePhotoUrls";
 
 function faces(n: number) {
   return `${n} ${n === 1 ? "face" : "faces"}`;
@@ -20,7 +23,9 @@ export function PhotoGrid({ eventId, photos }: { eventId: string; photos: PhotoR
   const [confirming, setConfirming] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [leaving, setLeaving] = useState<Set<string>>(new Set());
   const lastClicked = useRef<number | null>(null);
+  const links = usePhotoUrls(photos.map((p) => p.id));
 
   if (photos.length === 0) {
     return <p className="t-item-sub">Photos you upload appear here. Guests can only search once photos are in.</p>;
@@ -63,8 +68,10 @@ export function PhotoGrid({ eventId, photos }: { eventId: string; photos: PhotoR
   function removeSelected() {
     const chosen = [...selected];
     startTransition(async () => {
+      setLeaving(new Set(chosen));
       const result = await deletePhotos(eventId, chosen);
       if (result.error) {
+        setLeaving(new Set());
         setNotice(result.error);
         setConfirming(false);
         return;
@@ -146,8 +153,12 @@ export function PhotoGrid({ eventId, photos }: { eventId: string; photos: PhotoR
           return (
             <li
               key={p.id}
-              className="media group relative mb-2 break-inside-avoid md:mb-4"
-              style={{ aspectRatio: p.width && p.height ? `${p.width} / ${p.height}` : "4 / 5" }}
+              data-selected={isSelected}
+              className={`media tile rise-in group relative mb-2 break-inside-avoid md:mb-4 ${leaving.has(p.id) ? "leave-shrink" : ""}`}
+              style={{
+                aspectRatio: p.width && p.height ? `${p.width} / ${p.height}` : "4 / 5",
+                ["--i" as string]: i,
+              }}
             >
               {selecting ? (
                 <button
@@ -157,13 +168,7 @@ export function PhotoGrid({ eventId, photos }: { eventId: string; photos: PhotoR
                   aria-label={`${isSelected ? "Deselect" : "Select"} photo ${i + 1} of ${photos.length}`}
                   className="block h-full w-full"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/api/photos/${p.id}/thumb`}
-                    alt=""
-                    loading="lazy"
-                    className={`h-full w-full object-cover transition-opacity ${isSelected ? "opacity-70" : ""}`}
-                  />
+                  <PhotoImg src={links.src(p.id, "thumb")} className={isSelected ? "!opacity-70" : ""} />
                   <span
                     aria-hidden="true"
                     className={`absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full ${
@@ -171,7 +176,7 @@ export function PhotoGrid({ eventId, photos }: { eventId: string; photos: PhotoR
                     }`}
                   >
                     {isSelected && (
-                      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg viewBox="0 0 16 16" className="pop h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M3.5 8.5l3 3 6-7" />
                       </svg>
                     )}
@@ -186,17 +191,22 @@ export function PhotoGrid({ eventId, photos }: { eventId: string; photos: PhotoR
                     aria-label={`Open photo ${i + 1} of ${photos.length}`}
                     className="block h-full w-full cursor-zoom-in"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={`/api/photos/${p.id}/thumb`} alt="" loading="lazy" className="h-full w-full object-cover" />
+                    <PhotoImg src={links.src(p.id, "thumb")} />
                   </button>
-                  <form action={deletePhoto.bind(null, eventId, p.id)} className="absolute right-1.5 top-1.5">
-                    <button
-                      type="submit"
+                  <form
+                    action={async () => {
+                      setLeaving((s) => new Set(s).add(p.id));
+                      await deletePhoto(eventId, p.id);
+                    }}
+                    className="absolute right-1.5 top-1.5"
+                  >
+                    <SubmitButton
                       aria-label={`Remove ${p.original_name ?? "this photo"}`}
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-base font-semibold leading-none text-ink hover:bg-ink hover:text-white sm:opacity-0 sm:focus:opacity-100 sm:group-hover:opacity-100"
+                      pendingLabel="…"
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-base font-semibold leading-none text-ink transition-colors hover:bg-ink hover:text-white active:scale-95 aria-busy:opacity-100 sm:opacity-0 sm:focus:opacity-100 sm:group-hover:opacity-100"
                     >
                       ×
-                    </button>
+                    </SubmitButton>
                   </form>
                 </>
               )}
@@ -215,6 +225,7 @@ export function PhotoGrid({ eventId, photos }: { eventId: string; photos: PhotoR
           ids={ids}
           onNavigate={setOpen}
           onClose={() => setOpen(null)}
+          src={(id) => links.url(id, "preview")}
           footer={(id) => {
             const photo = byId.get(id);
             const index = ids.indexOf(id);
@@ -239,9 +250,9 @@ export function PhotoGrid({ eventId, photos }: { eventId: string; photos: PhotoR
                         setOpen(after);
                       }}
                     >
-                      <button type="submit" className="btn btn-quiet hover:!text-danger">
+                      <SubmitButton className="btn btn-quiet hover:!text-danger" pendingLabel="Removing…">
                         Remove
-                      </button>
+                      </SubmitButton>
                     </form>
                   </div>
                 </div>

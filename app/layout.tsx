@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Suspense } from "react";
 import { CookieConsent } from "@/components/consent/CookieConsent";
+import { NavProgress } from "@/components/layout/NavProgress";
 
 export const metadata: Metadata = {
   title: {
@@ -35,6 +37,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-GB">
       <body>
+        <Suspense fallback={null}>
+          <NavProgress />
+        </Suspense>
         {children}
         <CookieConsent />
       </body>
