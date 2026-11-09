@@ -863,7 +863,7 @@ body {
   /* The orbit: photos circling one selfie. */
   .orbit {
     position: relative;
-    width: min(88vw, 56vh, 600px);
+    width: min(86vw, 60vh, 640px);
     aspect-ratio: 1;
   }
   @keyframes orbit-spin { to { transform: rotate(360deg); } }
@@ -872,15 +872,16 @@ body {
     inset: 0;
     animation: orbit-spin 120s linear infinite;
   }
+  /* Every tile the same size, on the same radius, evenly spaced: a true circle.
+     Tiles are 24% wide on a radius of 38% (38 / 24 = 158.33% of a tile). */
   .orbit-item {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 22%;
+    width: 24%;
     aspect-ratio: 1;
-    transform: translate(-50%, -50%) rotate(var(--a)) translateY(-175%) rotate(calc(-1 * var(--a)));
+    transform: translate(-50%, -50%) rotate(var(--a)) translateY(-158.333%) rotate(calc(-1 * var(--a)));
   }
-  .orbit-item:nth-child(even) { width: 18%; }
   .orbit-tile {
     position: relative;
     width: 100%;
@@ -891,12 +892,9 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 30%;
+    border-radius: 28%;
     background: var(--media);
-    box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.35);
-    transform: rotate(-8deg);
   }
-  .orbit-item:nth-child(3n) .orbit-tile img { transform: rotate(7deg); }
   @keyframes orbit-found {
     0%, 100% { opacity: 0; transform: scale(1.25); }
     3% { opacity: 1; transform: scale(1); }
@@ -907,7 +905,7 @@ body {
     position: absolute;
     inset: -7%;
     border: 2px solid var(--ink);
-    border-radius: 34%;
+    border-radius: 31%;
     opacity: 0;
     animation: orbit-found 16s var(--ease-out) infinite;
     animation-delay: calc(var(--n) * 2s);
@@ -929,17 +927,17 @@ body {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 32%;
+    width: 25%;
     aspect-ratio: 1;
     transform: translate(-50%, -50%);
     display: grid;
     place-items: center;
     align-content: center;
     gap: 6%;
-    border-radius: 30%;
+    border-radius: 28%;
     background: #fff;
     color: var(--ink);
-    box-shadow: 0 0 0 1px var(--hairline), 0 30px 60px -28px rgba(0, 0, 0, 0.35);
+    box-shadow: inset 0 0 0 1px var(--hairline-strong);
   }
   @keyframes orbit-pulse {
     0% { opacity: 0.5; transform: scale(1); }
@@ -959,7 +957,7 @@ body {
     width: calc(100% - 12px);
     height: calc(100% - 12px);
     object-fit: cover;
-    border-radius: calc(30% - 4px);
+    border-radius: calc(28% - 4px);
   }
   .orbit-corners {
     position: absolute;
@@ -986,7 +984,7 @@ body {
     padding: 5px 10px;
     border-radius: 999px;
     background: #fff;
-    box-shadow: 0 0 0 1px var(--hairline), 0 6px 16px -8px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0 0 0 1px var(--hairline-strong);
     font-family: "Geist Mono Variable", ui-monospace, monospace;
     font-size: clamp(9px, 1.4vw, 10.5px);
     letter-spacing: 0.08em;
