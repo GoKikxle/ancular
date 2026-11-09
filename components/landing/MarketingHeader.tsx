@@ -13,8 +13,9 @@ const NAV = [
 /**
  * Landing header: logo on the left, a floating dark capsule for the sections in
  * the middle, sign in and the waitlist on the right. Turns solid once you scroll.
+ * `base` is "/" on other pages, so the section links lead back to the landing page.
  */
-export function MarketingHeader() {
+export function MarketingHeader({ base = "", cta = true }: { base?: string; cta?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 8);
@@ -32,19 +33,21 @@ export function MarketingHeader() {
 
       <nav aria-label="Sections" className="lp-capsule">
         {NAV.map((n) => (
-          <a key={n.href} href={n.href} className="lp-capsule-link">
+          <a key={n.href} href={`${base}${n.href}`} className="lp-capsule-link">
             {n.label}
           </a>
         ))}
       </nav>
 
       <div className="flex items-center gap-1">
-        <Link href="/login" className="nav-link hidden sm:inline-flex">
+        <Link href="/login" className={`nav-link ${cta ? "hidden sm:inline-flex" : ""}`}>
           Sign in
         </Link>
-        <Link href="/waitlist" className="btn btn-primary btn-pill btn-sm !px-4">
-          Join the waitlist
-        </Link>
+        {cta && (
+          <Link href="/waitlist" className="btn btn-primary btn-pill btn-sm !px-4">
+            Join the waitlist
+          </Link>
+        )}
       </div>
     </header>
   );

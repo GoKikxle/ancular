@@ -11,15 +11,21 @@ export function WaitlistForm() {
 
   if (state?.done) {
     return (
-      <div className="mt-8 rounded-[4px] bg-fill p-5">
-        <h2 className="t-item">You&apos;re on the list</h2>
-        <p className="t-item-sub mt-1">We&apos;ll email you when you can create events.</p>
+      <div className="confirm-in flex-col !items-start py-6" role="status">
+        <span className="grid h-12 w-12 place-items-center rounded-full bg-ink text-white">
+          <svg viewBox="0 0 16 16" className="pop h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3.5 8.5l3 3 6-7" />
+          </svg>
+        </span>
+        <h2 className="mt-5 text-[1.75rem] font-medium leading-[1.05] tracking-[-0.04em]">You&apos;re on the list.</h2>
+        <p className="lp-lead mt-2">We&apos;ll email you when you can create events.</p>
       </div>
     );
   }
 
   return (
-    <form action={action} className="mt-8 space-y-4">
+    <form action={action} className="space-y-4">
+      <h2 className="mb-6 text-[1.375rem] font-semibold tracking-[-0.03em]">Your details</h2>
       <div>
         <label htmlFor="name" className="label">
           Your name
@@ -58,7 +64,7 @@ export function WaitlistForm() {
         <select id="role" name="role" className="field" defaultValue="photographer" required>
           <option value="photographer">Photographer</option>
           <option value="church">Church media</option>
-          <option value="other">Something else</option>
+          <option value="other">Event organiser or something else</option>
         </select>
       </div>
       <div>
@@ -80,7 +86,7 @@ export function WaitlistForm() {
           {state.error}
         </p>
       )}
-      <button type="submit" className="btn btn-primary btn-lg w-full" disabled={pending}>
+      <button type="submit" className="btn btn-primary btn-pill btn-lg mt-2 w-full" disabled={pending} aria-busy={pending || undefined}>
         {pending ? "Sending…" : "Join the waitlist"}
       </button>
     </form>

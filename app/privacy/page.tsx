@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
+import { MarketingFooter } from "@/components/landing/MarketingFooter";
+import { MarketingHeader } from "@/components/landing/MarketingHeader";
 
 export const metadata: Metadata = { title: "Privacy" };
 
@@ -16,7 +15,7 @@ const sections = [
   {
     title: "Face data and how it's made",
     body: [
-      "To match a selfie to event photos, Ancular turns each face into a face code: a list of 128 numbers that describes the shape of a face. Face codes are biometric data. UK GDPR treats them as special category data, and the Nigeria Data Protection Act 2023 treats them as sensitive personal data.",
+      "To match a selfie to event photos, Ancular turns each face into a face code: a list of numbers that describes the shape of a face. Face codes are biometric data. UK GDPR treats them as special category data, and the Nigeria Data Protection Act 2023 treats them as sensitive personal data.",
       "Face codes for event photos are created in the host's browser while the photos upload, and stored with the event.",
       "Your selfie is read on your own phone. The image is never uploaded. Only its face code is sent to search the event once, and it isn't saved.",
     ],
@@ -79,40 +78,87 @@ const sections = [
   },
 ];
 
+const short = [
+  "Your selfie is read on your phone and never uploaded.",
+  "Face matching only happens after you agree, per event.",
+  "Guests only see photos they appear in.",
+  "Face data is deleted after the event, 30 days by default.",
+];
+
+function slug(t: string) {
+  return t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
 export default function PrivacyPage() {
+  const items = sections.map((s) => ({ ...s, anchor: "id" in s && s.id ? s.id : slug(s.title) }));
   return (
-    <>
-      <SiteHeader
-        action={
-          <Link href="/login" className="nav-link">
-            Sign in
-          </Link>
-        }
-      />
-      <main className="container-page pb-20 pt-10 md:pt-20">
-        <h1 className="display max-w-[14ch]">How Ancular handles your data</h1>
-        <div className="mt-6 max-w-md">
-          <p className="t-lead">The plain-language version.</p>
-          <p className="t-lead t-muted">For people in the United Kingdom and Nigeria. If anything here is unclear, ask us and we&apos;ll explain.</p>
-        </div>
-        <div className="mt-12 md:mt-20">
-          {sections.map((s) => (
-            <section
-              key={s.title}
-              id={"id" in s ? s.id : undefined}
-              className="grid scroll-mt-14 gap-3 border-t border-hairline py-8 md:grid-cols-[1fr_2fr] md:gap-10 md:py-10"
-            >
-              <h2 className="t-title">{s.title}</h2>
-              <div className="max-w-2xl space-y-3 text-[0.9375rem] leading-[1.55] text-ink-2">
-                {s.body.map((p) => (
-                  <p key={p}>{p}</p>
+    <div className="lp">
+      <MarketingHeader base="/" />
+      <main>
+        <section className="lp-wrap pb-14 pt-28 md:pb-20 md:pt-40">
+          <p className="lp-label reveal-up">Privacy</p>
+          <h1 className="lp-display reveal-up mt-6 max-w-[15ch]" style={{ animationDelay: "60ms" }}>
+            How Ancular handles <span className="text-ink-4">your data.</span>
+          </h1>
+          <p className="lp-lead reveal-up mt-8 max-w-lg" style={{ animationDelay: "120ms" }}>
+            The plain-language version, for people in the United Kingdom and Nigeria. If anything here is unclear, ask
+            us at{" "}
+            <a href="mailto:privacy@ancular.com" className="font-semibold text-ink underline underline-offset-4">
+              privacy@ancular.com
+            </a>{" "}
+            and we&apos;ll explain.
+          </p>
+        </section>
+
+        <section className="lp-wrap">
+          <div className="lp-panel lp-panel-dark !pb-8 md:!pb-12">
+            <p className="lp-label lp-label-dark">The short version</p>
+            <ul className="mt-8 grid gap-px overflow-hidden rounded-[22px] bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
+              {short.map((t, i) => (
+                <li key={t} className="bg-[#111] p-6">
+                  <span className="lp-mono text-[12px] text-white/40">{String(i + 1).padStart(2, "0")}</span>
+                  <p className="mt-6 text-[1.0625rem] font-semibold leading-[1.3] tracking-[-0.02em] text-white">{t}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section className="lp-wrap py-20 md:py-28">
+          <div className="grid gap-12 lg:grid-cols-[240px_1fr] lg:gap-20">
+            <nav aria-label="On this page" className="lp-toc hidden lg:block">
+              <div className="sticky top-24">
+                <p className="lp-label mb-4">On this page</p>
+                {items.map((s) => (
+                  <a key={s.anchor} href={`#${s.anchor}`}>
+                    {s.title}
+                  </a>
                 ))}
               </div>
-            </section>
-          ))}
-        </div>
+            </nav>
+            <div>
+              {items.map((s, i) => (
+                <section
+                  key={s.anchor}
+                  id={s.anchor}
+                  className="grid scroll-mt-24 gap-4 border-t border-hairline py-10 first:border-t-0 first:pt-0 md:grid-cols-[1fr_1.6fr] md:gap-10 md:py-12"
+                >
+                  <div>
+                    <span className="lp-mono text-[12px] text-ink-4">{String(i + 1).padStart(2, "0")}</span>
+                    <h2 className="mt-3 text-[1.5rem] font-medium leading-[1.1] tracking-[-0.035em]">{s.title}</h2>
+                  </div>
+                  <div className="lp-prose max-w-2xl text-[1rem] leading-[1.6] text-ink-2">
+                    {s.body.map((p) => (
+                      <p key={p}>{p}</p>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </div>
+        </section>
       </main>
-      <SiteFooter />
-    </>
+      <MarketingFooter />
+    </div>
   );
 }

@@ -1203,6 +1203,40 @@ body {
     color: var(--ink-3);
   }
 
+  /* ---------- Forms on public pages ---------- */
+  .lp-form-card {
+    border-radius: 28px;
+    background: var(--lp-panel);
+    padding: 24px 20px;
+  }
+  @media (min-width: 768px) {
+    .lp-form-card { border-radius: 36px; padding: 36px; }
+  }
+  .lp-form-card .field {
+    min-height: 50px;
+    padding-inline: 16px;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px var(--hairline);
+    transition: box-shadow 0.2s ease;
+  }
+  .lp-form-card textarea.field { padding-block: 14px; }
+  .lp-form-card .field:hover { box-shadow: inset 0 0 0 1px var(--hairline-strong); }
+  .lp-form-card .field:focus { outline: none; box-shadow: inset 0 0 0 1.5px var(--ink); }
+  .lp-form-card .label { margin-bottom: 8px; padding-left: 2px; }
+
+  /* ---------- Long reads (privacy) ---------- */
+  .lp-toc a {
+    display: block;
+    padding: 6px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-3);
+    transition: color 0.15s ease, transform 0.2s var(--ease-out);
+  }
+  .lp-toc a:hover { color: var(--ink); transform: translateX(3px); }
+  .lp-prose p + p { margin-top: 14px; }
+
   /* ---------- Footer ---------- */
   .lp-footer {
     overflow: hidden;
