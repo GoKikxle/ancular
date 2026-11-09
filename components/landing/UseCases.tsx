@@ -16,8 +16,8 @@ const SECTORS: Sector[] = [
   {
     id: "weddings",
     label: "Weddings",
-    file: "wedding",
-    alt: "Couple dancing at night, surrounded by guests holding up phone lights",
+    file: "weddings",
+    alt: "Bride and groom dancing while guests film them on their phones",
     title: "Every guest, not just the couple.",
     body: "The photographer uploads once. Aunties, bridesmaids and the friend who flew in all find their own photos, with the photographer's name on every gallery.",
     where: "On the table cards",
@@ -25,8 +25,8 @@ const SECTORS: Sector[] = [
   {
     id: "raves",
     label: "Raves and parties",
-    file: "rave",
-    alt: "Friends at the front of a rave, lit in neon",
+    file: "raves",
+    alt: "Friends dancing together under red club lights",
     title: "Shot all night. Found by morning.",
     body: "Strobes, smoke and side profiles. Guests scan the code on the way out and wake up to every photo they're in.",
     where: "On the wristband or the exit screen",
@@ -35,7 +35,7 @@ const SECTORS: Sector[] = [
     id: "church",
     label: "Church services",
     file: "church",
-    alt: "Church congregation worshipping with hands raised",
+    alt: "Two young worshippers singing with their eyes closed",
     title: "Every service gets its own album.",
     body: "The media team uploads after each service or convention. Members find themselves, and nobody asks “please send my picture” all week.",
     where: "On the screen after service",
@@ -43,8 +43,8 @@ const SECTORS: Sector[] = [
   {
     id: "conferences",
     label: "Conferences",
-    file: "conference",
-    alt: "Packed conference audience",
+    file: "conferences",
+    alt: "Conference attendees applauding a speaker",
     title: "Every attendee, every session.",
     body: "Attendees find their photos and post them the same day, which is the best promotion next year's event can get.",
     where: "On every badge",
@@ -52,8 +52,8 @@ const SECTORS: Sector[] = [
   {
     id: "festivals",
     label: "Festivals",
-    file: "festival",
-    alt: "Crowd in front of a festival stage with fireworks",
+    file: "festivals",
+    alt: "Daytime festival crowd with a woman raising her arm",
     title: "Found in a crowd of thousands.",
     body: "Several stages, several photographers, one album. Each fan sees only the photos they appear in.",
     where: "On the big screens and the festival app",
@@ -61,8 +61,8 @@ const SECTORS: Sector[] = [
   {
     id: "graduations",
     label: "Graduations",
-    file: "graduation",
-    alt: "Graduates in caps and gowns posing together",
+    file: "graduations",
+    alt: "Graduates in gowns celebrating together on the lawn",
     title: "Every graduate, every family.",
     body: "One album for the whole ceremony. Families find their graduate on stage without scrolling past hundreds of others.",
     where: "In the ceremony programme",
@@ -71,7 +71,7 @@ const SECTORS: Sector[] = [
     id: "travel",
     label: "Travel groups",
     file: "travel",
-    alt: "Friends posing for a photo on a trip",
+    alt: "Friends laughing in a car at sunset on a road trip",
     title: "One album for the whole trip.",
     body: "Everyone's shots in one place, and everyone gets the ones they're in, without a group chat full of photos.",
     where: "In the group chat, once",
@@ -80,7 +80,7 @@ const SECTORS: Sector[] = [
     id: "tech",
     label: "Tech gatherings",
     file: "tech",
-    alt: "People at tables watching a presentation at a meetup",
+    alt: "People working on laptops around a hackathon table",
     title: "Meetups, hackathons and summits.",
     body: "Speakers get their stage shots, attendees get their networking photos, and the event gets shared from the day.",
     where: "On the slides and the badges",
@@ -146,8 +146,8 @@ export function UseCases() {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={x.id}
-              src={`/landing/${x.file}-1200.webp`}
-              srcSet={`/landing/${x.file}-600.webp 600w, /landing/${x.file}-1200.webp 1200w`}
+              src={`/landing/uc/${x.file}-1400.webp`}
+              srcSet={`/landing/uc/${x.file}-600.webp 600w, /landing/uc/${x.file}-1400.webp 1400w`}
               sizes="(min-width: 1024px) 60vw, 100vw"
               alt={i === active ? x.alt : ""}
               aria-hidden={i !== active}
