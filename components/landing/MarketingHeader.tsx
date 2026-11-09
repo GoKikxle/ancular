@@ -7,6 +7,7 @@ import { Logo } from "@/components/brand/Logo";
 const NAV = [
   { href: "#how-it-works", label: "How it works" },
   { href: "#use-cases", label: "Use cases" },
+  { href: "/pricing", label: "Pricing" },
   { href: "#privacy", label: "Privacy" },
 ];
 
@@ -33,7 +34,7 @@ export function MarketingHeader({ base = "", cta = true }: { base?: string; cta?
 
       <nav aria-label="Sections" className="lp-capsule">
         {NAV.map((n) => (
-          <a key={n.href} href={`${base}${n.href}`} className="lp-capsule-link">
+          <a key={n.href} href={n.href.startsWith("/") ? n.href : `${base}${n.href}`} className="lp-capsule-link">
             {n.label}
           </a>
         ))}

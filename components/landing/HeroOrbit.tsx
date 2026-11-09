@@ -1,7 +1,8 @@
 /**
  * The hero picture: one guest's selfie in the middle, the party's photos circling it.
- * She's in every one of them, and one by one they light up with the "found" ring,
- * which is exactly what Ancular does for each guest.
+ * She's in every one of them, which is exactly what Ancular finds for each guest.
+ * Like a clock: each tall frame points at the centre and turns with the ring, while
+ * the photo inside stays upright, so the frame slides across the photo as it goes.
  * Pure CSS (see .orbit in globals.css), so it costs nothing to run.
  *
  * Photos: one birthday shoot by Alexander Mass on Pexels (free to use), cropped
@@ -15,12 +16,11 @@ export function HeroOrbit() {
     <div className="orbit" aria-hidden="true">
       <div className="orbit-track">
         {PHOTOS.map((id, i) => (
-          <div key={id} className="orbit-item" style={{ ["--a" as string]: `${(360 / PHOTOS.length) * i}deg`, ["--n" as string]: i }}>
+          <div key={id} className="orbit-item" style={{ ["--a" as string]: `${(360 / PHOTOS.length) * i}deg` }}>
             <div className="orbit-tile">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/landing/hero/${id}.webp`} alt="" width={560} height={560} loading="eager" decoding="async" />
-              <span className="orbit-found">
-                <span className="orbit-chip">You</span>
+              <span className="orbit-upright">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/landing/hero/${id}.webp`} alt="" width={560} height={560} loading="eager" decoding="async" />
               </span>
             </div>
           </div>

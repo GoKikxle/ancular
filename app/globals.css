@@ -872,56 +872,42 @@ body {
     inset: 0;
     animation: orbit-spin 120s linear infinite;
   }
-  /* Every tile the same size, on the same radius, evenly spaced: a true circle.
-     Tiles are 24% wide on a radius of 38% (38 / 24 = 158.33% of a tile). */
+  /* Like fourmula.ai: tall frames on one radius, each pointing at the centre like a
+     clock hand and turning with the wheel, while the photo inside stays upright.
+     Frames are 17% wide and 3:4, on a radius of 160% of their height (about 36%). */
   .orbit-item {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 24%;
-    aspect-ratio: 1;
-    transform: translate(-50%, -50%) rotate(var(--a)) translateY(-158.333%) rotate(calc(-1 * var(--a)));
+    width: 17%;
+    aspect-ratio: 3 / 4;
+    transform: translate(-50%, -50%) rotate(var(--a)) translateY(-160%);
   }
   .orbit-tile {
     position: relative;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+    border-radius: 30% / 22.5%;
+    background: var(--media);
+    /* Keeps the rounded clip crisp while the wheel turns. */
+    transform: translateZ(0);
+  }
+  /* The photo: a square big enough to cover the frame at any angle, turned back upright. */
+  .orbit-upright {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 167%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    rotate: calc(-1 * var(--a));
     animation: orbit-spin 120s linear infinite reverse;
   }
-  .orbit-tile img {
+  .orbit-upright img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 28%;
-    background: var(--media);
-  }
-  @keyframes orbit-found {
-    0%, 100% { opacity: 0; transform: scale(1.25); }
-    3% { opacity: 1; transform: scale(1); }
-    11% { opacity: 1; transform: scale(1); }
-    14% { opacity: 0; transform: scale(1); }
-  }
-  .orbit-found {
-    position: absolute;
-    inset: -7%;
-    border: 2px solid var(--ink);
-    border-radius: 31%;
-    opacity: 0;
-    animation: orbit-found 16s var(--ease-out) infinite;
-    animation-delay: calc(var(--n) * 2s);
-  }
-  .orbit-chip {
-    position: absolute;
-    left: 50%;
-    bottom: -13px;
-    transform: translateX(-50%);
-    padding: 4px 9px;
-    border-radius: 999px;
-    background: var(--ink);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 1;
   }
   .orbit-center {
     position: absolute;
@@ -1235,6 +1221,175 @@ body {
   .lp-toc a:hover { color: var(--ink); transform: translateX(3px); }
   .lp-prose p + p { margin-top: 14px; }
 
+  /* ---------- Pricing cards (layout after woblo.in/pricing, no buttons) ---------- */
+  .pc-switch {
+    display: inline-flex;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 999px;
+    background: #e9e8ea;
+  }
+  .pc-switch button {
+    height: 34px;
+    padding: 0 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-3);
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+  }
+  .pc-switch button:hover { color: var(--ink); }
+  .pc-switch button:active { transform: scale(0.96); }
+  .pc-switch button[aria-checked="true"] {
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+  .pc-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5px;
+    border-radius: 18px;
+    background: #e9e8ea;
+    color: #101013;
+  }
+  .pc-card[data-highlight="true"] {
+    background: linear-gradient(103deg, #ff9f4d 0%, #ff5c9e 34%, #b28dff 68%, #4da3ff 100%);
+  }
+  .pc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+  }
+  .pc-head h2 {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    letter-spacing: -0.02em;
+  }
+  .pc-badge {
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .pc-body {
+    flex: 1;
+    padding: 20px;
+    border-radius: 16px;
+    background: #fff;
+  }
+  .pc-icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: #101013;
+    color: #fff;
+  }
+  .pc-for {
+    margin-top: 20px;
+    font-size: 14px;
+    line-height: 22px;
+    letter-spacing: -0.01em;
+    color: #626262;
+  }
+  .pc-price {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 40px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .pc-unit {
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: #626262;
+  }
+  .pc-points {
+    display: grid;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #efeef0;
+  }
+  .pc-points li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 21px;
+  }
+  .pc-check {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 999px;
+    background: #101013;
+    color: #fff;
+  }
+  .pc-check svg { width: 10px; height: 10px; }
+
+  /* ---------- FAQ (woblo style) ---------- */
+  .faq {
+    border: 1px solid #e9e8ea;
+    border-radius: 16px;
+    background: #fff;
+    transition: border-color 0.2s ease;
+  }
+  .faq:hover { border-color: #dcdbdd; }
+  .faq summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 24px;
+    list-style: none;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    cursor: pointer;
+  }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq-icon {
+    position: relative;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: var(--fill);
+    transition: transform 0.3s var(--ease-out), background-color 0.2s ease;
+  }
+  .faq-icon::before,
+  .faq-icon::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 12px;
+    height: 1.6px;
+    border-radius: 2px;
+    background: var(--ink);
+    transform: translate(-50%, -50%);
+  }
+  .faq-icon::after { transform: translate(-50%, -50%) rotate(90deg); }
+  .faq summary:hover .faq-icon { background: var(--fill-hover); }
+  .faq[open] .faq-icon { transform: rotate(45deg); }
+  .faq-a {
+    padding: 0 24px 22px;
+    max-width: 62ch;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #626262;
+    animation: lp-rise 0.35s var(--ease-out);
+  }
+
   /* ---------- Footer ---------- */
   .lp-footer {
     overflow: hidden;
@@ -1253,12 +1408,11 @@ body {
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .orbit-track, .orbit-tile, .orbit-found, .orbit-center::after,
+    .orbit-track, .orbit-upright, .orbit-center::after,
     .step-facebox, .step-bar, .step-scan, .uc-dot, .reveal-up, .reveal-view, .uc-copy {
       animation: none;
     }
     .uc-progress { display: none; }
-    .orbit-item:first-child .orbit-found { opacity: 1; transform: none; }
     .uc-media img { transition: opacity 0.2s; transform: none; }
   }
 }
