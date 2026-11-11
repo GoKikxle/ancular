@@ -10,6 +10,7 @@ const sections = [
     body: [
       "Hosts (organisers, churches, photographers, couples) upload photos from an event. Guests who have the host's invite link can join the event and find the photos they appear in by taking a selfie.",
       "Ancular is available in the United Kingdom and Nigeria. This page covers both: the UK GDPR and the Data Protection Act 2018 in the UK, and the Nigeria Data Protection Act 2023 (NDPA) in Nigeria.",
+      "Ancular is registered with the UK Information Commissioner's Office as a data controller, registration reference ZC297871. Questions about your data go to privacy@ancular.com.",
     ],
   },
   {

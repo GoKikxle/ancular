@@ -6,7 +6,7 @@ export function MarketingFooter() {
   return (
     <footer className="lp-footer">
       <div className="lp-wrap flex flex-col gap-4 pb-6 pt-10 sm:flex-row sm:items-center sm:justify-between">
-        <p className="t-meta">Ancular. For events everywhere.</p>
+        <p className="t-meta">Ancular. For events everywhere. ICO registration ZC297871.</p>
         <nav className="-mx-2 flex">
           <Link href="/privacy" className="nav-link">
             Privacy
