@@ -18,8 +18,8 @@ const faqs: { q: string; a: React.ReactNode }[] = [
     a: "Never. Hosts pay for the event. Guests join with the invite link, take a selfie and get their photos for free.",
   },
   {
-    q: "Is Ancular free right now?",
-    a: "Yes. Ancular is free while it's in early access. Paid plans start when we open to everyone, and we'll email you before anything changes.",
+    q: "Can I try Ancular for free?",
+    a: "Yes. The Free plan covers 200 photos per event with unlimited guests, and needs no card. Events created before paid plans started keep full access.",
   },
   {
     q: "What counts as an event?",
@@ -92,7 +92,7 @@ export default function PricingPage() {
               <Plans />
             </div>
             <p className="t-meta mt-8 text-center">
-              Free while Ancular is in early access.{" "}
+              No card needed for Free. Hosts join through the waitlist.{" "}
               <Link href="/waitlist" className="font-semibold text-ink underline underline-offset-4">
                 Join the waitlist
               </Link>

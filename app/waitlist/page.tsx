@@ -8,8 +8,8 @@ export const metadata: Metadata = { title: "Join the waitlist" };
 
 const points = [
   {
-    title: "Free while in early access",
-    body: "Create events and invite guests at no cost while Ancular is in beta.",
+    title: "Start free",
+    body: "The Free plan covers 200 photos per event, with no card needed. Upgrade one event or go Pro when you need more.",
   },
   {
     title: "Set up in minutes",

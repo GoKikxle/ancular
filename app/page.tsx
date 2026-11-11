@@ -258,7 +258,12 @@ export default function Home() {
               I have an account
             </Link>
           </div>
-          <p className="t-meta mt-5">Free while Ancular is in early access.</p>
+          <p className="t-meta mt-5">
+            Free for up to 200 photos per event.{" "}
+            <Link href="/pricing" className="font-semibold text-ink underline underline-offset-4">
+              See pricing
+            </Link>
+          </p>
         </section>
       </main>
 
