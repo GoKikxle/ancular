@@ -1,22 +1,29 @@
 import "server-only";
 import Stripe from "stripe";
 
+import {
+  FREE_PHOTOS_PER_EVENT,
+  PASS_PHOTOS_PER_EVENT,
+  PRICES,
+  PRO_PHOTOS_PER_EVENT,
+} from "./plans";
+
 /**
- * Plans.
+ * Stripe side of the plans. Prices and limits come from lib/plans.ts, the same file
+ * the pricing page reads, so checkout always charges what the page shows.
  *   Free: any host, 200 photos per event.
- *   Event pass: £19 once, unlocks one event to 3,000 photos.
- *   Pro: £12 a month, every event up to 5,000 photos.
- * Prices live here (Stripe Checkout gets them inline), so changing a price is a code change.
+ *   Event pass: one payment, unlocks one event to 3,000 photos.
+ *   Pro: monthly, every event up to 5,000 photos.
+ * Stripe Checkout gets prices inline, so changing a price is a change to lib/plans.ts.
  * Limits only apply once STRIPE_SECRET_KEY is set; until then the beta caps stay in force.
+ * Charged in pounds for now; naira comes later through Paystack.
  */
 
 export const CURRENCY = "gbp";
-export const PASS_PRICE_PENCE = 1900;
-export const PRO_PRICE_PENCE = 1200;
+export const PASS_PRICE_PENCE = PRICES.GBP.pass;
+export const PRO_PRICE_PENCE = PRICES.GBP.pro;
 
-export const FREE_PHOTOS_PER_EVENT = 200;
-export const PASS_PHOTOS_PER_EVENT = 3000;
-export const PRO_PHOTOS_PER_EVENT = 5000;
+export { FREE_PHOTOS_PER_EVENT, PASS_PHOTOS_PER_EVENT, PRO_PHOTOS_PER_EVENT };
 
 export type EventPlan = "free" | "pass";
 export type HostPlan = "free" | "pro";

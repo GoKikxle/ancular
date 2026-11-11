@@ -52,8 +52,8 @@ export async function POST(request: Request) {
           },
         },
       ],
-      metadata: { kind: "pass", user_id: user.id, event_id: event.id },
-      payment_intent_data: { metadata: { kind: "pass", user_id: user.id, event_id: event.id } },
+      metadata: { app: "ancular", kind: "pass", user_id: user.id, event_id: event.id },
+      payment_intent_data: { metadata: { app: "ancular", kind: "pass", user_id: user.id, event_id: event.id } },
       success_url: `${base}/events/${event.id}?tab=photos&paid=1`,
       cancel_url: `${base}/events/${event.id}?tab=photos`,
     });
@@ -79,8 +79,8 @@ export async function POST(request: Request) {
           },
         },
       ],
-      metadata: { kind: "pro", user_id: user.id },
-      subscription_data: { metadata: { kind: "pro", user_id: user.id } },
+      metadata: { app: "ancular", kind: "pro", user_id: user.id },
+      subscription_data: { metadata: { app: "ancular", kind: "pro", user_id: user.id } },
       success_url: `${base}/settings?paid=1`,
       cancel_url: `${base}/settings`,
     });

@@ -8,6 +8,10 @@ import { stripe } from "@/lib/billing";
  * plans are written. Set the endpoint in Stripe to https://ancular.com/api/stripe/webhook
  * with these events: checkout.session.completed, customer.subscription.updated,
  * customer.subscription.deleted.
+ *
+ * The Stripe account may be shared with other products (such as Komon), so only
+ * events Ancular created are acted on: every Ancular checkout and subscription
+ * carries metadata.app = "ancular". Anything else gets a 200 and is ignored.
  */
 export async function POST(request: Request) {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -25,6 +29,7 @@ export async function POST(request: Request) {
 
   if (event.type === "checkout.session.completed") {
     const s = event.data.object as Stripe.Checkout.Session;
+    if (s.metadata?.app !== "ancular") return NextResponse.json({ ok: true, ignored: true });
     const kind = s.metadata?.kind;
     const userId = s.metadata?.user_id;
     if (!userId) return NextResponse.json({ ok: true });
@@ -75,6 +80,7 @@ export async function POST(request: Request) {
 
   if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
     const sub = event.data.object as Stripe.Subscription;
+    if (sub.metadata?.app !== "ancular") return NextResponse.json({ ok: true, ignored: true });
     const active = event.type === "customer.subscription.updated" && ["active", "trialing", "past_due"].includes(sub.status);
     const periodEnd = sub.items?.data?.[0]?.current_period_end;
     await admin
