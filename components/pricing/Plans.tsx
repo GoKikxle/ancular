@@ -52,7 +52,8 @@ function Check() {
 
 /**
  * Three plan cards. Currency follows location (₦ in Nigeria, £ elsewhere).
- * Cards are selectable; hosts buy after sign-in (Pro from Settings, Event pass from an event).
+ * Pro can open Stripe from here when signed in. Event pass needs a specific
+ * event, so the CTA goes through /billing/pass (or login → that page).
  */
 export function Plans({
   currency,
@@ -98,7 +99,7 @@ export function Plans({
       price: formatMoney(price.pass, currency),
       unit: "/ event, once",
       points: [`Up to ${n(PASS_PHOTOS_PER_EVENT)} photos`, "Everything in Free", "Pay only when you need more", "No subscription"],
-      cta: signedIn ? "Unlock on an event" : "Get Event pass",
+      cta: signedIn ? "Choose an event" : "Get Event pass",
     },
     {
       id: "pro",
@@ -126,9 +127,11 @@ export function Plans({
   function hrefFor(id: PlanId) {
     if (!signedIn) {
       if (id === "free") return "/waitlist";
-      return `/login?next=${encodeURIComponent(id === "pro" ? "/settings" : "/dashboard")}`;
+      if (id === "pass") return `/login?next=${encodeURIComponent("/billing/pass")}`;
+      return `/login?next=${encodeURIComponent("/settings")}`;
     }
     if (id === "pro") return "/settings";
+    if (id === "pass") return "/billing/pass";
     return "/dashboard";
   }
 
@@ -221,11 +224,10 @@ export function Plans({
           {error}
         </p>
       )}
-      {signedIn && (
-        <p className="t-meta mt-6 text-center">
-          Event pass is bought from an event&apos;s Photos tab. Pro is also in Settings.
-        </p>
-      )}
+      <p className="t-meta mt-6 text-center">
+        Event pass unlocks one event you host (Photos tab or Choose an event). Guests never pay. Pro is also in
+        Settings.
+      </p>
     </div>
   );
 }

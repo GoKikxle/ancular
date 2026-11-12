@@ -14,6 +14,8 @@ export type EventRow = {
   face_retention_days: number;
   status: "active" | "archived";
   created_at: string;
+  /** Free (default) or Event pass unlocked for this event. */
+  plan?: "free" | "pass";
   /** Face model for this event's face codes. Missing on rows from before it existed: treat as "v1". */
   face_model?: "v1" | "v2";
 };
