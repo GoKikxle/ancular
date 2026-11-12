@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ConfirmEmailPanel } from "@/components/auth/ConfirmEmailPanel";
+import { isEmailVerified, isUnconfirmedEmailError, safeNextPath } from "@/lib/auth";
 import { plainError } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/client";
 
@@ -14,13 +16,9 @@ type Props = {
   initialError?: string;
 };
 
-function safeNext(next: string) {
-  return next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
-}
-
 export function AuthForm({ mode, next, initialError }: Props) {
   const isLogin = mode === "login";
-  const destination = safeNext(next);
+  const destination = safeNextPath(next);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -29,6 +27,7 @@ export function AuthForm({ mode, next, initialError }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialError ?? null);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [needsConfirm, setNeedsConfirm] = useState(false);
 
   const callbackUrl = () =>
     `${window.location.origin}/auth/callback?next=${encodeURIComponent(destination)}`;
@@ -43,18 +42,36 @@ export function AuthForm({ mode, next, initialError }: Props) {
     }
 
     setLoading(true);
+    const supabase = createClient();
     try {
       if (isLogin) {
-        const { error: err } = await createClient().auth.signInWithPassword({ email, password });
-        if (err) throw err;
+        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+        if (err) {
+          if (isUnconfirmedEmailError(err.message)) {
+            setNeedsConfirm(true);
+            setSentTo(email);
+            setLoading(false);
+            return;
+          }
+          throw err;
+        }
+        const { data } = await supabase.auth.getUser();
+        if (data.user && !isEmailVerified(data.user)) {
+          setNeedsConfirm(true);
+          setSentTo(data.user.email ?? email);
+          setLoading(false);
+          return;
+        }
       } else {
-        const { data, error: err } = await createClient().auth.signUp({
+        const { data, error: err } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: callbackUrl(), data: { full_name: name.trim() } },
         });
         if (err) throw err;
-        if (!data.session) {
+        // Confirm-email on: no session until they click the link.
+        if (!data.session || (data.user && !isEmailVerified(data.user))) {
+          setNeedsConfirm(true);
           setSentTo(email);
           setLoading(false);
           return;
@@ -62,7 +79,9 @@ export function AuthForm({ mode, next, initialError }: Props) {
       }
       window.location.href = destination;
     } catch (err) {
-      setError(err instanceof Error ? plainError(err.message, "Something went wrong. Try again.") : "Something went wrong. Try again.");
+      setError(
+        err instanceof Error ? plainError(err.message, "Something went wrong. Try again.") : "Something went wrong. Try again."
+      );
       setLoading(false);
     }
   }
@@ -84,6 +103,22 @@ export function AuthForm({ mode, next, initialError }: Props) {
       return;
     }
     setSentTo(email);
+  }
+
+  if (needsConfirm) {
+    return (
+      <ConfirmEmailPanel
+        email={sentTo}
+        next={destination}
+        note={
+          isLogin
+            ? "That account exists, but the email isn’t confirmed yet. Open the link we sent (or resend it) to continue."
+            : destination.startsWith("/e/")
+              ? "We sent a confirmation link. After you open it, you’ll come back to your invite."
+              : "We sent a confirmation link. After you open it, you can create events."
+        }
+      />
+    );
   }
 
   if (sentTo) {
@@ -150,7 +185,7 @@ export function AuthForm({ mode, next, initialError }: Props) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        {!isLogin && <p className="hint mt-1">At least 8 characters.</p>}
+        {!isLogin && <p className="hint mt-1">At least 8 characters. We’ll email you a confirmation link.</p>}
       </div>
 
       {!isLogin && (
@@ -190,4 +225,3 @@ export function AuthForm({ mode, next, initialError }: Props) {
     </form>
   );
 }
-

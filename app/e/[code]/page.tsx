@@ -3,6 +3,8 @@ import Link from "next/link";
 import { AccountButton, SiteHeader } from "@/components/layout/SiteHeader";
 import { GuestFinder, type Match } from "@/components/guest/GuestFinder";
 import { JoinForm } from "@/components/guest/JoinForm";
+import { ConfirmEmailPanel } from "@/components/auth/ConfirmEmailPanel";
+import { isEmailVerified } from "@/lib/auth";
 import { getUser } from "@/lib/supabase/server";
 import { KIND_LABELS, formatEventDate, type EventKind } from "@/lib/events";
 import { PREVIEW_OWNER_ID, getPreviewEventByInviteCode, previewEnabled } from "@/lib/preview-events";
@@ -153,6 +155,24 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
             I have an account
           </Link>
         </div>
+      </Shell>
+    );
+  }
+
+  // Guests also create accounts; block join/search until email is confirmed.
+  // Local preview-without-account is handled above and never reaches here.
+  if (!isEmailVerified(user)) {
+    return (
+      <Shell header={header}>
+        <h1 className="display">Confirm your email to continue</h1>
+        <p className="t-lead t-muted mb-8 mt-5">
+          We need a confirmed email before you can join this event. Your selfie still stays on your phone.
+        </p>
+        <ConfirmEmailPanel
+          email={user.email}
+          next={next}
+          note="After you open the confirmation link, you’ll come straight back here."
+        />
       </Shell>
     );
   }

@@ -33,7 +33,13 @@ Next.js 16 (App Router) · Supabase (auth, Postgres + pgvector) · Cloudflare R2
    ```
 3. **Auth.** Authentication → URL configuration: set Site URL to your domain and add
    `https://YOUR-DOMAIN/auth/callback` (and `http://localhost:3000/auth/callback`) to redirect URLs.
-4. **Cloudflare R2** (recommended). Create a bucket, an API token with read/write on it, and add this CORS policy
+   **Confirm email must be ON** (Authentication → Providers → Email → “Confirm email”).
+   The app blocks hosts and guests until `email_confirmed_at` is set; without this dashboard
+   setting, accounts can skip the inbox step.
+4. **Analytics (optional).** Vercel Web Analytics + Speed Insights load only after the visitor
+   chooses “Accept all” on the cookie banner. No custom events, no face/selfie/PII.
+   Enable both in the Vercel project (Analytics / Speed Insights) so data shows in the dashboard.
+5. **Cloudflare R2** (recommended). Create a bucket, an API token with read/write on it, and add this CORS policy
    so browsers can upload and fetch photos:
    ```json
    [
@@ -45,8 +51,8 @@ Next.js 16 (App Router) · Supabase (auth, Postgres + pgvector) · Cloudflare R2
      }
    ]
    ```
-5. **Environment.** Copy `.env.example` to `.env.local` and fill it in. On Vercel, add the same variables.
-6. Run it:
+6. **Environment.** Copy `.env.example` to `.env.local` and fill it in. On Vercel, add the same variables.
+7. Run it:
    ```bash
    npm install
    npm run dev
@@ -79,8 +85,33 @@ public/models, public/tfjs face models and the WebAssembly engine (for phones wi
 `match_my_face()` treats distance ≤ 0.45 as "sure" and ≤ 0.55 as "maybe" (guest confirms).
 Tune these once you have real event photos; lower numbers are stricter.
 
+## MFA later (TOTP)
+
+Email confirmation is the MVP second factor. To add authenticator-app MFA later:
+
+1. Supabase Dashboard → Authentication → MFA → enable **TOTP**.
+2. In Settings (or a new security page), call `supabase.auth.mfa.enroll({ factorType: "totp" })`,
+   show the QR, then `supabase.auth.mfa.challenge` + `verify` on sign-in when `aal` is still `aal1`.
+3. Optionally require `aal2` in `proxy.ts` for host routes (`/dashboard`, `/events`) while leaving
+   guest invite browse lighter if needed.
+
+## Security hardening (priority)
+
+**Already strong:** selfie stays on device; guests only see matched photos via RLS; faces table host-only;
+Stripe webhook signature + `metadata.app`; billing writes service-role only; share/view URLs signed after RLS;
+invite pages `noindex`; local preview gated to development.
+
+**Quick wins:** security headers/CSP; rate-limit join/match/upload/invite lookup; host-only Event pass checkout;
+lock legacy `match_my_face` thresholds server-side; server-side age gate (not just checkbox).
+
+**Medium:** shorter share-link TTL or one-time tokens; upload MIME/size verify after PUT; invite code entropy +
+rotate; orphan `uploading` photo cleanup; structured logs without PII/embeddings.
+
+**Later:** bot protection on signup; dependency scanning in CI; admin audit trail; MFA (above).
+
 ## Before launch
 
+- Turn on **Confirm email** in Supabase Auth (see Setup §3).
 - Have a Nigerian data protection lawyer review the consent wording (`components/guest/ConsentStep.tsx`)
   and the privacy page. Consent records store `CONSENT_VERSION` from `lib/events.ts`; bump it when wording changes.
 - Phone-number sign-in (Supabase phone auth with an SMS provider such as Termii) will suit Nigerian guests

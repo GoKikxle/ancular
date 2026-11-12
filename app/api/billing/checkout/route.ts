@@ -10,8 +10,9 @@ import { CURRENCY, PASS_PRICE_PENCE, PRO_PRICE_PENCE, PASS_PHOTOS_PER_EVENT, PRO
  */
 export async function POST(request: Request) {
   if (!billingEnabled()) return NextResponse.json({ error: "Payments aren't switched on yet." }, { status: 503 });
-  const { supabase, user } = await getUser();
+  const { supabase, user, emailVerified } = await getUser();
   if (!user) return NextResponse.json({ error: "Sign in again to pay." }, { status: 401 });
+  if (!emailVerified) return NextResponse.json({ error: "Confirm your email before paying." }, { status: 403 });
 
   const body = (await request.json().catch(() => ({}))) as { kind?: string; eventId?: string };
   const { data: billing } = await supabase

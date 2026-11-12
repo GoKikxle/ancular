@@ -1,12 +1,17 @@
 import { redirect } from "next/navigation";
 import { AccountButton, SiteHeader } from "@/components/layout/SiteHeader";
 import { SubmitButton } from "@/components/ui/SubmitButton";
+import { confirmEmailHref } from "@/lib/auth";
 import { getUser } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user } = await getUser();
+  const { user, emailVerified } = await getUser();
   if (!user && process.env.NODE_ENV !== "development") redirect("/login");
+  // Host dashboard / settings / new event require a confirmed email (guests use /e/…).
+  if (user && !emailVerified && process.env.NODE_ENV !== "development") {
+    redirect(confirmEmailHref("/dashboard"));
+  }
 
   const name = user
     ? (user.user_metadata?.full_name as string | undefined)?.trim() || user.email

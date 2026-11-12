@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isEmailVerified } from "@/lib/auth";
 import { getUser } from "@/lib/supabase/server";
 import { deletePrefix, eventPrefix } from "@/lib/storage";
 import type { EventKind, JoinMode } from "@/lib/events";
@@ -45,6 +46,9 @@ export async function createEvent(_: FormState, form: FormData): Promise<FormSta
     if (!previewEnabled()) return { error: "Sign in again to create an event." };
     const event = await createPreviewEvent(f);
     redirect(`/events/${event.id}?tab=photos`);
+  }
+  if (!isEmailVerified(user)) {
+    return { error: "Confirm your email before creating an event. Check your inbox for the Ancular link." };
   }
 
   const allowance = await readLiveEventAllowance(supabase, user.id);

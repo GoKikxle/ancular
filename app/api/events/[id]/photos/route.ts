@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isEmailVerified } from "@/lib/auth";
 import { getUser } from "@/lib/supabase/server";
 import { getPreviewEvent, previewEnabled } from "@/lib/preview-events";
 import { createPreviewPhoto } from "@/lib/preview-photos";
@@ -27,6 +28,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (body.bytes) {
     const fileError = photoFileError(body.bytes);
     if (fileError) return NextResponse.json({ error: fileError }, { status: 413 });
+  }
+
+  if (user && !isEmailVerified(user)) {
+    return NextResponse.json({ error: "Confirm your email before uploading photos." }, { status: 403 });
   }
 
   if (!user) {

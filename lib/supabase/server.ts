@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
+import { isEmailVerified } from "@/lib/auth";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -41,9 +42,9 @@ export async function getUser() {
   const supabase = await createClient();
   try {
     const { data, error } = await supabase.auth.getUser();
-    if (error) return { supabase, user: null };
-    return { supabase, user: data.user };
+    if (error || !data.user) return { supabase, user: null, emailVerified: false };
+    return { supabase, user: data.user, emailVerified: isEmailVerified(data.user) };
   } catch {
-    return { supabase, user: null };
+    return { supabase, user: null, emailVerified: false };
   }
 }

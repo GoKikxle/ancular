@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { isEmailVerified } from "@/lib/auth";
 import { getUser } from "@/lib/supabase/server";
 import { PREVIEW_OWNER_ID, getPreviewEvent, getPreviewEventByInviteCode, previewEnabled } from "@/lib/preview-events";
 import { plainError } from "@/lib/errors";
@@ -13,6 +14,10 @@ export async function joinEvent(code: string, _: JoinState, form: FormData): Pro
   const user = sessionUser && !(previewEnabled() && sessionUser.id === PREVIEW_OWNER_ID) ? sessionUser : null;
   const name = String(form.get("display_name") ?? "").trim();
   if (name.length < 2) return { error: "Add your name so the host knows who you are." };
+
+  if (user && !isEmailVerified(user)) {
+    return { error: "Confirm your email first. Check your inbox for the Ancular link." };
+  }
 
   if (!user) {
     if (!(await previewGuestActive())) return { error: "Sign in first." };

@@ -111,7 +111,8 @@ export function CookieConsent() {
           Cookies
         </p>
         <p className="t-item-sub mt-1">
-          We use essential cookies to keep you signed in. Nothing for ads, and no tracking across other sites.
+          We use essential cookies to keep you signed in. “Accept all” also turns on anonymous page analytics
+          (no ads, no face data).
           {blocking ? " Choose an option to continue." : ""}{" "}
           <Link href="/privacy#cookies" className="underline underline-offset-4 hover:text-ink">
             Details
