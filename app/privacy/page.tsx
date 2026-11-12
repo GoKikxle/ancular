@@ -10,7 +10,7 @@ const sections = [
     body: [
       "Hosts (organisers, churches, photographers, couples) upload photos from an event. Guests who have the host's invite link can join the event and find the photos they appear in by taking a selfie.",
       "Ancular is available in the United Kingdom and Nigeria. This page covers both: the UK GDPR and the Data Protection Act 2018 in the UK, and the Nigeria Data Protection Act 2023 (NDPA) in Nigeria.",
-      "Ancular is registered with the UK Information Commissioner's Office as a data controller, registration reference ZC297871. Questions about your data go to privacy@ancular.com.",
+      "Ancular is registered with the UK Information Commissioner's Office as a data controller, registration reference ZC297871. Questions about your data go to hello@ancular.com.",
     ],
   },
   {
@@ -59,7 +59,7 @@ const sections = [
     title: "Your rights",
     body: [
       "Wherever you are, you can ask to see the data we hold about you, correct it, delete it, or get a copy, and you can withdraw consent at any time. Most of this you can do yourself: withdraw on the event page, or clear your search data or delete your account in Settings.",
-      "For anything else, contact us at privacy@ancular.com. We reply within one month.",
+      "For anything else, contact us at hello@ancular.com. We reply within one month.",
       "If you're unhappy with how we handle your data, you can complain to the regulator: the Information Commissioner's Office (ico.org.uk) in the UK, or the Nigeria Data Protection Commission (ndpc.gov.ng) in Nigeria.",
     ],
   },
@@ -104,8 +104,8 @@ export default function PrivacyPage() {
           <p className="lp-lead reveal-up mt-8 max-w-lg" style={{ animationDelay: "120ms" }}>
             The plain-language version, for people in the United Kingdom and Nigeria. If anything here is unclear, ask
             us at{" "}
-            <a href="mailto:privacy@ancular.com" className="font-semibold text-ink underline underline-offset-4">
-              privacy@ancular.com
+            <a href="mailto:hello@ancular.com" className="font-semibold text-ink underline underline-offset-4">
+              hello@ancular.com
             </a>{" "}
             and we&apos;ll explain.
           </p>

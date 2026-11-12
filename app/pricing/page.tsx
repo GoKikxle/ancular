@@ -45,10 +45,10 @@ const faqs: { q: string; a: React.ReactNode }[] = [
     q: `My event has more than ${n(PRO_PHOTOS_PER_EVENT)} photos. What then?`,
     a: (
       <>
-        Festivals, conventions and large conferences can go well past that. Tell us about your event from the{" "}
-        <Link href="/waitlist" className="font-semibold text-ink underline underline-offset-4">
-          waitlist
-        </Link>{" "}
+        Festivals, conventions and large conferences can go well past that. Email us at{" "}
+        <a href="mailto:hello@ancular.com" className="font-semibold text-ink underline underline-offset-4">
+          hello@ancular.com
+        </a>{" "}
         and we&apos;ll set it up with you.
       </>
     ),
