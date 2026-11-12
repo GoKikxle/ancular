@@ -1221,40 +1221,31 @@ body {
   .lp-toc a:hover { color: var(--ink); transform: translateX(3px); }
   .lp-prose p + p { margin-top: 14px; }
 
-  /* ---------- Pricing cards (layout after woblo.in/pricing, no buttons) ---------- */
-  .pc-switch {
-    display: inline-flex;
-    gap: 2px;
-    padding: 4px;
-    border-radius: 999px;
-    background: #e9e8ea;
-  }
-  .pc-switch button {
-    height: 34px;
-    padding: 0 16px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-3);
-    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
-  }
-  .pc-switch button:hover { color: var(--ink); }
-  .pc-switch button:active { transform: scale(0.96); }
-  .pc-switch button[aria-checked="true"] {
-    background: #fff;
-    color: var(--ink);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-  }
+  /* ---------- Pricing cards (layout after woblo.in/pricing) ---------- */
   .pc-card {
     display: flex;
     flex-direction: column;
+    height: 100%;
     padding: 1.5px;
     border-radius: 18px;
     background: #e9e8ea;
     color: #101013;
+    cursor: pointer;
+    transition: transform 0.2s var(--ease-out), box-shadow 0.2s ease;
+  }
+  .pc-card:hover { transform: translateY(-2px); }
+  .pc-card:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
   }
   .pc-card[data-highlight="true"] {
     background: linear-gradient(103deg, #ff9f4d 0%, #ff5c9e 34%, #b28dff 68%, #4da3ff 100%);
+  }
+  .pc-card[data-selected="true"] {
+    box-shadow: 0 0 0 2px var(--ink);
+  }
+  .pc-card[data-highlight="true"][data-selected="true"] {
+    box-shadow: 0 0 0 2px #101013;
   }
   .pc-head {
     display: flex;
@@ -1273,10 +1264,16 @@ body {
     font-weight: 500;
   }
   .pc-body {
+    display: flex;
     flex: 1;
+    flex-direction: column;
     padding: 20px;
     border-radius: 16px;
     background: #fff;
+  }
+  .pc-cta {
+    margin-top: auto;
+    padding-top: 24px;
   }
   .pc-icon {
     display: grid;

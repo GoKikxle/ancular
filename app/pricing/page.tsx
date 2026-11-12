@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { MarketingFooter } from "@/components/landing/MarketingFooter";
 import { MarketingHeader } from "@/components/landing/MarketingHeader";
 import { Plans } from "@/components/pricing/Plans";
-import { FREE_PHOTOS_PER_EVENT, PRO_PHOTOS_PER_EVENT } from "@/lib/plans";
+import { FREE_PHOTOS_PER_EVENT, PRO_PHOTOS_PER_EVENT, displayCurrencyForCountry } from "@/lib/plans";
+import { getUser } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -39,7 +41,7 @@ const faqs: { q: string; a: React.ReactNode }[] = [
   },
   {
     q: "Can I pay in naira?",
-    a: "Naira prices are shown above. Naira payments through Paystack are coming soon; until then plans are charged in pounds.",
+    a: "Visitors in Nigeria see naira prices. Payments still charge in pounds through Stripe for now; Paystack naira checkout is coming soon.",
   },
   {
     q: `My event has more than ${n(PRO_PHOTOS_PER_EVENT)} photos. What then?`,
@@ -72,7 +74,14 @@ const faqs: { q: string; a: React.ReactNode }[] = [
   },
 ];
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const headerList = await headers();
+  const country = headerList.get("x-vercel-ip-country");
+  const currency = displayCurrencyForCountry(country);
+  const { user } = await getUser();
+  const signedIn = !!user;
+  const billingOn = !!process.env.STRIPE_SECRET_KEY;
+
   return (
     <div className="lp">
       <MarketingHeader base="/" />
@@ -89,14 +98,16 @@ export default function PricingPage() {
               </p>
             </div>
             <div className="reveal-up mt-12 md:mt-16" style={{ animationDelay: "160ms" }}>
-              <Plans />
+              <Plans currency={currency} signedIn={signedIn} billingOn={billingOn} />
             </div>
-            <p className="t-meta mt-8 text-center">
-              No card needed for Free. Hosts join through the waitlist.{" "}
-              <Link href="/waitlist" className="font-semibold text-ink underline underline-offset-4">
-                Join the waitlist
-              </Link>
-            </p>
+            {!signedIn && (
+              <p className="t-meta mt-8 text-center">
+                No card needed for Free. Hosts join through the waitlist.{" "}
+                <Link href="/waitlist" className="font-semibold text-ink underline underline-offset-4">
+                  Join the waitlist
+                </Link>
+              </p>
+            )}
           </div>
         </section>
 
