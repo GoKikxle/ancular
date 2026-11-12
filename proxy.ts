@@ -3,10 +3,14 @@ import { createServerClient } from "@supabase/ssr";
 
 /** Pages anyone can open. Invite pages handle signed-out visitors themselves. */
 const PUBLIC_PREFIXES = ["/login", "/signup", "/auth", "/privacy", "/pricing", "/waitlist", "/e/", "/api/"];
+/** Metadata / brand image routes (no session; crawlers and link previews hit these). */
+const PUBLIC_BRAND_IMAGES = ["/opengraph-image", "/twitter-image", "/icon", "/apple-icon", "/favicon.ico"];
 const AUTH_PAGES = ["/login", "/signup"];
 
 function isPublic(pathname: string) {
-  return pathname === "/" || PUBLIC_PREFIXES.some((p) => pathname === p.replace(/\/$/, "") || pathname.startsWith(p));
+  if (pathname === "/") return true;
+  if (PUBLIC_BRAND_IMAGES.some((p) => pathname === p || pathname.startsWith(`${p}.`))) return true;
+  return PUBLIC_PREFIXES.some((p) => pathname === p.replace(/\/$/, "") || pathname.startsWith(p));
 }
 
 function redirectWithCookies(url: URL, response: NextResponse) {
@@ -59,5 +63,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|models/|tfjs/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|opengraph-image|twitter-image|apple-icon|icon|models/|tfjs/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
 };
