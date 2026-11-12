@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { UpgradeNudge } from "@/components/billing/UpgradeNudge";
 import { getUser } from "@/lib/supabase/server";
 import { KIND_LABELS, formatEventDate, type EventRow } from "@/lib/events";
+import { readLiveEventAllowance } from "@/lib/live-events";
 import { listPreviewEvents } from "@/lib/preview-events";
 import { listPreviewPhotos } from "@/lib/preview-photos";
-import { getHostStatus, HOST_DECLINED_MESSAGE, HOST_PENDING_MESSAGE } from "@/lib/host-access";
 
 export const metadata: Metadata = { title: "Your events" };
 
@@ -38,8 +39,10 @@ export default async function DashboardPage() {
     attending = memberships.filter((m) => m.role === "guest");
   }
 
-  // Counts for hosted events in one query each
-  const hostStatus = user ? await getHostStatus(supabase) : "approved";
+  const live = user ? await readLiveEventAllowance(supabase, user.id) : null;
+  const canCreate = !live || live.canCreate;
+  const showFreeNudge = live?.plan === "free";
+
   const hostedIds = user ? hosting.map((m) => m.events!.id) : [];
   if (user && hostedIds.length) {
     const [{ data: photos }, { data: pending }] = await Promise.all([
@@ -49,8 +52,6 @@ export default async function DashboardPage() {
     photos?.forEach((p) => photoCounts.set(p.event_id, (photoCounts.get(p.event_id) ?? 0) + 1));
     pending?.forEach((p) => pendingCounts.set(p.event_id, (pendingCounts.get(p.event_id) ?? 0) + 1));
   }
-
-  const canCreate = !(hostStatus === "pending" || hostStatus === "declined");
 
   return (
     <div>
@@ -62,20 +63,18 @@ export default async function DashboardPage() {
           </Link>
         )}
       </div>
-      {hostStatus === "pending" && (
-        <p className="t-ui mt-8 max-w-xl rounded-[4px] bg-fill px-3 py-2.5">{HOST_PENDING_MESSAGE}</p>
-      )}
-      {hostStatus === "declined" && (
-        <p className="t-ui mt-8 max-w-xl rounded-[4px] bg-danger-soft px-3 py-2.5 !text-danger">{HOST_DECLINED_MESSAGE}</p>
+      {showFreeNudge && live && (
+        <div className="mt-8">
+          <UpgradeNudge used={live.used} atLimit={!live.canCreate} />
+        </div>
       )}
 
       {hosting.length === 0 && attending.length === 0 && (
         <section className="mt-10 border-t border-hairline pt-8 md:mt-16">
           <h2 className="t-title">No events yet</h2>
           <p className="t-item-sub mt-2 max-w-md">
-            {hostStatus === "pending"
-              ? "Once you're approved, you can create an event and send guests an invite link."
-              : "Create an event to upload photos and get an invite link for your guests. If someone sent you an invite link, open it and you'll find the event here afterwards."}
+            Create an event to upload photos and get an invite link for your guests. If someone sent you an invite
+            link, open it and you&apos;ll find the event here afterwards.
           </p>
           {canCreate && (
             <Link href="/events/new" className="btn btn-quiet btn-lg mt-6">

@@ -1,4 +1,4 @@
-import { HOST_DECLINED_MESSAGE, HOST_PENDING_MESSAGE } from "@/lib/host-access";
+import { LIVE_EVENT_LIMIT_MESSAGE } from "@/lib/plans";
 import { BYTE_CAP_MESSAGE, FILE_TOO_BIG_MESSAGE, PHOTO_CAP_MESSAGE } from "@/lib/limits";
 
 /** Sentences we already show. Leave these wording-for-wording. */
@@ -8,8 +8,7 @@ const KEPT = new Set<string>([
   FILE_TOO_BIG_MESSAGE,
   "This photo is larger than the space left in your 10 GB.",
   "This photo has no size. Try it again.",
-  HOST_PENDING_MESSAGE,
-  HOST_DECLINED_MESSAGE,
+  LIVE_EVENT_LIMIT_MESSAGE,
   "Only hosts can add photos to this event.",
   "The upload failed. Try again.",
   "This file type can't be read. Export it as JPEG and try again.",
@@ -18,7 +17,6 @@ const KEPT = new Set<string>([
   "Sign in again to create an event.",
   "Sign in again to save this event.",
   "Sign in again to view photos.",
-  "You can't create an event until your account is approved.",
 ]);
 
 /**
@@ -32,6 +30,7 @@ export function plainError(message: string | null | undefined, fallback: string)
 
   const key = raw.replace(/[.!]+$/g, "").toLowerCase();
 
+  if (/3 live events/i.test(raw)) return LIVE_EVENT_LIMIT_MESSAGE;
   if (/^upload failed(\s*\(\d+\))?$/.test(key)) return "The upload failed. Try again.";
   if (key.includes("invalid login")) {
     return "That email and password don't match. Try again or use a sign-in link.";

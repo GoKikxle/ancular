@@ -3,7 +3,14 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { ClearSearchForm, DeleteAccountForm, ProfileForm } from "./SettingsForms";
 import { PlanSection } from "@/components/billing/PlanSection";
-import { FREE_PHOTOS_PER_EVENT, PRO_PHOTOS_PER_EVENT, PRO_PRICE_PENCE, billingEnabled, formatPrice } from "@/lib/billing";
+import {
+  FREE_PHOTOS_PER_EVENT,
+  PRO_PHOTOS_PER_EVENT,
+  PRO_PRICE_PENCE,
+  billingEnabled,
+  formatPrice,
+} from "@/lib/billing";
+import { readLiveEventAllowance } from "@/lib/live-events";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -22,9 +29,13 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   if (!user) redirect("/login?next=/settings");
 
   const name = (user.user_metadata?.full_name as string | undefined)?.trim() ?? "";
-  const { data: billing } = billingEnabled()
-    ? await supabase.from("host_billing").select("plan, current_period_end").eq("user_id", user.id).maybeSingle()
-    : { data: null };
+  const billingOn = billingEnabled();
+  const { data: billing } = await supabase
+    .from("host_billing")
+    .select("plan, current_period_end")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const live = await readLiveEventAllowance(supabase, user.id);
   const renews = billing?.current_period_end
     ? new Date(billing.current_period_end as string).toLocaleDateString("en-GB", { day: "numeric", month: "long" })
     : null;
@@ -36,18 +47,18 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         <Section title="Account">
           <ProfileForm name={name} email={user.email ?? ""} />
         </Section>
-        {billingEnabled() && (
-          <Section title="Plan and billing">
-            <PlanSection
-              plan={billing?.plan === "pro" ? "pro" : "free"}
-              renews={renews}
-              proPrice={formatPrice(PRO_PRICE_PENCE)}
-              proLimit={PRO_PHOTOS_PER_EVENT}
-              freeLimit={FREE_PHOTOS_PER_EVENT}
-              justPaid={paid === "1"}
-            />
-          </Section>
-        )}
+        <Section title="Plan and billing">
+          <PlanSection
+            plan={live.plan}
+            renews={renews}
+            proPrice={formatPrice(PRO_PRICE_PENCE)}
+            proLimit={PRO_PHOTOS_PER_EVENT}
+            freeLimit={FREE_PHOTOS_PER_EVENT}
+            liveUsed={Number.isFinite(live.used) ? live.used : 0}
+            justPaid={paid === "1"}
+            billingOn={billingOn}
+          />
+        </Section>
         <Section title="Face search">
           <ClearSearchForm />
         </Section>

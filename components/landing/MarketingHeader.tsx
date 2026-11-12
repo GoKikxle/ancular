@@ -13,7 +13,7 @@ const NAV = [
 
 /**
  * Landing header: logo on the left, a floating dark capsule for the sections in
- * the middle, sign in and the waitlist on the right. Turns solid once you scroll.
+ * the middle, sign in and create-account on the right. Turns solid once you scroll.
  * `base` is "/" on other pages, so the section links lead back to the landing page.
  */
 export function MarketingHeader({ base = "", cta = true }: { base?: string; cta?: boolean }) {
@@ -45,8 +45,8 @@ export function MarketingHeader({ base = "", cta = true }: { base?: string; cta?
           Sign in
         </Link>
         {cta && (
-          <Link href="/waitlist" className="btn btn-primary btn-pill btn-sm !px-4">
-            Join the waitlist
+          <Link href="/signup" className="btn btn-primary btn-pill btn-sm !px-4">
+            Start free
           </Link>
         )}
       </div>

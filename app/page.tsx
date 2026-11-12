@@ -149,8 +149,8 @@ export default function Home() {
                 they&apos;re in.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
-                <Link href="/waitlist" className="btn btn-primary btn-pill btn-lg">
-                  Join the waitlist
+                <Link href="/signup" className="btn btn-primary btn-pill btn-lg">
+                  Start free
                   <Arrow />
                 </Link>
                 <a href="#how-it-works" className="btn btn-quiet btn-pill btn-lg">
@@ -250,8 +250,8 @@ export default function Home() {
             Everyone leaves with <span className="text-ink-4">their pictures.</span>
           </h2>
           <div className="mt-10 flex flex-wrap justify-center gap-2">
-            <Link href="/waitlist" className="btn btn-primary btn-pill btn-lg">
-              Join the waitlist
+            <Link href="/signup" className="btn btn-primary btn-pill btn-lg">
+              Start free
               <Arrow />
             </Link>
             <Link href="/login" className="btn btn-quiet btn-pill btn-lg">
@@ -259,7 +259,7 @@ export default function Home() {
             </Link>
           </div>
           <p className="t-meta mt-5">
-            Free for up to 200 photos per event.{" "}
+            Free covers 3 live events a month and 200 photos per event.{" "}
             <Link href="/pricing" className="font-semibold text-ink underline underline-offset-4">
               See pricing
             </Link>

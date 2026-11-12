@@ -4,7 +4,12 @@ import Link from "next/link";
 import { MarketingFooter } from "@/components/landing/MarketingFooter";
 import { MarketingHeader } from "@/components/landing/MarketingHeader";
 import { Plans } from "@/components/pricing/Plans";
-import { FREE_PHOTOS_PER_EVENT, PRO_PHOTOS_PER_EVENT, displayCurrencyForCountry } from "@/lib/plans";
+import {
+  FREE_LIVE_EVENTS_PER_MONTH,
+  FREE_PHOTOS_PER_EVENT,
+  PRO_PHOTOS_PER_EVENT,
+  displayCurrencyForCountry,
+} from "@/lib/plans";
 import { getUser } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -21,23 +26,27 @@ const faqs: { q: string; a: React.ReactNode }[] = [
   },
   {
     q: "Can I try Ancular for free?",
-    a: "Yes. The Free plan covers 200 photos per event with unlimited guests, and needs no card. Events created before paid plans started keep full access.",
+    a: `Yes. Free covers ${FREE_LIVE_EVENTS_PER_MONTH} live events per calendar month and ${n(FREE_PHOTOS_PER_EVENT)} photos per event, with unlimited guests and no card. Anyone can sign up.`,
+  },
+  {
+    q: "What counts as a live event?",
+    a: "An event that is still active (not archived or ended). Free counts live events you created in the current calendar month. Guests still join with an invite code only.",
   },
   {
     q: "What counts as an event?",
     a: "One album with its own invite link: a wedding, a conference, a Sunday service, a weekend trip. You can upload to it over several days.",
   },
   {
-    q: "What happens if I reach the photo limit?",
-    a: `Nothing is lost. The photos already in stay, and uploads pause until you add an Event pass to that event or go Pro. Free covers ${n(FREE_PHOTOS_PER_EVENT)} photos per event.`,
+    q: "What happens if I reach the live-event or photo limit?",
+    a: `Nothing already uploaded is lost. At ${FREE_LIVE_EVENTS_PER_MONTH} live events this month, create more after you go Pro or next month. At the photo limit, uploads pause until you add an Event pass to that event or go Pro. Free covers ${n(FREE_PHOTOS_PER_EVENT)} photos per event.`,
   },
   {
     q: "Is the Event pass a subscription?",
-    a: "No. It's one payment for one event, with no renewal. Hosting several events a month? Pro will usually work out cheaper.",
+    a: "No. It's one payment that raises the photo limit on one event. It doesn't add Free live-event slots. Hosting several events a month? Pro will usually work out cheaper.",
   },
   {
     q: "Can I cancel Pro?",
-    a: "Any time, from Settings. Your events and photos stay. New uploads go back to the Free limit, unless that event has an Event pass.",
+    a: "Any time, from Settings. Your events and photos stay. New uploads and new live events go back to the Free limits, unless that event has an Event pass.",
   },
   {
     q: "Can I pay in naira?",
@@ -102,9 +111,9 @@ export default async function PricingPage() {
             </div>
             {!signedIn && (
               <p className="t-meta mt-8 text-center">
-                No card needed for Free. Hosts join through the waitlist.{" "}
-                <Link href="/waitlist" className="font-semibold text-ink underline underline-offset-4">
-                  Join the waitlist
+                No card needed for Free.{" "}
+                <Link href="/signup" className="font-semibold text-ink underline underline-offset-4">
+                  Create an account
                 </Link>
               </p>
             )}

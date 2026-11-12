@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { goToBillingPortal, goToCheckout } from "./checkout";
+import { FREE_LIVE_EVENTS_PER_MONTH } from "@/lib/plans";
 
 /** Settings: choose Free or Pro. Event pass is bought on an event's Photos tab. */
 export function PlanSection({
@@ -10,14 +12,18 @@ export function PlanSection({
   proPrice,
   proLimit,
   freeLimit,
+  liveUsed,
   justPaid,
+  billingOn,
 }: {
   plan: "free" | "pro";
   renews: string | null;
   proPrice: string;
   proLimit: number;
   freeLimit: number;
+  liveUsed: number;
   justPaid: boolean;
+  billingOn: boolean;
 }) {
   const [selected, setSelected] = useState<"free" | "pro">(plan === "pro" ? "pro" : "free");
   const [busy, setBusy] = useState(false);
@@ -39,12 +45,16 @@ export function PlanSection({
       <div className="space-y-4">
         <p className="t-item">Pro</p>
         <p className="t-item-sub">
-          Every event up to {proLimit.toLocaleString("en-GB")} photos.
+          Unlimited events, each up to {proLimit.toLocaleString("en-GB")} photos.
           {renews ? ` Renews ${renews}.` : ""}
         </p>
-        <button type="button" className="btn btn-quiet btn-lg" disabled={busy} onClick={() => run(goToBillingPortal)}>
-          {busy ? "Opening…" : "Manage billing"}
-        </button>
+        {billingOn ? (
+          <button type="button" className="btn btn-quiet btn-lg" disabled={busy} onClick={() => run(goToBillingPortal)}>
+            {busy ? "Opening…" : "Manage billing"}
+          </button>
+        ) : (
+          <p className="t-meta">Billing management opens once payments are switched on.</p>
+        )}
         {error && (
           <p role="alert" className="t-ui rounded-[4px] bg-danger-soft px-3 py-2.5 !text-danger">
             {error}
@@ -54,6 +64,8 @@ export function PlanSection({
     );
   }
 
+  const atLiveLimit = liveUsed >= FREE_LIVE_EVENTS_PER_MONTH;
+
   return (
     <div className="space-y-4">
       {justPaid ? (
@@ -62,8 +74,17 @@ export function PlanSection({
         </p>
       ) : (
         <p className="t-item-sub">
-          Each event holds {freeLimit.toLocaleString("en-GB")} photos on Free. Unlock a single event from its Photos
-          tab, or go Pro for every event.
+          Free covers {FREE_LIVE_EVENTS_PER_MONTH} live events this month
+          {` (${liveUsed} of ${FREE_LIVE_EVENTS_PER_MONTH} used)`} and{" "}
+          {freeLimit.toLocaleString("en-GB")} photos per event. Live means the event is active, not archived.
+          Unlock a single event&apos;s photo limit from its Photos tab, or go Pro for unlimited events.
+        </p>
+      )}
+
+      {atLiveLimit && (
+        <p className="t-ui rounded-[4px] bg-fill px-3 py-2.5">
+          You&apos;ve used this month&apos;s {FREE_LIVE_EVENTS_PER_MONTH} live events. Go Pro below for unlimited
+          events, or wait until next month.
         </p>
       )}
 
@@ -78,7 +99,8 @@ export function PlanSection({
         >
           <p className="t-item">Free</p>
           <p className="t-meta mt-1">
-            {freeLimit.toLocaleString("en-GB")} photos per event · current plan
+            {FREE_LIVE_EVENTS_PER_MONTH} live events / month · {freeLimit.toLocaleString("en-GB")} photos · current
+            plan
           </p>
         </button>
         <button
@@ -91,22 +113,31 @@ export function PlanSection({
         >
           <p className="t-item">Pro · {proPrice}/month</p>
           <p className="t-meta mt-1">
-            Every event up to {proLimit.toLocaleString("en-GB")} photos
+            Unlimited events · up to {proLimit.toLocaleString("en-GB")} photos each
           </p>
         </button>
       </div>
 
       {selected === "pro" ? (
-        <button
-          type="button"
-          className="btn btn-primary btn-lg"
-          disabled={busy || justPaid}
-          onClick={() => run(() => goToCheckout({ kind: "pro" }))}
-        >
-          {busy ? "Opening checkout…" : `Go Pro · ${proPrice}/month`}
-        </button>
+        billingOn ? (
+          <button
+            type="button"
+            className="btn btn-primary btn-lg"
+            disabled={busy || justPaid}
+            onClick={() => run(() => goToCheckout({ kind: "pro" }))}
+          >
+            {busy ? "Opening checkout…" : `Go Pro · ${proPrice}/month`}
+          </button>
+        ) : (
+          <Link href="/pricing" className="btn btn-primary btn-lg">
+            See Pro on pricing
+          </Link>
+        )
       ) : (
-        <p className="t-meta">You&apos;re on Free. Choose Pro above to upgrade, or buy an Event pass on an event.</p>
+        <p className="t-meta">
+          You&apos;re on Free. Choose Pro above to upgrade, or buy an Event pass on an event for a higher photo
+          limit.
+        </p>
       )}
 
       {error && (

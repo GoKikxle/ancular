@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { goToCheckout } from "@/components/billing/checkout";
 import {
+  FREE_LIVE_EVENTS_PER_MONTH,
   FREE_PHOTOS_PER_EVENT,
   PASS_PHOTOS_PER_EVENT,
   PRICES,
@@ -86,8 +87,13 @@ export function Plans({
       Icon: IconFree,
       for: "Try Ancular on a real event.",
       price: formatMoney(0, currency),
-      unit: "/ event",
-      points: [`${n(FREE_PHOTOS_PER_EVENT)} photos per event`, "Unlimited guests", "Selfie search, side angles included", "Save all, send on WhatsApp"],
+      unit: "/ month",
+      points: [
+        `${FREE_LIVE_EVENTS_PER_MONTH} live events per month`,
+        `${n(FREE_PHOTOS_PER_EVENT)} photos per event`,
+        "Unlimited guests",
+        "Selfie search, side angles included",
+      ],
       cta: signedIn ? "Go to your events" : "Start free",
     },
     {
@@ -98,7 +104,12 @@ export function Plans({
       for: "Weddings, parties and graduations.",
       price: formatMoney(price.pass, currency),
       unit: "/ event, once",
-      points: [`Up to ${n(PASS_PHOTOS_PER_EVENT)} photos`, "Everything in Free", "Pay only when you need more", "No subscription"],
+      points: [
+        `Up to ${n(PASS_PHOTOS_PER_EVENT)} photos on one event`,
+        "Doesn't add Free event slots",
+        "Pay only when you need more photos",
+        "No subscription",
+      ],
       cta: signedIn ? "Choose an event" : "Get Event pass",
     },
     {
@@ -108,7 +119,12 @@ export function Plans({
       for: "Photographers, churches and organisers.",
       price: formatMoney(price.pro, currency),
       unit: "/ month",
-      points: [`Every event up to ${n(PRO_PHOTOS_PER_EVENT)} photos`, "Unlimited events", "Everything in Free", "Cancel any time"],
+      points: [
+        "Unlimited live events",
+        `Every event up to ${n(PRO_PHOTOS_PER_EVENT)} photos`,
+        "Everything in Free",
+        "Cancel any time",
+      ],
       cta: signedIn && billingOn ? "Go Pro" : signedIn ? "Open Settings" : "Go Pro",
     },
   ];
@@ -126,7 +142,7 @@ export function Plans({
 
   function hrefFor(id: PlanId) {
     if (!signedIn) {
-      if (id === "free") return "/waitlist";
+      if (id === "free") return "/signup";
       if (id === "pass") return `/login?next=${encodeURIComponent("/billing/pass")}`;
       return `/login?next=${encodeURIComponent("/settings")}`;
     }

@@ -14,9 +14,10 @@ import {
 } from "@/lib/preview-events";
 import { deletePreviewPhoto, deletePreviewPhotosForEvent } from "@/lib/preview-photos";
 import { plainError } from "@/lib/errors";
-import { getHostStatus, HOST_DECLINED_MESSAGE, HOST_PENDING_MESSAGE } from "@/lib/host-access";
+import { readLiveEventAllowance } from "@/lib/live-events";
+import { LIVE_EVENT_LIMIT_MESSAGE } from "@/lib/plans";
 
-export type FormState = { error?: string; saved?: boolean } | undefined;
+export type FormState = { error?: string; saved?: boolean; atLiveLimit?: boolean } | undefined;
 
 const KINDS: EventKind[] = ["wedding", "church", "party", "birthday", "corporate", "other"];
 
@@ -46,9 +47,10 @@ export async function createEvent(_: FormState, form: FormData): Promise<FormSta
     redirect(`/events/${event.id}?tab=photos`);
   }
 
-  const access = await getHostStatus(supabase);
-  if (access === "pending") return { error: HOST_PENDING_MESSAGE };
-  if (access === "declined") return { error: HOST_DECLINED_MESSAGE };
+  const allowance = await readLiveEventAllowance(supabase, user.id);
+  if (!allowance.canCreate) {
+    return { error: LIVE_EVENT_LIMIT_MESSAGE, atLiveLimit: true };
+  }
 
   const { data, error } = await supabase
     .from("events")
@@ -65,8 +67,8 @@ export async function createEvent(_: FormState, form: FormData): Promise<FormSta
     .select("id")
     .single();
 
-  if (error?.code === "42501") {
-    return { error: "You can't create an event until your account is approved." };
+  if (error?.message && /3 live events/i.test(error.message)) {
+    return { error: LIVE_EVENT_LIMIT_MESSAGE, atLiveLimit: true };
   }
   if (error || !data) return { error: plainError(error?.message, "Could not create the event. Try again.") };
   redirect(`/events/${data.id}?tab=photos`);

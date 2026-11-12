@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { EventFields } from "@/components/events/EventFields";
 import { createEvent, type FormState } from "../actions";
@@ -21,9 +22,19 @@ export function NewEventForm() {
       </label>
 
       {state?.error && (
-        <p role="alert" className="t-ui rounded-[4px] bg-danger-soft px-3 py-2.5 !text-danger">
-          {state.error}
-        </p>
+        <div className="space-y-3">
+          <p role="alert" className="t-ui rounded-[4px] bg-danger-soft px-3 py-2.5 !text-danger">
+            {state.error}
+          </p>
+          {state.atLiveLimit && (
+            <p className="t-meta">
+              <Link href="/settings" className="font-semibold text-ink underline underline-offset-4">
+                Go Pro in Settings
+              </Link>{" "}
+              for unlimited events.
+            </p>
+          )}
+        </div>
       )}
 
       <button type="submit" className="btn btn-primary btn-lg w-full sm:w-auto" disabled={pending}>

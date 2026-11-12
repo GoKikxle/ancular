@@ -6,11 +6,23 @@
  * Hosts pay; guests never pay to find their photos.
  * Prices are in minor units (pence, kobo). Naira payments come later via Paystack.
  * Display currency follows location (₦ in Nigeria, £ elsewhere); Stripe still charges GBP.
+ *
+ * Free plan rules (hosts only):
+ *   - Up to FREE_LIVE_EVENTS_PER_MONTH live events per calendar month (UTC).
+ *     Live = events.status 'active' (not archived/ended), created in the current month.
+ *     Archiving or deleting frees a slot within the month; Pro has no event-count cap.
+ *   - FREE_PHOTOS_PER_EVENT photos per event (Event pass / Pro raise the photo cap).
+ * Event pass unlocks one event's photo limit only — it does not add live-event slots.
  */
 
+export const FREE_LIVE_EVENTS_PER_MONTH = 3;
 export const FREE_PHOTOS_PER_EVENT = 200;
 export const PASS_PHOTOS_PER_EVENT = 3000;
 export const PRO_PHOTOS_PER_EVENT = 5000;
+
+/** Shown when a Free host tries to create a 4th live event this month. */
+export const LIVE_EVENT_LIMIT_MESSAGE =
+  `Free covers ${FREE_LIVE_EVENTS_PER_MONTH} live events this month. Go Pro for unlimited events.`;
 
 export type Currency = "GBP" | "NGN";
 
