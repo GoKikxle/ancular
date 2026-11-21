@@ -1805,8 +1805,9 @@ body {
   .st-selfie {
     position: absolute;
     left: 7%;
-    top: 14%;
-    width: 34%;
+    top: 50%;
+    translate: 0 -50%;
+    width: 38%;
     aspect-ratio: 1;
     border-radius: 999px;
     overflow: hidden;
@@ -1828,7 +1829,9 @@ body {
   .st-found {
     position: absolute;
     right: 7%;
-    top: 14%;
+    top: 50%;
+    translate: 0 -54%;
+    rotate: 3deg;
     width: 46%;
     display: grid;
     grid-template-columns: repeat(3, 1fr);

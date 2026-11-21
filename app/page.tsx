@@ -285,7 +285,7 @@ export default function Home() {
         </section>
 
         {/* ---------- Closing ---------- */}
-        <section className="lp-wrap py-28 text-center md:py-44">
+        <section className="lp-wrap pb-16 pt-28 text-center md:pb-24 md:pt-44">
           <div className="mb-10 flex justify-center -space-x-3">
             {CROWDS.slice(0, 6).map((c) => (
               <IconDot key={c.label} name={c.icon} color={c.color} size={56} className="close-dot" />
