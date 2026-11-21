@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HeroRow } from "@/components/landing/HeroRow";
+import { HeroOrbit } from "@/components/landing/HeroOrbit";
 import { MarketingFooter } from "@/components/landing/MarketingFooter";
 import { MarketingHeader } from "@/components/landing/MarketingHeader";
 import { IconDot, type PixelIconName } from "@/components/landing/PixelIcon";
@@ -179,7 +179,9 @@ export default function Home() {
               How it works
             </a>
           </div>
-          <HeroRow />
+          <div className="lp-hero3-orbit reveal-up" style={{ animationDelay: "320ms" }}>
+            <HeroOrbit />
+          </div>
         </section>
 
         {STEP > 1 && (

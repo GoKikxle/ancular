@@ -2040,3 +2040,12 @@ body {
   .lp .lp-btn-quiet { background: rgba(15, 13, 20, 0.07); color: var(--c-ink); }
   .lp .lp-btn-quiet:hover { background: rgba(15, 13, 20, 0.12); }
 }
+
+/* Hero: the rotating photos under the buttons, with 2px photo corners. */
+@layer components {
+  .lp-hero3-orbit { display: grid; place-items: center; margin-top: clamp(40px, 6vw, 72px); }
+  .lp .orbit-tile { border-radius: 2px; }
+  .lp .orbit-center { border-radius: 2px; }
+  .lp .orbit-selfie { border-radius: 2px; }
+  .lp .orbit-center::after { border-radius: 2px; }
+}
