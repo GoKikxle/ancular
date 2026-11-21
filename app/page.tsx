@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HeroScatter } from "@/components/landing/HeroScatter";
+import { HeroRow } from "@/components/landing/HeroRow";
 import { MarketingFooter } from "@/components/landing/MarketingFooter";
 import { MarketingHeader } from "@/components/landing/MarketingHeader";
 import { IconDot, type PixelIconName } from "@/components/landing/PixelIcon";
@@ -152,6 +152,9 @@ const steps = [
   },
 ];
 
+/** Building the page one section at a time: only sections up to STEP are shown. */
+const STEP: number = 1;
+
 export default function Home() {
   return (
     <div className="lp">
@@ -159,38 +162,29 @@ export default function Home() {
 
       <main>
         {/* ---------- Hero ---------- */}
-        <section className="lp-hero2">
-          <HeroScatter />
-          <div className="lp-hero2-copy">
-            <h1 className="lp-display reveal-up">
-              Every photo of you,
-              <br />
-              found with one <span className="lp-serif text-purple">selfie</span>
-            </h1>
-            <p className="lp-lead reveal-up mx-auto mt-6 max-w-[30ch]" style={{ animationDelay: "120ms" }}>
-              Private photo sharing for events too big for a group chat.
-            </p>
-            <div className="reveal-up mt-8 flex flex-wrap justify-center gap-2" style={{ animationDelay: "220ms" }}>
-              <Link href="/signup" className="lp-btn lp-btn-purple">
-                Start free
-                <Arrow />
-              </Link>
-              <a href="#how-it-works" className="lp-btn lp-btn-quiet">
-                How it works
-              </a>
-            </div>
+        <section className="lp-hero3">
+          <h1 className="lp-display reveal-up">
+            Every photo of you,
+            <br />
+            found with one <span className="lp-serif text-purple">selfie</span>
+          </h1>
+          <p className="lp-lead reveal-up mx-auto mt-6 max-w-[34ch]" style={{ animationDelay: "120ms" }}>
+            Private photo sharing for events too big for a group chat.
+          </p>
+          <div className="reveal-up mt-8 flex flex-wrap justify-center gap-2" style={{ animationDelay: "220ms" }}>
+            <Link href="/signup" className="lp-btn lp-btn-purple">
+              Start free
+              <Arrow />
+            </Link>
+            <a href="#how-it-works" className="lp-btn lp-btn-quiet">
+              How it works
+            </a>
           </div>
-          <p className="lp-mono lp-hero2-foot lp-hero2-foot-l">Currently in beta</p>
-          <a href="#crowds" className="lp-mono lp-hero2-foot lp-hero2-foot-r">
-            Scroll
-            <span className="lp-scroll-btn" aria-hidden="true">
-              <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 6l5 5 5-5" />
-              </svg>
-            </span>
-          </a>
+          <HeroRow />
         </section>
 
+        {STEP > 1 && (
+          <>
         {/* ---------- The colour row ---------- */}
         <section id="crowds" className="lp-wrap scroll-mt-10 py-20 md:py-28">
           <p className="lp-label justify-center">Made for every kind of crowd</p>
@@ -310,6 +304,8 @@ export default function Home() {
             </Link>
           </p>
         </section>
+          </>
+        )}
       </main>
 
       <MarketingFooter />
