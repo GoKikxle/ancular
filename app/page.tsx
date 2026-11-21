@@ -153,7 +153,7 @@ const steps = [
 ];
 
 /** Building the page one section at a time: only sections up to STEP are shown. */
-const STEP: number = 1;
+const STEP: number = 2;
 
 export default function Home() {
   return (
@@ -200,6 +200,11 @@ export default function Home() {
           </ul>
         </section>
 
+          </>
+        )}
+
+        {STEP > 2 && (
+          <>
         {/* ---------- The problem ---------- */}
         <section className="lp-wrap py-16 md:py-32">
           <p className="lp-label mb-8">The problem</p>
