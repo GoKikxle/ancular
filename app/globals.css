@@ -2059,7 +2059,8 @@ body {
 
 @layer components {
   .lp-intro {
-    max-width: 30ch;
+    max-width: 40ch;
+    text-wrap: balance;
     margin-inline: auto;
     text-align: center;
     font-size: clamp(1.7rem, 3.4vw, 3.1rem);
