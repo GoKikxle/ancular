@@ -186,14 +186,13 @@ export default function Home() {
         {STEP > 1 && (
           <>
         {/* ---------- The colour row ---------- */}
-        <section id="crowds" className="lp-wrap scroll-mt-10 py-20 md:py-28">
+        <section id="crowds" className="lp-wrap scroll-mt-10 py-28 md:py-48">
           <h2 className="lp-intro">
-            Event photos end up in galleries nobody scrolls, so most guests never see themselves.{" "}
-            <span className="text-ink-4">
-              Ancular hands every guest just the photos they&apos;re in, whatever the gathering.
-            </span>
+            Thousands of photos. Hundreds of guests. Nobody scrolls that far.
+            <br />
+            Each guest gets <span className="lp-ring">just the photos they&apos;re in.</span>
           </h2>
-          <ul className="crowds mt-10 md:mt-14">
+          <ul className="crowds mt-20 md:mt-32">
             {CROWDS.map((c, i) => (
               <li key={c.label} className="crowd reveal-view" style={{ ["--i" as string]: i }}>
                 <IconDot name={c.icon} color={c.color} size={96} className="crowd-dot" />
