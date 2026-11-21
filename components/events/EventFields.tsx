@@ -57,7 +57,7 @@ export function EventFields({ event }: { event?: Partial<EventRow> }) {
             className="field"
             maxLength={120}
             defaultValue={event?.host_name ?? undefined}
-            placeholder="The Adeyemi family, or your church name"
+            placeholder="The Adeyemi family, or your organisation"
           />
           <p className="hint mt-1">Guests see this on the invite.</p>
         </div>
@@ -102,7 +102,7 @@ export function EventFields({ event }: { event?: Partial<EventRow> }) {
             />
             <span>
               <span className="t-item block">Anyone with the link</span>
-              <span className="hint">Easier for big church programmes.</span>
+              <span className="hint">Easier for big events with lots of guests.</span>
             </span>
           </label>
         </div>

@@ -33,12 +33,12 @@ const SECTORS: Sector[] = [
   },
   {
     id: "church",
-    label: "Church services",
+    label: "Faith and community",
     file: "church",
-    alt: "Two young worshippers singing with their eyes closed",
-    title: "Every service gets its own album.",
-    body: "The media team uploads after each service or convention. Members find themselves, and nobody asks “please send my picture” all week.",
-    where: "On the screen after service",
+    alt: "Two young people singing together with their eyes closed",
+    title: "Every gathering gets its own album.",
+    body: "The media team uploads after each service, meeting or convention. Members find themselves, and nobody asks “please send my picture” all week.",
+    where: "On the screen after the gathering",
   },
   {
     id: "conferences",

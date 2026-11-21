@@ -42,7 +42,7 @@ export type PhotoRow = {
 
 export const KIND_LABELS: Record<EventKind, string> = {
   wedding: "Wedding",
-  church: "Church programme",
+  church: "Faith or community gathering",
   party: "Party",
   birthday: "Birthday",
   corporate: "Company event",

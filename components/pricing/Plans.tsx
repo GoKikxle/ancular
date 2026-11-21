@@ -116,7 +116,7 @@ export function Plans({
       id: "pro",
       name: "Pro",
       Icon: IconPro,
-      for: "Photographers, churches and organisers.",
+      for: "Photographers, communities and organisers.",
       price: formatMoney(price.pro, currency),
       unit: "/ month",
       points: [
