@@ -2035,3 +2035,8 @@ body {
   .lp .btn-primary:hover:not(:disabled) { background: #2a2733; }
   .lp .lp-arrow { display: none; }
 }
+
+@layer components {
+  .lp .lp-btn-quiet { background: rgba(15, 13, 20, 0.07); color: var(--c-ink); }
+  .lp .lp-btn-quiet:hover { background: rgba(15, 13, 20, 0.12); }
+}
