@@ -2050,3 +2050,9 @@ body {
   .lp .orbit-corners,
   .lp .orbit-center-label { display: none; }
 }
+
+/* Footer wordmark cut off at the bottom edge, as before. */
+@layer components {
+  .lp .lp-footer { padding-bottom: 0; overflow: hidden; }
+  .lp .lp-wordmark { transform: translateY(9%); font-weight: 600; letter-spacing: -0.075em; }
+}
