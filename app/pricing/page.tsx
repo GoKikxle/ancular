@@ -95,7 +95,7 @@ export default async function PricingPage() {
     <div className="lp">
       <MarketingHeader base="/" />
       <main>
-        <section className="lp-wrap pb-20 pt-28 md:pb-28 md:pt-40">
+        <section className="lp-wrap pb-20 pt-12 md:pb-28 md:pt-20">
           <div className="mx-auto max-w-[1040px]">
             <div className="text-center">
               <p className="lp-label reveal-up">Pricing</p>

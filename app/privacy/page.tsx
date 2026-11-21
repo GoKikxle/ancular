@@ -99,7 +99,7 @@ export default function PrivacyPage() {
     <div className="lp">
       <MarketingHeader base="/" />
       <main>
-        <section className="lp-wrap pb-14 pt-28 md:pb-20 md:pt-40">
+        <section className="lp-wrap pb-14 pt-12 md:pb-20 md:pt-20">
           <p className="lp-label reveal-up">Privacy</p>
           <h1 className="lp-display reveal-up mt-6 max-w-[15ch]" style={{ animationDelay: "60ms" }}>
             How Ancular handles <span className="text-ink-4">your data.</span>
