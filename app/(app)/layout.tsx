@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { AccountButton, SiteHeader } from "@/components/layout/SiteHeader";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 import { confirmEmailHref } from "@/lib/auth";
+import { isAdmin } from "@/lib/admin";
 import { getUser } from "@/lib/supabase/server";
 import { signOut } from "./actions";
 
@@ -24,6 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         nav={[
           { href: "/dashboard", label: "Events" },
           { href: "/settings", label: "Settings" },
+          ...(isAdmin(user?.email) ? [{ href: "/admin", label: "Dashboard" }] : []),
         ]}
         action={
           user ? (

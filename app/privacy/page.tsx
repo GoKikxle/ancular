@@ -70,6 +70,7 @@ const sections = [
       "Ancular uses essential cookies only: small files that keep you signed in and keep your session secure (they start with \"sb-\" and come from our sign-in provider, Supabase). Without them you couldn't sign in, so they don't need your consent.",
       "We don't use advertising cookies, and we don't track you across other sites. Your cookie choice is saved on your device, and you can change it any time from \"Cookie settings\" at the bottom of the page.",
       "If you choose \"Accept all\", we load Vercel Web Analytics and Speed Insights: page views and how fast the site feels. No face or selfie data, no emails, and no custom events that name you. \"Essential only\" keeps those off.",
+      "Separately, we count page views ourselves to see how Ancular is used: the page, the site you came from and your country. This uses no cookies, stores nothing on your device and keeps no IP address, so it can't identify you.",
     ],
   },
   {

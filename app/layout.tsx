@@ -3,6 +3,7 @@ import "./globals.css";
 import { Suspense } from "react";
 import { CookieConsent } from "@/components/consent/CookieConsent";
 import { OptionalAnalytics } from "@/components/consent/OptionalAnalytics";
+import { VisitBeacon } from "@/components/analytics/VisitBeacon";
 import { NavProgress } from "@/components/layout/NavProgress";
 
 export const metadata: Metadata = {
@@ -44,6 +45,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <CookieConsent />
         <OptionalAnalytics />
+        <Suspense fallback={null}>
+          <VisitBeacon />
+        </Suspense>
       </body>
     </html>
   );
