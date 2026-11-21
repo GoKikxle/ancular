@@ -227,7 +227,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   const [{ data: consent }, { data: matches }, { data: eventModel }] = await Promise.all([
     supabase
       .from("consents")
-      .select("id")
+      .select("id, adult_confirmed")
       .eq("event_id", invite.id)
       .eq("user_id", user.id)
       .is("withdrawn_at", null)
@@ -250,7 +250,7 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
       <GuestFinder
         eventId={invite.id}
         eventName={invite.name}
-        hasConsent={!!consent}
+        hasConsent={!!consent?.adult_confirmed}
         initialMatches={(matches ?? []) as Match[]}
         faceModel={(eventModel?.face_model as "v1" | "v2" | undefined) ?? "v1"}
       />

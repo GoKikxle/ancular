@@ -27,6 +27,7 @@ const sections = [
       "Ancular only searches for you after you tick the face matching box for that event. That tick is your explicit consent, which is the legal basis we rely on for face matching under the UK GDPR (Article 9) and the NDPA. We record when you agreed and the wording you agreed to.",
       "Saying no is fine. You can still be in the event; you just won't be able to search by selfie.",
       "You can withdraw at any time from the event page. That deletes your search results for the event straight away.",
+      "Face search is only for people aged 18 or over. Guests confirm their age before taking a selfie, and we record that confirmation with their consent. If you're under 18, ask the host or a parent or guardian to share your photos with you.",
     ],
   },
   {

@@ -12,8 +12,25 @@ const POINTS = [
 
 export function ConsentStep({ eventName, onAgree }: { eventName: string; onAgree: () => Promise<void> }) {
   const [checked, setChecked] = useState(false);
+  const [adult, setAdult] = useState(false);
+  const [under18, setUnder18] = useState(false);
   const [saving, setSaving] = useState(false);
   const [declined, setDeclined] = useState(false);
+
+  if (under18) {
+    return (
+      <div className="max-w-xl">
+        <h1 className="display">Face search is for adults</h1>
+        <p className="t-lead t-muted mt-5">
+          Selfie search on Ancular is only for people aged 18 or over, so we won&apos;t scan your face. You can still
+          get your photos from {eventName}: ask the host, or a parent or guardian, to share them with you.
+        </p>
+        <button type="button" className="btn btn-quiet btn-lg mt-8" onClick={() => setUnder18(false)}>
+          Go back
+        </button>
+      </div>
+    );
+  }
 
   if (declined) {
     return (
@@ -50,6 +67,19 @@ export function ConsentStep({ eventName, onAgree }: { eventName: string; onAgree
       <label className="mt-8 flex cursor-pointer items-start gap-3 rounded-[4px] bg-fill p-4">
         <input
           type="checkbox"
+          checked={adult}
+          onChange={(e) => setAdult(e.target.checked)}
+          className="mt-0.5 h-[18px] w-[18px] shrink-0"
+          required
+        />
+        <span className="text-[0.875rem] leading-[1.4]">
+          I confirm I&apos;m <strong className="font-semibold">18 or over</strong>.
+        </span>
+      </label>
+
+      <label className="mt-2 flex cursor-pointer items-start gap-3 rounded-[4px] bg-fill p-4">
+        <input
+          type="checkbox"
           checked={checked}
           onChange={(e) => setChecked(e.target.checked)}
           className="mt-0.5 h-[18px] w-[18px] shrink-0"
@@ -64,7 +94,7 @@ export function ConsentStep({ eventName, onAgree }: { eventName: string; onAgree
         <button
           type="button"
           className="btn btn-primary btn-lg sm:flex-1"
-          disabled={!checked || saving}
+          disabled={!checked || !adult || saving}
           onClick={async () => {
             setSaving(true);
             await onAgree();
@@ -77,6 +107,16 @@ export function ConsentStep({ eventName, onAgree }: { eventName: string; onAgree
           No thanks
         </button>
       </div>
+      {!(checked && adult) && (
+        <p className="t-meta mt-3">Tick both boxes to continue.</p>
+      )}
+      <button
+        type="button"
+        className="t-meta mt-3 underline decoration-[var(--hairline-strong)] underline-offset-4 hover:text-ink"
+        onClick={() => setUnder18(true)}
+      >
+        I&apos;m under 18
+      </button>
       <p className="t-meta mt-5">
         <Link href="/privacy" className="underline decoration-[var(--hairline-strong)] underline-offset-4 hover:text-ink">
           How Ancular handles your data

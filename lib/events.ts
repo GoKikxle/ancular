@@ -49,7 +49,8 @@ export const KIND_LABELS: Record<EventKind, string> = {
   other: "Other event",
 };
 
-export const CONSENT_VERSION = "2026-10-v1";
+/** Consent wording version. v2 adds the 18-or-over confirmation. */
+export const CONSENT_VERSION = "2026-11-v2-18plus";
 
 export function formatEventDate(date: string | null) {
   if (!date) return null;

@@ -56,6 +56,7 @@ export function GuestFinder({ eventId, eventName, hasConsent, initialMatches, pr
     const { error: err } = await createClient().rpc("grant_face_consent", {
       p_event: eventId,
       p_wording_version: CONSENT_VERSION,
+      p_adult: true,
     });
     if (err) {
       setError(plainError(err.message, "Could not save that. Try again."));
