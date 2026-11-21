@@ -4,7 +4,6 @@ import { MarketingFooter } from "@/components/landing/MarketingFooter";
 import { MarketingHeader } from "@/components/landing/MarketingHeader";
 import { IconDot, type PixelIconName } from "@/components/landing/PixelIcon";
 import { UseCaseCards } from "@/components/landing/UseCaseCards";
-import { WordReveal } from "@/components/landing/WordReveal";
 
 /* ---------- The colour row, after the screenshot's category circles ---------- */
 
@@ -188,7 +187,12 @@ export default function Home() {
           <>
         {/* ---------- The colour row ---------- */}
         <section id="crowds" className="lp-wrap scroll-mt-10 py-20 md:py-28">
-          <p className="lp-label justify-center">Made for every kind of crowd</p>
+          <h2 className="lp-intro">
+            Event photos end up in galleries nobody scrolls, so most guests never see themselves.{" "}
+            <span className="text-ink-4">
+              Ancular hands every guest just the photos they&apos;re in, whatever the gathering.
+            </span>
+          </h2>
           <ul className="crowds mt-10 md:mt-14">
             {CROWDS.map((c, i) => (
               <li key={c.label} className="crowd reveal-view" style={{ ["--i" as string]: i }}>
@@ -205,15 +209,6 @@ export default function Home() {
 
         {STEP > 2 && (
           <>
-        {/* ---------- The problem ---------- */}
-        <section className="lp-wrap py-16 md:py-32">
-          <p className="lp-label mb-8">The problem</p>
-          <WordReveal
-            className="lp-statement"
-            text="Thousands of photos. Hundreds of guests. Nobody scrolls that far. A shared gallery is where event photos go to be forgotten, so Ancular does the searching for each guest."
-          />
-        </section>
-
         {/* ---------- How it works ---------- */}
         <section id="how-it-works" className="lp-wrap scroll-mt-10 py-16 md:py-24">
           <div className="max-w-3xl">

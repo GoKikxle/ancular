@@ -2056,3 +2056,13 @@ body {
   .lp .lp-footer { padding-bottom: 0; overflow: hidden; }
   .lp .lp-wordmark { transform: translateY(9%); font-weight: 600; letter-spacing: -0.075em; }
 }
+
+@layer components {
+  .lp-intro {
+    max-width: 24ch;
+    font-size: clamp(1.9rem, 3.6vw, 3.4rem);
+    font-weight: 400;
+    line-height: 1.06;
+    letter-spacing: -0.045em;
+  }
+}
