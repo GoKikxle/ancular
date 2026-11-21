@@ -2017,3 +2017,21 @@ body {
     white-space: nowrap;
   }
 }
+
+/* ---------- Buttons: black, square, no icons, no shadows ---------- */
+@layer components {
+  .lp .lp-btn,
+  .lp .lp-btn-purple,
+  .lp .lp-btn-quiet,
+  .lp .lp-btn-white,
+  .lp .lp-btn-ink,
+  .lp .btn-primary {
+    border-radius: 4px;
+    background: var(--c-ink);
+    color: #fff;
+    box-shadow: none;
+  }
+  .lp .lp-btn:hover,
+  .lp .btn-primary:hover:not(:disabled) { background: #2a2733; }
+  .lp .lp-arrow { display: none; }
+}

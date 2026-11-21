@@ -174,7 +174,6 @@ export default function Home() {
           <div className="reveal-up mt-8 flex flex-wrap justify-center gap-2" style={{ animationDelay: "220ms" }}>
             <Link href="/signup" className="lp-btn lp-btn-purple">
               Start free
-              <Arrow />
             </Link>
             <a href="#how-it-works" className="lp-btn lp-btn-quiet">
               How it works
@@ -262,7 +261,6 @@ export default function Home() {
                 </h2>
                 <Link href="/privacy" className="lp-btn lp-btn-white mt-10">
                   How we handle your data
-                  <Arrow />
                 </Link>
               </div>
               <dl className="grid gap-3 sm:grid-cols-2">
@@ -291,7 +289,6 @@ export default function Home() {
           <div className="mt-10 flex flex-wrap justify-center gap-2">
             <Link href="/signup" className="lp-btn lp-btn-purple">
               Start free
-              <Arrow />
             </Link>
             <Link href="/login" className="lp-btn lp-btn-quiet">
               I have an account
@@ -310,13 +307,5 @@ export default function Home() {
 
       <MarketingFooter />
     </div>
-  );
-}
-
-function Arrow() {
-  return (
-    <svg viewBox="0 0 16 16" className="lp-arrow h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M3 8h10M9 4l4 4-4 4" />
-    </svg>
   );
 }
