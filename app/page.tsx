@@ -47,7 +47,7 @@ const promises: { icon: PixelIconName; color: string; title: string; body: strin
 ];
 
 /** Building the page one section at a time: only sections up to STEP are shown. */
-const STEP: number = 3;
+const STEP: number = 4;
 
 export default function Home() {
   return (
@@ -116,8 +116,7 @@ export default function Home() {
         <section id="use-cases" className="scroll-mt-10 py-20 md:py-32">
           <div className="lp-wrap mb-10 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="lp-label">Use cases</p>
-              <h2 className="lp-h2 mt-5">
+              <h2 className="lp-h2">
                 One link. <span className="lp-serif text-purple">Any</span> crowd.
               </h2>
             </div>
@@ -126,6 +125,11 @@ export default function Home() {
           <UseCaseCards />
         </section>
 
+          </>
+        )}
+
+        {STEP > 4 && (
+          <>
         {/* ---------- Privacy ---------- */}
         <section id="privacy" className="lp-dark scroll-mt-0">
           <div className="lp-wrap py-24 md:py-36">

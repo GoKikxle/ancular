@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { IconDot, type PixelIconName } from "./PixelIcon";
+import type { PixelIconName } from "./PixelIcon";
 
 type Card = {
   file: string;
@@ -121,17 +121,15 @@ export function UseCaseCards() {
     <div>
       <ul ref={track} className="uc2-track">
         {CARDS.map((c) => (
-          <li key={c.file} className="uc2-card" style={{ ["--tint" as string]: c.tint }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/landing/uc/${c.file}-1400.webp`} alt={c.alt} loading="lazy" decoding="async" />
-            <div className="uc2-shade" />
-            <IconDot name={c.icon} color={c.dot} size={48} className="uc2-dot" />
-            <div className="uc2-copy">
-              <p className="lp-serif uc2-kicker">{c.kicker}</p>
-              <h3 className="uc2-title">{c.title}</h3>
-              <p className="uc2-body">{c.body}</p>
-              <p className="lp-mono uc2-where">{c.where}</p>
+          <li key={c.file} className="uc2-card">
+            <div className="uc2-media">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/landing/uc/${c.file}-1400.webp`} alt={c.alt} loading="lazy" decoding="async" />
             </div>
+            <h3 className="uc2-title">{c.title}</h3>
+            <p className="uc2-where">
+              {c.kicker} · {c.where}
+            </p>
           </li>
         ))}
       </ul>
