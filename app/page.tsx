@@ -1,100 +1,319 @@
 import Link from "next/link";
-import { HowItWorks } from "@/components/landing/HowItWorks";
-import { HeroOrbit } from "@/components/landing/HeroOrbit";
 import { MarketingFooter } from "@/components/landing/MarketingFooter";
 import { MarketingHeader } from "@/components/landing/MarketingHeader";
-import { IconDot, type PixelIconName } from "@/components/landing/PixelIcon";
+import { AudienceTabs } from "@/components/marketing/AudienceTabs";
+import { FaqList } from "@/components/marketing/FaqList";
+import { FeatureAccordion } from "@/components/marketing/FeatureAccordion";
+import { HOME_FAQS } from "@/components/marketing/faqs";
+import { HeroProduct } from "@/components/marketing/HeroProduct";
+import {
+  FREE_LIVE_EVENTS_PER_MONTH,
+  FREE_PHOTOS_PER_EVENT,
+  PASS_PHOTOS_PER_EVENT,
+  PRICES,
+  formatMoney,
+} from "@/lib/plans";
 
-/* ---------- The colour row, after the screenshot's category circles ---------- */
+const n = (x: number) => x.toLocaleString("en-GB");
 
-const CROWDS: { icon: PixelIconName; color: string; label: string; note: string }[] = [
-  { icon: "ring", color: "var(--c-pink)", label: "Weddings", note: "Every guest" },
-  { icon: "note", color: "var(--c-yellow)", label: "Festivals", note: "Every stage" },
-  { icon: "mic", color: "var(--c-purple)", label: "Conferences", note: "Every session" },
-  { icon: "laptop", color: "var(--c-blue)", label: "Meetups", note: "Every talk" },
-  { icon: "sparkle", color: "var(--c-red)", label: "Parties", note: "Every night" },
-  { icon: "cap", color: "var(--c-lavender)", label: "Graduations", note: "Every family" },
-  { icon: "people", color: "var(--c-mint)", label: "Communities", note: "Every gathering" },
-  { icon: "plane", color: "var(--c-grey)", label: "Trips", note: "Every stop" },
+const FEATURES = [
+  {
+    title: "Every guest gets only their photos",
+    body: "Guests take one selfie and see the photos they appear in, ready to save or share. Nobody scrolls through thousands of strangers to find themselves.",
+    img: "/landing/steps/selfie.webp",
+    alt: "A woman holding up her phone to take a selfie",
+  },
+  {
+    title: "Private by default, not by setting",
+    body: "Events are invite only, hosts can approve each guest, and there is no public gallery. What happens at the event stays with the people who were there.",
+    img: "/landing/uc/weddings-1400.webp",
+    alt: "Bride and groom dancing while guests film them on their phones",
+  },
+  {
+    title: "Upload once, matched automatically",
+    body: "Photographers and media teams upload to one event, over one day or several. Faces are matched as the photos land, so guests can search the same evening.",
+    img: "/landing/steps/upload.webp",
+    alt: "A photographer checking his camera",
+  },
+  {
+    title: "Collections that survive the night",
+    body: "Each guest's photos are saved to their account, so a dropped signal, a new phone or a busy evening doesn't mean starting again.",
+    img: "/landing/uc/travel-1400.webp",
+    alt: "Friends laughing in a car at sunset on a road trip",
+  },
 ];
 
+const STEPS = [
+  {
+    n: "01",
+    who: "Host",
+    title: "Create the event and upload",
+    body: "Add the photographer's photos as they come in. Ancular finds every face as each photo lands.",
+    img: "/landing/steps/upload.webp",
+  },
+  {
+    n: "02",
+    who: "Host",
+    title: "Share one invite link",
+    body: "Print the code on the programme, show it on screen or post it to your guest list. Only people with it can ask to join.",
+    img: "/landing/uc/conferences-1400.webp",
+  },
+  {
+    n: "03",
+    who: "Guest",
+    title: "Take one selfie",
+    body: "Each guest sees every photo they're in, on their own phone, with nothing to download or install.",
+    img: "/landing/steps/selfie.webp",
+  },
+];
+
+const TRUST = [
+  {
+    title: "Invite-only events",
+    body: "No public galleries and no search engines. Guests need the host's link, and hosts can approve each one.",
+  },
+  {
+    title: "Selfies stay on the phone",
+    body: "A guest's selfie is read on their own device to make a face code. The selfie itself is never uploaded or kept.",
+  },
+  {
+    title: "Face data deletes itself",
+    body: "Face codes are removed after the event, 30 days by default. Hosts can delete an event and everything in it at any time.",
+  },
+  {
+    title: "UK GDPR and NDPA",
+    body: "Explicit consent before any face search, written for the UK GDPR and Nigeria's NDPA. ICO registration ZC297871.",
+  },
+];
 
 export default function Home() {
+  const gbp = PRICES.GBP;
   return (
-    <div className="lp">
+    <div className="lp v3">
       <MarketingHeader />
 
       <main>
         {/* ---------- Hero ---------- */}
-        <section className="lp-hero3">
-          <h1 className="lp-display reveal-up">
-            Every photo of you,
-            <br />
-            found with one <span className="lp-serif text-purple">selfie</span>
+        <section className="v3-wrap v3-hero">
+          <p className="v3-eyebrow reveal-up">Ancular for events</p>
+          <h1
+            className="v3-display reveal-up"
+            style={{ animationDelay: "60ms" }}
+          >
+            Every guest. Every photo. Delivered privately.
           </h1>
-          <p className="lp-lead reveal-up mx-auto mt-6 max-w-[34ch]" style={{ animationDelay: "120ms" }}>
-            Private photo sharing for events too big for a group chat.
+          <p className="v3-lead reveal-up" style={{ animationDelay: "120ms" }}>
+            Ancular matches your event photos to the people in them, so every
+            guest receives their own album and nobody sees a gallery of
+            strangers.
           </p>
-          <div className="reveal-up mt-8 flex flex-wrap justify-center gap-2" style={{ animationDelay: "220ms" }}>
-            <Link href="/signup" className="lp-btn lp-btn-purple">
+          <div
+            className="reveal-up mt-9 flex flex-wrap justify-center gap-2"
+            style={{ animationDelay: "180ms" }}
+          >
+            <Link href="/signup" className="lp-btn lp-btn-ink">
               Start free
             </Link>
-            <a href="#how-it-works" className="lp-btn lp-btn-quiet">
-              How it works
+            <a
+              href="mailto:hello@ancular.com?subject=Ancular%20for%20our%20events"
+              className="lp-btn v3-btn-line"
+            >
+              Talk to us
             </a>
           </div>
-          <div className="lp-hero3-orbit reveal-up" style={{ animationDelay: "320ms" }}>
-            <HeroOrbit />
+          <div
+            className="v3-hero-media reveal-up"
+            style={{ animationDelay: "260ms" }}
+          >
+            <HeroProduct />
           </div>
         </section>
 
-        {/* ---------- The colour row ---------- */}
-        <section id="crowds" className="lp-wrap scroll-mt-10 py-28 md:py-48">
-          <h2 className="lp-intro">
-            Thousands of photos. Hundreds of guests. Nobody scrolls that far.
-            <br />
-            Each guest gets <span className="lp-ring">just the photos they&apos;re in.</span>
-          </h2>
-          <ul className="crowds mt-20 md:mt-32">
-            {CROWDS.map((c, i) => (
-              <li key={c.label} className="crowd reveal-view" style={{ ["--i" as string]: i }}>
-                <IconDot name={c.icon} color={c.color} size={96} className="crowd-dot" />
-                <span className="crowd-label">{c.label}</span>
-                <span className="crowd-note">{c.note}</span>
-              </li>
-            ))}
-          </ul>
+        {/* ---------- The problem ---------- */}
+        <section className="v3-wrap v3-sec">
+          <div className="v3-split">
+            <h2 className="v3-h2">
+              Event photos are a promise most events don&apos;t keep.
+            </h2>
+            <div className="v3-body space-y-5">
+              <p>
+                A photographer captures thousands of moments. Then the gallery
+                link goes out, and it quietly fails: guests won&apos;t scroll
+                through four thousand photos to find the six they&apos;re in,
+                and most never ask.
+              </p>
+              <p>
+                For an organiser, that&apos;s the last impression of the event.
+                For a client, it&apos;s money spent on photography that nobody
+                sees. Ancular closes that gap by giving every guest their
+                photos, privately, the same day.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ---------- Features ---------- */}
+        <section id="features" className="v3-wrap v3-sec scroll-mt-24">
+          <div className="v3-head">
+            <h2 className="v3-h2">
+              Deliver photos the way your clients expect
+            </h2>
+            <p className="v3-lead-left">
+              A delivery that feels as considered as the event itself.
+            </p>
+          </div>
+          <FeatureAccordion items={FEATURES} tint="var(--c-purple)" />
+        </section>
+
+        {/* ---------- Who it's for ---------- */}
+        <section id="solutions" className="v3-wrap v3-sec scroll-mt-24">
+          <div className="v3-head">
+            <h2 className="v3-h2">Built for the people who run events</h2>
+            <p className="v3-lead-left">
+              From a single wedding to a season of conferences.
+            </p>
+          </div>
+          <AudienceTabs />
         </section>
 
         {/* ---------- How it works ---------- */}
-        <section id="how-it-works" className="lp-wrap scroll-mt-10 py-16 md:py-24">
-          <HowItWorks />
+        <section id="how-it-works" className="v3-wrap v3-sec scroll-mt-24">
+          <div className="v3-head">
+            <h2 className="v3-h2">Live in three steps</h2>
+            <p className="v3-lead-left">
+              Set up in minutes. Nothing for guests to install.
+            </p>
+          </div>
+          <ol className="v3-steps">
+            {STEPS.map((s) => (
+              <li key={s.n} className="v3-card v3-step">
+                <div className="v3-step-media">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={s.img} alt="" loading="lazy" decoding="async" />
+                </div>
+                <div className="v3-step-copy">
+                  <p className="v3-caps">
+                    {s.n} · {s.who}
+                  </p>
+                  <h3 className="v3-h4 mt-3">{s.title}</h3>
+                  <p className="v3-small mt-3">{s.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* ---------- Privacy and control ---------- */}
+        <section id="privacy" className="v3-band-wrap v3-sec scroll-mt-24">
+          <div className="v3-band">
+            <div className="v3-head v3-head-dark">
+              <h2 className="v3-h2">Privacy and control, built in</h2>
+              <p className="v3-lead-left">
+                Face matching only works if people trust it. Every part of
+                Ancular is designed around consent.
+              </p>
+            </div>
+            <ul className="v3-trust">
+              {TRUST.map((t) => (
+                <li key={t.title} className="v3-trust-card">
+                  <h3 className="v3-h4">{t.title}</h3>
+                  <p className="v3-small mt-3">{t.body}</p>
+                </li>
+              ))}
+            </ul>
+            <Link href="/privacy" className="lp-btn v3-btn-light mt-12">
+              How we handle data
+            </Link>
+          </div>
+        </section>
+
+        {/* ---------- Pricing ---------- */}
+        <section className="v3-wrap v3-sec">
+          <div className="v3-card v3-price">
+            <div>
+              <h2 className="v3-h3">Ancular pricing</h2>
+              <p className="v3-small mt-4">
+                Hosts pay for the event. Guests never pay.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-2">
+                <Link href="/signup" className="lp-btn lp-btn-ink">
+                  Start free
+                </Link>
+                <Link href="/pricing" className="lp-btn lp-btn-quiet">
+                  See pricing
+                </Link>
+              </div>
+            </div>
+            <div>
+              <p className="v3-body">
+                Start on Free, unlock a single event when it needs more photos,
+                or go Pro if you host often.
+              </p>
+              <ul className="v3-price-points">
+                <li>
+                  <strong>Free</strong> · {FREE_LIVE_EVENTS_PER_MONTH} live
+                  events a month, {n(FREE_PHOTOS_PER_EVENT)} photos each
+                </li>
+                <li>
+                  <strong>Event pass</strong> · {formatMoney(gbp.pass, "GBP")}{" "}
+                  once, up to {n(PASS_PHOTOS_PER_EVENT)} photos
+                </li>
+                <li>
+                  <strong>Pro</strong> · {formatMoney(gbp.pro, "GBP")} a month,
+                  unlimited live events
+                </li>
+                <li>
+                  <strong>Large events</strong> · set up with our team
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* ---------- FAQ ---------- */}
+        <section id="faq" className="v3-wrap v3-sec scroll-mt-24">
+          <div className="v3-split v3-split-top">
+            <div>
+              <h2 className="v3-h2">Frequently asked questions</h2>
+              <p className="v3-small mt-5">
+                More on plans in{" "}
+                <Link
+                  href="/pricing#faq"
+                  className="font-medium text-ink underline underline-offset-4"
+                >
+                  pricing
+                </Link>
+                , or email{" "}
+                <a
+                  href="mailto:hello@ancular.com"
+                  className="font-medium text-ink underline underline-offset-4"
+                >
+                  hello@ancular.com
+                </a>
+                .
+              </p>
+            </div>
+            <FaqList items={HOME_FAQS} />
+          </div>
         </section>
 
         {/* ---------- Closing ---------- */}
-        <section className="lp-wrap pb-16 pt-28 text-center md:pb-24 md:pt-44">
-          <div className="mb-10 flex justify-center -space-x-3">
-            {CROWDS.slice(0, 6).map((c) => (
-              <IconDot key={c.label} name={c.icon} color={c.color} size={56} className="close-dot" />
-            ))}
-          </div>
-          <h2 className="lp-display mx-auto max-w-[14ch]">
-            Everyone leaves with their <span className="lp-serif text-purple">pictures.</span>
-          </h2>
-          <div className="mt-10 flex flex-wrap justify-center gap-2">
-            <Link href="/signup" className="lp-btn lp-btn-purple">
+        <section className="v3-wrap v3-close">
+          <h2 className="v3-display">Give every guest their photos.</h2>
+          <p className="v3-lead">
+            Start free on your next event, or talk to us about a larger one.
+          </p>
+          <div className="mt-9 flex flex-wrap justify-center gap-2">
+            <Link href="/signup" className="lp-btn lp-btn-ink">
               Start free
             </Link>
-            <Link href="/login" className="lp-btn lp-btn-quiet">
-              I have an account
-            </Link>
+            <a
+              href="mailto:hello@ancular.com?subject=Ancular%20for%20our%20events"
+              className="lp-btn v3-btn-line"
+            >
+              Talk to us
+            </a>
           </div>
-          <p className="mt-5 text-[14px] text-ink-3">
-            Free covers 3 live events a month and 200 photos per event.{" "}
-            <Link href="/pricing" className="font-medium text-ink underline underline-offset-4">
-              See pricing
-            </Link>
-          </p>
         </section>
       </main>
 

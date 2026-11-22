@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthForm } from "@/components/auth/AuthForm";
-import { continueWithoutAccountHref, safeInvitePath } from "@/lib/preview-guest";
+import {
+  continueWithoutAccountHref,
+  safeInvitePath,
+} from "@/lib/preview-guest";
 
 export const metadata: Metadata = { title: "Create an account" };
 
-export default async function SignupPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
   const { next } = await searchParams;
   const invited = !!safeInvitePath(next);
   return (
     <>
       <h1 className="lp-h2">
         {invited ? "Create an account to find your " : "Create your "}
-        <span className="lp-serif text-purple">{invited ? "photos" : "account"}</span>
+        {invited ? "photos" : "account"}
       </h1>
       <p className="lp-lead mb-10 mt-5">
         {invited
@@ -22,7 +29,10 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
       <AuthForm mode="signup" next={next ?? "/dashboard"} />
       {process.env.NODE_ENV === "development" && (
         <p className="t-meta mt-6">
-          <Link href={continueWithoutAccountHref(next)} className="underline underline-offset-4 hover:text-ink">
+          <Link
+            href={continueWithoutAccountHref(next)}
+            className="underline underline-offset-4 hover:text-ink"
+          >
             Continue without an account
           </Link>
         </p>
