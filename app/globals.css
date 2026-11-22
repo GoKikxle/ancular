@@ -2201,3 +2201,7 @@ body {
   .lp .lp-toc a { color: rgba(15, 13, 20, 0.6); }
   .lp .lp-toc a:hover { color: var(--c-ink); }
 }
+
+@layer components {
+  .lp-hero3 .lp-lead { color: var(--c-ink); }
+}
