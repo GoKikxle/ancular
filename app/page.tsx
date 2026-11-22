@@ -66,8 +66,7 @@ const STEPS = [
     who: "Guest",
     title: "Take one selfie",
     body: "Each guest sees every photo they're in, on their own phone, with nothing to download or install.",
-    img: "/landing/v3/7715619.webp",
-    pos: "center 30%",
+    img: "/landing/steps/selfie.webp",
   },
 ];
 
@@ -180,13 +179,7 @@ export default function Home() {
                 <div className="v3-step-media">
                   {s.img ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={s.img}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      style={{ objectPosition: s.pos }}
-                    />
+                    <img src={s.img} alt="" loading="lazy" decoding="async" />
                   ) : (
                     <QrArt />
                   )}
