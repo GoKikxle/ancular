@@ -2563,3 +2563,8 @@ body {
   .v3-foot-col a, .v3-foot-col button { color: rgba(15, 13, 20, 0.75); }
   .v3-foot-col a:hover, .v3-foot-col button:hover { color: var(--c-ink); }
 }
+
+@layer components {
+  .v3-grey { background: var(--v3-panel); }
+  .v3-grey .faq-list, .v3-grey .faq { border-color: rgba(15, 13, 20, 0.12); }
+}

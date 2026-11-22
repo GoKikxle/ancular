@@ -228,8 +228,8 @@ export default function Home() {
         </section>
 
         {/* ---------- FAQ ---------- */}
-        <section id="faq" className="v3-wrap v3-sec scroll-mt-24">
-          <div className="v3-split v3-split-top">
+        <section id="faq" className="v3-grey v3-sec scroll-mt-24">
+          <div className="v3-wrap v3-split v3-split-top">
             <div>
               <h2 className="v3-h2">Frequently asked questions</h2>
               <p className="v3-small mt-5">
