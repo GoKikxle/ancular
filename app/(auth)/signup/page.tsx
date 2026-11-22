@@ -10,10 +10,11 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
   const invited = !!safeInvitePath(next);
   return (
     <>
-      <h1 className="display">
-        {invited ? "Create an account to find your photos" : "Create your Ancular account"}
+      <h1 className="lp-h2">
+        {invited ? "Create an account to find your " : "Create your "}
+        <span className="lp-serif text-purple">{invited ? "photos" : "account"}</span>
       </h1>
-      <p className="t-lead t-muted mb-8 mt-5">
+      <p className="lp-lead mb-10 mt-5">
         {invited
           ? "It takes a minute. You'll use the same account for every event you're invited to."
           : "Host an event, upload the photos and share one link with your guests."}

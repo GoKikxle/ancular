@@ -48,10 +48,7 @@ const faqs: { q: string; a: React.ReactNode }[] = [
     q: "Can I cancel Pro?",
     a: "Any time, from Settings. Your events and photos stay. New uploads and new live events go back to the Free limits, unless that event has an Event pass.",
   },
-  {
-    q: "Can I pay in naira?",
-    a: "Visitors in Nigeria see naira prices. Payments still charge in pounds through Stripe for now; Paystack naira checkout is coming soon.",
-  },
+
   {
     q: `My event has more than ${n(PRO_PHOTOS_PER_EVENT)} photos. What then?`,
     a: (

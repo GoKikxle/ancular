@@ -23,8 +23,10 @@ export default async function ConfirmEmailPage({
   // Signed-out visitors can still resend if they know their email.
   return (
     <>
-      <h1 className="display">Check your inbox</h1>
-      <p className="t-lead t-muted mb-8 mt-5">
+      <h1 className="lp-h2">
+        Check your <span className="lp-serif text-purple">inbox</span>
+      </h1>
+      <p className="lp-lead mb-10 mt-5">
         Confirm your email to host events or open an invite. The link opens Ancular again on this phone.
       </p>
       <ConfirmEmailPanel

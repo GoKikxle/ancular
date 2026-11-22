@@ -14,8 +14,10 @@ export default async function LoginPage({
   const invited = !!safeInvitePath(next);
   return (
     <>
-      <h1 className="display">Welcome back</h1>
-      <p className="t-lead t-muted mb-8 mt-5">
+      <h1 className="lp-h2">
+        Welcome <span className="lp-serif text-purple">back</span>
+      </h1>
+      <p className="lp-lead mb-10 mt-5">
         {invited ? "Sign in to open your invite and find your photos." : "Sign in to your events."}
       </p>
       <AuthForm

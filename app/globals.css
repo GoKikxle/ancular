@@ -2218,3 +2218,13 @@ body {
     .hiw-dot-l { left: 8px; }
   }
 }
+
+/* Sign in, sign up, confirm email: the public pages' look. */
+@layer components {
+  .lp-auth .field { background: #fff; border-radius: 4px; }
+  .lp-auth .label { color: var(--c-ink); font-weight: 500; }
+  .lp-auth .btn { border-radius: 4px; box-shadow: none; }
+  .lp-auth .btn-primary { background: var(--c-ink); color: #fff; }
+  .lp-auth .btn-quiet { background: rgba(15, 13, 20, 0.07); color: var(--c-ink); }
+  .lp-auth .t-meta { color: rgba(15, 13, 20, 0.6); }
+}
