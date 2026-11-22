@@ -101,7 +101,6 @@ export function HowItWorks() {
   return (
     <div ref={section} className="hiw">
       <div className="hiw-left">
-        <p className="lp-label">How it works</p>
         <p ref={para} className="hiw-para" style={{ ["--n" as string]: n }}>
           {before.map((w, i) => word(w, i))}
           <span className="lp-ring">
