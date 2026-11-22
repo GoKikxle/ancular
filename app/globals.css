@@ -2203,7 +2203,7 @@ body {
 }
 
 @layer components {
-  .lp-hero3 .lp-lead { color: var(--c-ink); }
+  .lp .lp-lead { color: var(--c-ink); }
 }
 
 /* How it works: one colour circle floating on the edge of each picture. */
