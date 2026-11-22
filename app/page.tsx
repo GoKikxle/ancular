@@ -152,7 +152,7 @@ const steps = [
 ];
 
 /** Building the page one section at a time: only sections up to STEP are shown. */
-const STEP: number = 2;
+const STEP: number = 3;
 
 export default function Home() {
   return (
@@ -235,6 +235,11 @@ export default function Home() {
           </ol>
         </section>
 
+          </>
+        )}
+
+        {STEP > 3 && (
+          <>
         {/* ---------- Use cases ---------- */}
         <section id="use-cases" className="scroll-mt-10 py-20 md:py-32">
           <div className="lp-wrap mb-10 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
