@@ -15,7 +15,7 @@ const GRID = [
   "/landing/v3/30215324.webp",
   "/landing/uc/travel-600.webp",
 ];
-const MINE = [41134452, 41134453, 41134454, 41134455, 41134456, 41134457];
+const MINE = [31236825, 31236832, 31236836, 31236839, 31236864, 31236829];
 
 export function HeroProduct() {
   return (

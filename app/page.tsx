@@ -22,8 +22,8 @@ const FEATURES = [
   {
     title: "Every guest gets only their photos",
     body: "Guests take one selfie and see the photos they appear in, ready to save or share. Nobody scrolls through thousands of strangers to find themselves.",
-    img: "/landing/steps/selfie.webp",
-    alt: "A woman holding up her phone to take a selfie",
+    img: "/landing/v3/36729915.webp",
+    alt: "Friends taking a group selfie outdoors",
   },
   {
     title: "Private by default, not by setting",
@@ -65,7 +65,7 @@ const STEPS = [
     who: "Guest",
     title: "Take one selfie",
     body: "Each guest sees every photo they're in, on their own phone, with nothing to download or install.",
-    img: "/landing/v3/36729915.webp",
+    img: "/landing/steps/selfie.webp",
   },
 ];
 
