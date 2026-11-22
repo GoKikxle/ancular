@@ -2568,3 +2568,9 @@ body {
   .v3-grey { background: var(--v3-panel); }
   .v3-grey .faq-list, .v3-grey .faq { border-color: rgba(15, 13, 20, 0.12); }
 }
+
+@layer components {
+  .qr-art { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; width: 100%; height: 100%; background: #ececf0; }
+  .qr-art svg { width: 38%; padding: 14px; background: #fff; border-radius: 6px; box-sizing: content-box; }
+  .qr-link { padding: 6px 12px; border-radius: 4px; background: #fff; font-size: 12.5px; font-weight: 500; }
+}

@@ -6,6 +6,7 @@ import { FaqList } from "@/components/marketing/FaqList";
 import { FeatureAccordion } from "@/components/marketing/FeatureAccordion";
 import { HOME_FAQS } from "@/components/marketing/faqs";
 import { HeroProduct } from "@/components/marketing/HeroProduct";
+import { QrArt } from "@/components/marketing/QrArt";
 import {
   FREE_LIVE_EVENTS_PER_MONTH,
   FREE_PHOTOS_PER_EVENT,
@@ -38,8 +39,8 @@ const FEATURES = [
   {
     title: "Collections that survive the night",
     body: "Each guest's photos are saved to their account, so a dropped signal, a new phone or a busy evening doesn't mean starting again.",
-    img: "/landing/uc/travel-1400.webp",
-    alt: "Friends laughing in a car at sunset on a road trip",
+    img: "/landing/v3/18148376.webp",
+    alt: "Hands holding a phone showing a photo at night",
   },
 ];
 
@@ -49,21 +50,21 @@ const STEPS = [
     who: "Host",
     title: "Create the event and upload",
     body: "Add the photographer's photos as they come in. Ancular finds every face as each photo lands.",
-    img: "/landing/steps/upload.webp",
+    img: "/landing/v3/16313530.webp",
   },
   {
     n: "02",
     who: "Host",
     title: "Share one invite link",
     body: "Print the code on the programme, show it on screen or post it to your guest list. Only people with it can ask to join.",
-    img: "/landing/uc/conferences-1400.webp",
+    img: null,
   },
   {
     n: "03",
     who: "Guest",
     title: "Take one selfie",
     body: "Each guest sees every photo they're in, on their own phone, with nothing to download or install.",
-    img: "/landing/steps/selfie.webp",
+    img: "/landing/v3/36729915.webp",
   },
 ];
 
@@ -169,8 +170,12 @@ export default function Home() {
             {STEPS.map((s) => (
               <li key={s.n} className="v3-card v3-step">
                 <div className="v3-step-media">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={s.img} alt="" loading="lazy" decoding="async" />
+                  {s.img ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={s.img} alt="" loading="lazy" decoding="async" />
+                  ) : (
+                    <QrArt />
+                  )}
                 </div>
                 <div className="v3-step-copy">
                   <p className="v3-caps">

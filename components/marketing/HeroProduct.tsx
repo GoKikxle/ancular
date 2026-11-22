@@ -4,16 +4,16 @@
  * Photos from Pexels (free to use).
  */
 const GRID = [
-  "/landing/uc/conferences-600.webp",
-  "/landing/hero/32333369.webp",
-  "/landing/uc/tech-600.webp",
+  "/landing/v3/38446275.webp",
   "/landing/uc/festivals-600.webp",
-  "/landing/hero/32333376.webp",
+  "/landing/v3/35755225.webp",
   "/landing/uc/graduations-600.webp",
-  "/landing/uc/weddings-600.webp",
-  "/landing/hero/32333364.webp",
-  "/landing/uc/church-600.webp",
+  "/landing/v3/41134458.webp",
+  "/landing/uc/tech-600.webp",
+  "/landing/v3/8761637.webp",
   "/landing/uc/raves-600.webp",
+  "/landing/v3/30215324.webp",
+  "/landing/uc/travel-600.webp",
 ];
 const MINE = [
   32333369, 32333364, 32333372, 32333376, 32333365, 32333373, 32333361,

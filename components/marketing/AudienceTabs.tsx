@@ -24,8 +24,8 @@ const TABS: Tab[] = [
       "Approve guests before they can search",
       "A private, polished delivery your client can point to",
     ],
-    img: "/landing/uc/weddings-1400.webp",
-    alt: "Bride and groom dancing while guests film them on their phones",
+    img: "/landing/v3/7648472.webp",
+    alt: "An organiser laying out name badges before an event",
     tint: "var(--c-pink)",
   },
   {
@@ -38,8 +38,8 @@ const TABS: Tab[] = [
       "Guests save or share straight to WhatsApp",
       "Pro covers unlimited live events each month",
     ],
-    img: "/landing/steps/upload.webp",
-    alt: "A photographer checking his camera",
+    img: "/landing/v3/39190690.webp",
+    alt: "A photographer at his desk with a camera and laptop",
     tint: "var(--c-yellow)",
   },
   {
