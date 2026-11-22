@@ -18,35 +18,9 @@ const CROWDS: { icon: PixelIconName; color: string; label: string; note: string 
   { icon: "plane", color: "var(--c-grey)", label: "Trips", note: "Every stop" },
 ];
 
-const promises: { icon: PixelIconName; color: string; title: string; body: string }[] = [
-  {
-    icon: "phone",
-    color: "var(--c-purple)",
-    title: "Your selfie stays on your phone",
-    body: "Ancular reads a face code from it on your device, searches once, and doesn't keep it.",
-  },
-  {
-    icon: "lock",
-    color: "var(--c-yellow)",
-    title: "Invite only",
-    body: "Nobody can open an event without the host's link, and hosts can approve each guest.",
-  },
-  {
-    icon: "eye",
-    color: "var(--c-pink)",
-    title: "You only see photos you're in",
-    body: "Guests can't scroll through other people's pictures.",
-  },
-  {
-    icon: "clock",
-    color: "var(--c-mint)",
-    title: "Face data deletes itself",
-    body: "It's removed after the event, 30 days by default, and you can delete yours any time.",
-  },
-];
 
 /** Building the page one section at a time: only sections up to STEP are shown. */
-const STEP: number = 5;
+const STEP: number = 6;
 
 export default function Home() {
   return (
@@ -116,35 +90,6 @@ export default function Home() {
 
         {STEP > 4 && (
           <>
-        {/* ---------- Privacy ---------- */}
-        <section id="privacy" className="lp-dark scroll-mt-0">
-          <div className="lp-wrap py-24 md:py-36">
-            <div className="grid gap-14 lg:grid-cols-[1fr_1.2fr] lg:gap-20">
-              <div>
-                <h2 className="lp-h2">
-                  Private by <span className="lp-serif text-lavender">design.</span>
-                  <br />
-                  <span className="text-white/45">Built so people can trust it.</span>
-                </h2>
-                <Link href="/privacy" className="lp-btn lp-btn-white mt-10">
-                  How we handle your data
-                </Link>
-              </div>
-              <dl className="pv-list">
-                {promises.map((p, i) => (
-                  <div key={p.title} className="pv-item">
-                    <dt className="pv-title">
-                      <span className="pv-n">{String(i + 1).padStart(2, "0")}</span>
-                      {p.title}
-                    </dt>
-                    <dd className="pv-body">{p.body}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          </div>
-        </section>
-
           </>
         )}
 
