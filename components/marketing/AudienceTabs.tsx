@@ -70,6 +70,20 @@ const TABS: Tab[] = [
     alt: "Two young people singing together with their eyes closed",
     tint: "var(--c-blue)",
   },
+  {
+    id: "sports",
+    label: "Marathons and sports",
+    title: "Thousands of participants, each found in seconds",
+    body: "Runners, riders and fans are photographed all along the route. Each one finds their finish-line moment without searching by bib number or scrolling for hours.",
+    points: [
+      "Photos from every point on the course in one event",
+      "Participants find themselves with one selfie",
+      "Large events set up with our team",
+    ],
+    img: "/landing/hq/marathon.webp",
+    alt: "A field of marathon runners wearing race bibs",
+    tint: "var(--c-mint)",
+  },
 ];
 
 /** Who Ancular is for, one tab per kind of organiser. */
