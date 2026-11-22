@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 
-type Item = { title: string; body: string; img: string; alt: string };
+type Item = {
+  title: string;
+  body: string;
+  img: string;
+  alt: string;
+  pos?: string;
+};
 
 /**
  * A picture on the left, a list of features on the right. Opening a feature
@@ -28,6 +34,7 @@ export function FeatureAccordion({
             data-on={i === open}
             loading="lazy"
             decoding="async"
+            style={{ objectPosition: it.pos }}
           />
         ))}
       </div>

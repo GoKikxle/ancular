@@ -22,8 +22,9 @@ const FEATURES = [
   {
     title: "Every guest gets only their photos",
     body: "Guests take one selfie and see the photos they appear in, ready to save or share. Nobody scrolls through thousands of strangers to find themselves.",
-    img: "/landing/v3/36729915.webp",
-    alt: "Friends taking a group selfie outdoors",
+    img: "/landing/v3/6265966.webp",
+    alt: "A guest at a party taking a selfie",
+    pos: "center 30%",
   },
   {
     title: "Private by default, not by setting",
@@ -65,7 +66,8 @@ const STEPS = [
     who: "Guest",
     title: "Take one selfie",
     body: "Each guest sees every photo they're in, on their own phone, with nothing to download or install.",
-    img: "/landing/steps/selfie.webp",
+    img: "/landing/v3/7715619.webp",
+    pos: "center 30%",
   },
 ];
 
@@ -178,7 +180,13 @@ export default function Home() {
                 <div className="v3-step-media">
                   {s.img ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.img} alt="" loading="lazy" decoding="async" />
+                    <img
+                      src={s.img}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      style={{ objectPosition: s.pos }}
+                    />
                   ) : (
                     <QrArt />
                   )}

@@ -9,18 +9,32 @@
  * square around the same guest and stored in /public/landing/hero.
  */
 
-const PHOTOS = [32333369, 32333364, 32333372, 32333376, 32333365, 32333373, 32333361, 32333377];
+const PHOTOS = [
+  32333369, 32333364, 32333372, 32333376, 32333365, 32333373, 32333361,
+  32333377,
+];
 
 export function HeroOrbit() {
   return (
     <div className="orbit" aria-hidden="true">
       <div className="orbit-track">
         {PHOTOS.map((id, i) => (
-          <div key={id} className="orbit-item" style={{ ["--a" as string]: `${(360 / PHOTOS.length) * i}deg` }}>
+          <div
+            key={id}
+            className="orbit-item"
+            style={{ ["--a" as string]: `${(360 / PHOTOS.length) * i}deg` }}
+          >
             <div className="orbit-tile">
               <span className="orbit-upright">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/landing/hero/${id}.webp`} alt="" width={560} height={560} loading="eager" decoding="async" />
+                <img
+                  src={`/landing/hero/${id}.webp`}
+                  alt=""
+                  width={560}
+                  height={560}
+                  loading="eager"
+                  decoding="async"
+                />
               </span>
             </div>
           </div>
@@ -29,7 +43,13 @@ export function HeroOrbit() {
 
       <div className="orbit-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/landing/hero/selfie.webp" alt="" width={520} height={520} className="orbit-selfie" />
+        <img
+          src="/landing/hero/selfie.webp"
+          alt=""
+          width={520}
+          height={520}
+          className="orbit-selfie"
+        />
       </div>
     </div>
   );
