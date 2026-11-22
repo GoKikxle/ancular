@@ -2158,3 +2158,46 @@ body {
   .pv-n { flex: none; width: 28px; padding-top: 6px; font-size: 12.5px; font-weight: 500; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.5); }
   .pv-body { margin-top: 6px; padding-left: 44px; font-size: 0.9375rem; line-height: 1.5; color: rgba(255, 255, 255, 0.6); }
 }
+
+/* =====================================================================
+   Pricing and privacy pages, in the homepage's taste: light type, black square
+   buttons, grey secondary, hairlines instead of cards and shadows, caps captions.
+   ===================================================================== */
+@layer components {
+  .lp-caps {
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--c-ink);
+  }
+  .lp .btn-pill { border-radius: 4px; }
+  .lp .btn-quiet { background: rgba(15, 13, 20, 0.07); color: var(--c-ink); }
+  .lp .btn-quiet:hover:not(:disabled) { background: rgba(15, 13, 20, 0.12); }
+
+  /* Plan cards stay exactly as they were, buttons included. */
+  .lp .pc-card .btn-pill { border-radius: 999px; }
+  .lp .pc-card .btn-primary { background: var(--ink); color: var(--page); }
+  .lp .pc-card .btn-quiet { background: var(--fill); color: var(--ink); }
+
+  /* FAQ: plain rows between hairlines. */
+  .faq-list { border-top: 1px solid rgba(15, 13, 20, 0.12); }
+  .lp .faq { border: 0; border-bottom: 1px solid rgba(15, 13, 20, 0.12); border-radius: 0; background: transparent; }
+  .lp .faq summary { padding: 22px 0; font-size: 1.25rem; font-weight: 400; letter-spacing: -0.025em; }
+  .lp .faq-icon { width: 20px; height: 20px; background: none; border-radius: 0; }
+  .lp .faq summary:hover .faq-icon { background: none; }
+  .lp .faq-a { padding: 0 0 24px; color: rgba(15, 13, 20, 0.65); }
+
+  /* Privacy: the short version as a plain row of four. */
+  .pv-short {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid rgba(15, 13, 20, 0.12);
+  }
+  @media (min-width: 640px) { .pv-short { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .pv-short { grid-template-columns: repeat(4, 1fr); } }
+  .pv-short li { padding: 22px 24px 28px 0; border-bottom: 1px solid rgba(15, 13, 20, 0.12); }
+  .pv-short-t { margin-top: 14px; font-size: 1.25rem; line-height: 1.25; letter-spacing: -0.025em; }
+  .lp .lp-toc a { color: rgba(15, 13, 20, 0.6); }
+  .lp .lp-toc a:hover { color: var(--c-ink); }
+}

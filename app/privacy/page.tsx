@@ -100,9 +100,8 @@ export default function PrivacyPage() {
       <MarketingHeader base="/" />
       <main>
         <section className="lp-wrap pb-14 pt-12 md:pb-20 md:pt-20">
-          <p className="lp-label reveal-up">Privacy</p>
-          <h1 className="lp-display reveal-up mt-6 max-w-[15ch]" style={{ animationDelay: "60ms" }}>
-            How Ancular handles <span className="text-ink-4">your data.</span>
+          <h1 className="lp-display reveal-up max-w-[15ch]" style={{ animationDelay: "60ms" }}>
+            How Ancular handles your <span className="lp-serif text-purple">data.</span>
           </h1>
           <p className="lp-lead reveal-up mt-8 max-w-lg" style={{ animationDelay: "120ms" }}>
             The plain-language version, for people in the United Kingdom and Nigeria. If anything here is unclear, ask
@@ -115,24 +114,21 @@ export default function PrivacyPage() {
         </section>
 
         <section className="lp-wrap">
-          <div className="lp-panel lp-panel-dark !pb-8 md:!pb-12">
-            <p className="lp-label lp-label-dark">The short version</p>
-            <ul className="mt-8 grid gap-px overflow-hidden rounded-[22px] bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
-              {short.map((t, i) => (
-                <li key={t} className="bg-[#111] p-6">
-                  <span className="lp-mono text-[12px] text-white/40">{String(i + 1).padStart(2, "0")}</span>
-                  <p className="mt-6 text-[1.0625rem] font-semibold leading-[1.3] tracking-[-0.02em] text-white">{t}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <ul className="pv-short">
+            {short.map((t, i) => (
+              <li key={t}>
+                <span className="lp-caps">{String(i + 1).padStart(2, "0")}</span>
+                <p className="pv-short-t">{t}</p>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className="lp-wrap py-20 md:py-28">
           <div className="grid gap-12 lg:grid-cols-[240px_1fr] lg:gap-20">
             <nav aria-label="On this page" className="lp-toc hidden lg:block">
               <div className="sticky top-24">
-                <p className="lp-label mb-4">On this page</p>
+                <p className="lp-caps mb-4">On this page</p>
                 {items.map((s) => (
                   <a key={s.anchor} href={`#${s.anchor}`}>
                     {s.title}
@@ -148,8 +144,8 @@ export default function PrivacyPage() {
                   className="grid scroll-mt-24 gap-4 border-t border-hairline py-10 first:border-t-0 first:pt-0 md:grid-cols-[1fr_1.6fr] md:gap-10 md:py-12"
                 >
                   <div>
-                    <span className="lp-mono text-[12px] text-ink-4">{String(i + 1).padStart(2, "0")}</span>
-                    <h2 className="mt-3 text-[1.5rem] font-medium leading-[1.1] tracking-[-0.035em]">{s.title}</h2>
+                    <span className="lp-caps">{String(i + 1).padStart(2, "0")}</span>
+                    <h2 className="mt-3 text-[1.5rem] font-normal leading-[1.1] tracking-[-0.035em]">{s.title}</h2>
                   </div>
                   <div className="lp-prose max-w-2xl text-[1rem] leading-[1.6] text-ink-2">
                     {s.body.map((p) => (
