@@ -150,7 +150,7 @@ export default function Home() {
               A delivery that feels as considered as the event itself.
             </p>
           </div>
-          <FeatureAccordion items={FEATURES} tint="var(--c-purple)" />
+          <FeatureAccordion items={FEATURES} tint="var(--c-yellow)" />
         </section>
 
         {/* ---------- Who it's for ---------- */}
