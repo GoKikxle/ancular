@@ -1,55 +1,54 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { Logo } from "@/components/brand/Logo";
 
 const NAV = [
   { href: "#how-it-works", label: "How it works" },
-  { href: "#use-cases", label: "Use cases" },
   { href: "/pricing", label: "Pricing" },
-  { href: "#privacy", label: "Privacy" },
+  { href: "/privacy", label: "Privacy" },
 ];
 
 /**
- * Landing header: logo on the left, a floating dark capsule for the sections in
- * the middle, sign in and create-account on the right. Turns solid once you scroll.
+ * Public header: a thin black beta strip, then a quiet top bar that scrolls away
+ * with the page.
  * `base` is "/" on other pages, so the section links lead back to the landing page.
  */
 export function MarketingHeader({ base = "", cta = true }: { base?: string; cta?: boolean }) {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 8);
-    on();
-    window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
-  }, []);
 
   return (
-    <header className="lp-header" data-scrolled={scrolled}>
-      <div className="flex items-center gap-2">
+    <>
+      <div className="lp-strip">
+        <span>
+          You&apos;re early. Ancular is in beta<span className="hidden sm:inline">, help shape what it becomes</span>.
+        </span>
+        <a href="mailto:hello@ancular.com?subject=Ancular%20feedback" className="lp-strip-link">
+          Tell us your thoughts
+          <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+            <path d="M3 9l6-6M4 3h5v5" />
+          </svg>
+        </a>
+      </div>
+
+      <header className="lp-top">
         <Logo />
-        <span className="rounded-full bg-fill px-[7px] py-[3px] text-[11px] font-semibold leading-none text-ink-2">Beta</span>
-      </div>
-
-      <nav aria-label="Sections" className="lp-capsule">
-        {NAV.map((n) => (
-          <a key={n.href} href={n.href.startsWith("/") ? n.href : `${base}${n.href}`} className="lp-capsule-link">
-            {n.label}
-          </a>
-        ))}
-      </nav>
-
-      <div className="flex items-center gap-1">
-        <Link href="/login" className={`nav-link ${cta ? "hidden sm:inline-flex" : ""}`}>
-          Sign in
-        </Link>
-        {cta && (
-          <Link href="/signup" className="btn btn-primary btn-pill btn-sm !px-4">
-            Start free
+        <nav aria-label="Sections" className="lp-top-nav">
+          {NAV.map((n) => (
+            <a key={n.href} href={n.href.startsWith("/") ? n.href : `${base}${n.href}`} className="lp-top-link">
+              {n.label}
+            </a>
+          ))}
+        </nav>
+        <div className="flex items-center gap-1">
+          <Link href="/login" className="lp-top-link">
+            Sign in
           </Link>
-        )}
-      </div>
-    </header>
+          {cta && (
+            <Link href="/signup" className="lp-btn lp-btn-ink lp-btn-sm">
+              Start free
+            </Link>
+          )}
+        </div>
+      </header>
+
+    </>
   );
 }

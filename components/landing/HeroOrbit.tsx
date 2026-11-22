@@ -30,8 +30,6 @@ export function HeroOrbit() {
       <div className="orbit-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/landing/hero/selfie.webp" alt="" width={520} height={520} className="orbit-selfie" />
-        <span className="orbit-corners" />
-        <span className="orbit-center-label">Your selfie</span>
       </div>
     </div>
   );

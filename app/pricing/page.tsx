@@ -95,12 +95,11 @@ export default async function PricingPage() {
     <div className="lp">
       <MarketingHeader base="/" />
       <main>
-        <section className="lp-wrap pb-20 pt-28 md:pb-28 md:pt-40">
+        <section className="lp-wrap pb-20 pt-12 md:pb-28 md:pt-20">
           <div className="mx-auto max-w-[1040px]">
             <div className="text-center">
-              <p className="lp-label reveal-up">Pricing</p>
-              <h1 className="lp-display reveal-up mx-auto mt-6 max-w-[14ch]" style={{ animationDelay: "60ms" }}>
-                Pay for the event, <span className="text-ink-4">never the guests.</span>
+              <h1 className="lp-display reveal-up mx-auto max-w-[14ch]" style={{ animationDelay: "60ms" }}>
+                Pay for the event, never the <span className="lp-serif text-purple">guests.</span>
               </h1>
               <p className="lp-lead reveal-up mx-auto mt-6 max-w-md" style={{ animationDelay: "120ms" }}>
                 Start free. Unlock one event, or go Pro if you host often.
@@ -120,16 +119,15 @@ export default async function PricingPage() {
           </div>
         </section>
 
-        <section id="faq" className="scroll-mt-20 bg-[var(--lp-panel)] py-20 md:py-32">
+        <section id="faq" className="scroll-mt-20 py-20 md:py-32">
           <div className="lp-wrap">
             <div className="mx-auto max-w-[768px]">
               <div className="text-center">
-                <p className="lp-label">FAQ</p>
-                <h2 className="lp-h2 mt-5">
-                  Questions? <span className="text-ink-4">Answers.</span>
+                <h2 className="lp-h2">
+                  Questions, <span className="lp-serif text-purple">answered.</span>
                 </h2>
               </div>
-              <div className="mt-12 space-y-2">
+              <div className="faq-list mt-12">
                 {faqs.map((f, i) => (
                   <details key={f.q} className="faq" open={i === 0}>
                     <summary>
