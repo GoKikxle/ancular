@@ -2205,3 +2205,16 @@ body {
 @layer components {
   .lp-hero3 .lp-lead { color: var(--c-ink); }
 }
+
+/* How it works: one colour circle floating on the edge of each picture. */
+@layer components {
+  .hiw-frame { position: relative; }
+  .hiw-dot { position: absolute; z-index: 1; }
+  .hiw-dot-tr { top: -22px; right: -18px; }
+  .hiw-dot-l { left: -26px; bottom: 22%; }
+  .hiw-dot-t { top: -26px; right: 14%; }
+  @media (max-width: 899px) {
+    .hiw-dot-tr { right: 8px; }
+    .hiw-dot-l { left: 8px; }
+  }
+}

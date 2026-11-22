@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { IconDot, type PixelIconName } from "./PixelIcon";
 
 /**
  * How it works, after telescope.fyi: one paragraph stays pinned on the left and
@@ -10,14 +11,19 @@ import { useEffect, useRef } from "react";
  * Step photos from Pexels (free to use): 17627700 and 7383148, cropped square.
  */
 
-const BEFORE = "Ancular is private photo sharing for events. The host uploads the day's photos and shares one invite link. Each guest takes";
+const BEFORE =
+  "Ancular is private photo sharing for events. The host uploads the day's photos and shares one invite link. Each guest takes";
 const RING = "one selfie";
 const AFTER = "and gets every photo they're in, ready to save or send.";
 
 function QrArt() {
   const N = 21;
   const finder = (x: number, y: number) => {
-    for (const [fx, fy] of [[0, 0], [N - 7, 0], [0, N - 7]]) {
+    for (const [fx, fy] of [
+      [0, 0],
+      [N - 7, 0],
+      [0, N - 7],
+    ]) {
       const dx = x - fx;
       const dy = y - fy;
       if (dx >= 0 && dx < 7 && dy >= 0 && dy < 7) {
@@ -30,11 +36,26 @@ function QrArt() {
   };
   const cells: number[] = [];
   for (let y = 0; y < N; y++)
-    for (let x = 0; x < N; x++) cells.push(finder(x, y) ?? ((x * 7 + y * 13 + x * y) % 5 < 2 ? 1 : 0));
+    for (let x = 0; x < N; x++)
+      cells.push(finder(x, y) ?? ((x * 7 + y * 13 + x * y) % 5 < 2 ? 1 : 0));
   return (
     <div className="hiw-qr">
-      <svg viewBox={`0 0 ${N} ${N}`} shapeRendering="crispEdges" aria-hidden="true">
-        {cells.map((c, i) => (c ? <rect key={i} x={i % N} y={Math.floor(i / N)} width="1" height="1" /> : null))}
+      <svg
+        viewBox={`0 0 ${N} ${N}`}
+        shapeRendering="crispEdges"
+        aria-hidden="true"
+      >
+        {cells.map((c, i) =>
+          c ? (
+            <rect
+              key={i}
+              x={i % N}
+              y={Math.floor(i / N)}
+              width="1"
+              height="1"
+            />
+          ) : null,
+        )}
       </svg>
     </div>
   );
@@ -47,14 +68,23 @@ const STEPS = [
     line: "Host · faces are found as they go up",
     img: "/landing/steps/upload.webp",
     alt: "A photographer checking his camera",
+    dot: { icon: "photo" as PixelIconName, color: "var(--c-yellow)", at: "tr" },
   },
-  { n: "02", title: "Share one link", line: "Host · only people with it can join", img: null, alt: "" },
+  {
+    n: "02",
+    title: "Share one link",
+    line: "Host · only people with it can join",
+    img: null,
+    alt: "",
+    dot: { icon: "link" as PixelIconName, color: "var(--c-purple)", at: "l" },
+  },
   {
     n: "03",
     title: "Take one selfie",
     line: "Guest · only your photos, no app",
     img: "/landing/steps/selfie.webp",
     alt: "A woman holding up her phone to take a selfie",
+    dot: { icon: "smile" as PixelIconName, color: "var(--c-yellow)", at: "t" },
   },
 ];
 
@@ -75,7 +105,11 @@ export function HowItWorks() {
   useEffect(() => {
     const s = section.current;
     const p = para.current;
-    if (!s || !p || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      !s ||
+      !p ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       p?.style.setProperty("--p", "2");
       return;
     }
@@ -107,7 +141,11 @@ export function HowItWorks() {
           {before.map((w, i) => word(w, i))}
           <span className="lp-ring">
             {ring.map((w, i) => (
-              <span key={i} className="hiw-w" style={{ ["--i" as string]: (before.length + i) / n }}>
+              <span
+                key={i}
+                className="hiw-w"
+                style={{ ["--i" as string]: (before.length + i) / n }}
+              >
                 {w}
                 {i < ring.length - 1 ? " " : ""}
               </span>
@@ -120,13 +158,26 @@ export function HowItWorks() {
       <ol className="hiw-steps">
         {STEPS.map((s) => (
           <li key={s.n} className="hiw-step">
-            <div className="hiw-media">
-              {s.img ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={s.img} alt={s.alt} loading="lazy" decoding="async" />
-              ) : (
-                <QrArt />
-              )}
+            <div className="hiw-frame">
+              <div className="hiw-media">
+                {s.img ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={s.img}
+                    alt={s.alt}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <QrArt />
+                )}
+              </div>
+              <IconDot
+                name={s.dot.icon}
+                color={s.dot.color}
+                size={64}
+                className={`hiw-dot hiw-dot-${s.dot.at} px-dot-float`}
+              />
             </div>
             <h3 className="hiw-title">{s.title}</h3>
             <p className="hiw-line">
