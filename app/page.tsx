@@ -5,7 +5,7 @@ import { AudienceTabs } from "@/components/marketing/AudienceTabs";
 import { FaqList } from "@/components/marketing/FaqList";
 import { FeatureAccordion } from "@/components/marketing/FeatureAccordion";
 import { HOME_FAQS } from "@/components/marketing/faqs";
-import { HeroProduct } from "@/components/marketing/HeroProduct";
+import { HeroOrbit } from "@/components/landing/HeroOrbit";
 import { QrArt } from "@/components/marketing/QrArt";
 import {
   FREE_LIVE_EVENTS_PER_MONTH,
@@ -103,11 +103,31 @@ export default function Home() {
               Talk to us
             </a>
           </div>
-          <div
-            className="v3-hero-media reveal-up"
-            style={{ animationDelay: "260ms" }}
-          >
-            <HeroProduct />
+          <div className="v3-hero-orbit reveal-up" style={{ animationDelay: "260ms" }}>
+            <HeroOrbit />
+          </div>
+        </section>
+
+        {/* ---------- The problem ---------- */}
+        <section className="v3-wrap v3-sec">
+          <div className="v3-split">
+            <h2 className="v3-h2">
+              Event photos are a promise most events don&apos;t keep.
+            </h2>
+            <div className="v3-body space-y-5">
+              <p>
+                A photographer captures thousands of moments. Then the gallery
+                link goes out, and it quietly fails: guests won&apos;t scroll
+                through four thousand photos to find the six they&apos;re in,
+                and most never ask.
+              </p>
+              <p>
+                For an organiser, that&apos;s the last impression of the event.
+                For a client, it&apos;s money spent on photography that nobody
+                sees. Ancular closes that gap by giving every guest their
+                photos, privately, the same day.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -140,29 +160,6 @@ export default function Home() {
               </li>
             ))}
           </ol>
-        </section>
-
-        {/* ---------- The problem ---------- */}
-        <section className="v3-wrap v3-sec">
-          <div className="v3-split">
-            <h2 className="v3-h2">
-              Event photos are a promise most events don&apos;t keep.
-            </h2>
-            <div className="v3-body space-y-5">
-              <p>
-                A photographer captures thousands of moments. Then the gallery
-                link goes out, and it quietly fails: guests won&apos;t scroll
-                through four thousand photos to find the six they&apos;re in,
-                and most never ask.
-              </p>
-              <p>
-                For an organiser, that&apos;s the last impression of the event.
-                For a client, it&apos;s money spent on photography that nobody
-                sees. Ancular closes that gap by giving every guest their
-                photos, privately, the same day.
-              </p>
-            </div>
-          </div>
         </section>
 
         {/* ---------- Features ---------- */}
