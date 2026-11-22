@@ -2105,3 +2105,10 @@ body {
   .hiw-title { margin-top: 18px; font-size: 1.6rem; font-weight: 400; letter-spacing: -0.03em; line-height: 1.1; }
   .hiw-line { margin-top: 8px; font-size: 12.5px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: var(--c-ink); }
 }
+
+/* Hero selfie: just the photo, no white frame or ring. */
+@layer components {
+  .lp .orbit-center { background: transparent; box-shadow: none; }
+  .lp .orbit-center::after { display: none; }
+  .lp .orbit-selfie { inset: 0; width: 100%; height: 100%; }
+}
