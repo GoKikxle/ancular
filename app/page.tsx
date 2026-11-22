@@ -67,25 +67,6 @@ const STEPS = [
   },
 ];
 
-const TRUST = [
-  {
-    title: "Invite-only events",
-    body: "No public galleries and no search engines. Guests need the host's link, and hosts can approve each one.",
-  },
-  {
-    title: "Selfies stay on the phone",
-    body: "A guest's selfie is read on their own device to make a face code. The selfie itself is never uploaded or kept.",
-  },
-  {
-    title: "Face data deletes itself",
-    body: "Face codes are removed after the event, 30 days by default. Hosts can delete an event and everything in it at any time.",
-  },
-  {
-    title: "UK GDPR and NDPA",
-    body: "Explicit consent before any face search, written for the UK GDPR and Nigeria's NDPA. ICO registration ZC297871.",
-  },
-];
-
 export default function Home() {
   const gbp = PRICES.GBP;
   return (
@@ -201,30 +182,6 @@ export default function Home() {
               </li>
             ))}
           </ol>
-        </section>
-
-        {/* ---------- Privacy and control ---------- */}
-        <section id="privacy" className="v3-band-wrap v3-sec scroll-mt-24">
-          <div className="v3-band">
-            <div className="v3-head v3-head-dark">
-              <h2 className="v3-h2">Privacy and control, built in</h2>
-              <p className="v3-lead-left">
-                Face matching only works if people trust it. Every part of
-                Ancular is designed around consent.
-              </p>
-            </div>
-            <ul className="v3-trust">
-              {TRUST.map((t) => (
-                <li key={t.title} className="v3-trust-card">
-                  <h3 className="v3-h4">{t.title}</h3>
-                  <p className="v3-small mt-3">{t.body}</p>
-                </li>
-              ))}
-            </ul>
-            <Link href="/privacy" className="lp-btn v3-btn-light mt-12">
-              How we handle data
-            </Link>
-          </div>
         </section>
 
         {/* ---------- Pricing ---------- */}
