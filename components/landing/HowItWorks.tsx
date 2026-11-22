@@ -6,6 +6,8 @@ import { useEffect, useRef } from "react";
  * How it works, after telescope.fyi: one paragraph stays pinned on the left and
  * inks in word by word as you scroll, while the three steps scroll past on the
  * right, each one plain image with a short title and line.
+ *
+ * Step photos from Pexels (free to use): 17627700 and 7383148, cropped square.
  */
 
 const BEFORE = "Ancular is private photo sharing for events. The host uploads the day's photos and shares one invite link. Each guest takes";
@@ -43,16 +45,16 @@ const STEPS = [
     n: "01",
     title: "Upload the photos",
     line: "Host · faces are found as they go up",
-    img: "/landing/uc/conferences-1400.webp",
-    alt: "Conference attendees applauding a speaker",
+    img: "/landing/steps/upload.webp",
+    alt: "A photographer checking his camera",
   },
   { n: "02", title: "Share one link", line: "Host · only people with it can join", img: null, alt: "" },
   {
     n: "03",
     title: "Take one selfie",
     line: "Guest · only your photos, no app",
-    img: "/landing/hero/selfie.webp",
-    alt: "A smiling guest at a birthday party",
+    img: "/landing/steps/selfie.webp",
+    alt: "A woman holding up her phone to take a selfie",
   },
 ];
 
