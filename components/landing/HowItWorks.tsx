@@ -127,7 +127,7 @@ export function HowItWorks() {
               )}
             </div>
             <h3 className="hiw-title">{s.title}</h3>
-            <p className="lp-mono hiw-line">
+            <p className="hiw-line">
               {s.n} · {s.line}
             </p>
           </li>
