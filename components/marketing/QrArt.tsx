@@ -19,11 +19,22 @@ export function QrArt() {
   };
   const cells: number[] = [];
   for (let y = 0; y < N; y++)
-    for (let x = 0; x < N; x++) cells.push(finder(x, y) ?? ((x * 7 + y * 13 + x * y) % 5 < 2 ? 1 : 0));
+    for (let x = 0; x < N; x++)
+      cells.push(finder(x, y) ?? ((x * 7 + y * 13 + x * y) % 5 < 2 ? 1 : 0));
   return (
     <div className="qr-art" aria-hidden="true">
       <svg viewBox={`0 0 ${N} ${N}`} shapeRendering="crispEdges">
-        {cells.map((c, i) => (c ? <rect key={i} x={i % N} y={Math.floor(i / N)} width="1" height="1" /> : null))}
+        {cells.map((c, i) =>
+          c ? (
+            <rect
+              key={i}
+              x={i % N}
+              y={Math.floor(i / N)}
+              width="1"
+              height="1"
+            />
+          ) : null,
+        )}
       </svg>
       <span className="qr-link">
         <span className="opacity-50">ancular.com/e/</span>your-event

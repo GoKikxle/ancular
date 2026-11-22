@@ -6,6 +6,7 @@ import { FaqList } from "@/components/marketing/FaqList";
 import { FeatureAccordion } from "@/components/marketing/FeatureAccordion";
 import { HOME_FAQS } from "@/components/marketing/faqs";
 import { HeroOrbit } from "@/components/landing/HeroOrbit";
+import { HeroProduct } from "@/components/marketing/HeroProduct";
 import { QrArt } from "@/components/marketing/QrArt";
 import {
   FREE_LIVE_EVENTS_PER_MONTH,
@@ -103,7 +104,10 @@ export default function Home() {
               Talk to us
             </a>
           </div>
-          <div className="v3-hero-orbit reveal-up" style={{ animationDelay: "260ms" }}>
+          <div
+            className="v3-hero-orbit reveal-up"
+            style={{ animationDelay: "260ms" }}
+          >
             <HeroOrbit />
           </div>
         </section>
@@ -129,6 +133,35 @@ export default function Home() {
               </p>
             </div>
           </div>
+        </section>
+
+        {/* ---------- The product ---------- */}
+        <section className="v3-wrap pb-8">
+          <HeroProduct />
+        </section>
+
+        {/* ---------- Features ---------- */}
+        <section id="features" className="v3-wrap v3-sec scroll-mt-24">
+          <div className="v3-head">
+            <h2 className="v3-h2">
+              Deliver photos the way your clients expect
+            </h2>
+            <p className="v3-lead-left">
+              A delivery that feels as considered as the event itself.
+            </p>
+          </div>
+          <FeatureAccordion items={FEATURES} tint="var(--c-purple)" />
+        </section>
+
+        {/* ---------- Who it's for ---------- */}
+        <section id="solutions" className="v3-wrap v3-sec scroll-mt-24">
+          <div className="v3-head">
+            <h2 className="v3-h2">Built for the people who run events</h2>
+            <p className="v3-lead-left">
+              From a single wedding to a season of conferences.
+            </p>
+          </div>
+          <AudienceTabs />
         </section>
 
         {/* ---------- How it works ---------- */}
@@ -160,30 +193,6 @@ export default function Home() {
               </li>
             ))}
           </ol>
-        </section>
-
-        {/* ---------- Features ---------- */}
-        <section id="features" className="v3-wrap v3-sec scroll-mt-24">
-          <div className="v3-head">
-            <h2 className="v3-h2">
-              Deliver photos the way your clients expect
-            </h2>
-            <p className="v3-lead-left">
-              A delivery that feels as considered as the event itself.
-            </p>
-          </div>
-          <FeatureAccordion items={FEATURES} tint="var(--c-purple)" />
-        </section>
-
-        {/* ---------- Who it's for ---------- */}
-        <section id="solutions" className="v3-wrap v3-sec scroll-mt-24">
-          <div className="v3-head">
-            <h2 className="v3-h2">Built for the people who run events</h2>
-            <p className="v3-lead-left">
-              From a single wedding to a season of conferences.
-            </p>
-          </div>
-          <AudienceTabs />
         </section>
 
         {/* ---------- Pricing ---------- */}
