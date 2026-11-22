@@ -111,6 +111,37 @@ export default function Home() {
           </div>
         </section>
 
+        {/* ---------- How it works ---------- */}
+        <section id="how-it-works" className="v3-wrap v3-sec scroll-mt-24">
+          <div className="v3-head">
+            <h2 className="v3-h2">Live in three steps</h2>
+            <p className="v3-lead-left">
+              Set up in minutes. Nothing for guests to install.
+            </p>
+          </div>
+          <ol className="v3-steps">
+            {STEPS.map((s) => (
+              <li key={s.n} className="v3-card v3-step">
+                <div className="v3-step-media">
+                  {s.img ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={s.img} alt="" loading="lazy" decoding="async" />
+                  ) : (
+                    <QrArt />
+                  )}
+                </div>
+                <div className="v3-step-copy">
+                  <p className="v3-caps">
+                    {s.n} · {s.who}
+                  </p>
+                  <h3 className="v3-h4 mt-3">{s.title}</h3>
+                  <p className="v3-small mt-3">{s.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
         {/* ---------- The problem ---------- */}
         <section className="v3-wrap v3-sec">
           <div className="v3-split">
@@ -156,37 +187,6 @@ export default function Home() {
             </p>
           </div>
           <AudienceTabs />
-        </section>
-
-        {/* ---------- How it works ---------- */}
-        <section id="how-it-works" className="v3-wrap v3-sec scroll-mt-24">
-          <div className="v3-head">
-            <h2 className="v3-h2">Live in three steps</h2>
-            <p className="v3-lead-left">
-              Set up in minutes. Nothing for guests to install.
-            </p>
-          </div>
-          <ol className="v3-steps">
-            {STEPS.map((s) => (
-              <li key={s.n} className="v3-card v3-step">
-                <div className="v3-step-media">
-                  {s.img ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.img} alt="" loading="lazy" decoding="async" />
-                  ) : (
-                    <QrArt />
-                  )}
-                </div>
-                <div className="v3-step-copy">
-                  <p className="v3-caps">
-                    {s.n} · {s.who}
-                  </p>
-                  <h3 className="v3-h4 mt-3">{s.title}</h3>
-                  <p className="v3-small mt-3">{s.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
         </section>
 
         {/* ---------- Pricing ---------- */}
