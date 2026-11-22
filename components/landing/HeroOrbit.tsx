@@ -29,7 +29,7 @@ export function HeroOrbit() {
 
       <div className="orbit-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/landing/hero/selfie.webp" alt="" width={520} height={520} className="orbit-selfie" />
+        <img src="/landing/hero/selfie-cut.webp" alt="" width={520} height={520} className="orbit-selfie" />
       </div>
     </div>
   );

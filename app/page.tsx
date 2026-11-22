@@ -4,7 +4,6 @@ import { HeroOrbit } from "@/components/landing/HeroOrbit";
 import { MarketingFooter } from "@/components/landing/MarketingFooter";
 import { MarketingHeader } from "@/components/landing/MarketingHeader";
 import { IconDot, type PixelIconName } from "@/components/landing/PixelIcon";
-import { UseCaseCards } from "@/components/landing/UseCaseCards";
 
 /* ---------- The colour row, after the screenshot's category circles ---------- */
 
@@ -47,7 +46,7 @@ const promises: { icon: PixelIconName; color: string; title: string; body: strin
 ];
 
 /** Building the page one section at a time: only sections up to STEP are shown. */
-const STEP: number = 4;
+const STEP: number = 5;
 
 export default function Home() {
   return (
@@ -112,19 +111,6 @@ export default function Home() {
 
         {STEP > 3 && (
           <>
-        {/* ---------- Use cases ---------- */}
-        <section id="use-cases" className="scroll-mt-10 py-20 md:py-32">
-          <div className="lp-wrap mb-10 flex flex-col gap-6 md:mb-14 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h2 className="lp-h2">
-                One link. <span className="lp-serif text-purple">Any</span> crowd.
-              </h2>
-            </div>
-            <p className="lp-lead max-w-sm">Wherever there&apos;s a photographer and more guests than a group chat can handle.</p>
-          </div>
-          <UseCaseCards />
-        </section>
-
           </>
         )}
 
@@ -135,8 +121,7 @@ export default function Home() {
           <div className="lp-wrap py-24 md:py-36">
             <div className="grid gap-14 lg:grid-cols-[1fr_1.2fr] lg:gap-20">
               <div>
-                <p className="lp-label lp-label-dark">Privacy</p>
-                <h2 className="lp-h2 mt-5">
+                <h2 className="lp-h2">
                   Private by <span className="lp-serif text-lavender">design.</span>
                   <br />
                   <span className="text-white/45">Built so people can trust it.</span>
@@ -145,12 +130,14 @@ export default function Home() {
                   How we handle your data
                 </Link>
               </div>
-              <dl className="grid gap-3 sm:grid-cols-2">
-                {promises.map((p) => (
-                  <div key={p.title} className="lp-dark-card reveal-view">
-                    <IconDot name={p.icon} color={p.color} size={52} />
-                    <dt className="mt-8 text-[1.125rem] font-medium tracking-[-0.02em] text-white">{p.title}</dt>
-                    <dd className="mt-2 text-[0.9375rem] leading-[1.5] text-white/55">{p.body}</dd>
+              <dl className="pv-list">
+                {promises.map((p, i) => (
+                  <div key={p.title} className="pv-item">
+                    <dt className="pv-title">
+                      <span className="pv-n">{String(i + 1).padStart(2, "0")}</span>
+                      {p.title}
+                    </dt>
+                    <dd className="pv-body">{p.body}</dd>
                   </div>
                 ))}
               </dl>
@@ -158,6 +145,11 @@ export default function Home() {
           </div>
         </section>
 
+          </>
+        )}
+
+        {STEP > 5 && (
+          <>
         {/* ---------- Closing ---------- */}
         <section className="lp-wrap pb-16 pt-28 text-center md:pb-24 md:pt-44">
           <div className="mb-10 flex justify-center -space-x-3">
