@@ -19,9 +19,6 @@ const CROWDS: { icon: PixelIconName; color: string; label: string; note: string 
 ];
 
 
-/** Building the page one section at a time: only sections up to STEP are shown. */
-const STEP: number = 6;
-
 export default function Home() {
   return (
     <div className="lp">
@@ -51,8 +48,6 @@ export default function Home() {
           </div>
         </section>
 
-        {STEP > 1 && (
-          <>
         {/* ---------- The colour row ---------- */}
         <section id="crowds" className="lp-wrap scroll-mt-10 py-28 md:py-48">
           <h2 className="lp-intro">
@@ -71,30 +66,11 @@ export default function Home() {
           </ul>
         </section>
 
-          </>
-        )}
-
-        {STEP > 2 && (
-          <>
         {/* ---------- How it works ---------- */}
         <section id="how-it-works" className="lp-wrap scroll-mt-10 py-16 md:py-24">
           <HowItWorks />
         </section>
-          </>
-        )}
 
-        {STEP > 3 && (
-          <>
-          </>
-        )}
-
-        {STEP > 4 && (
-          <>
-          </>
-        )}
-
-        {STEP > 5 && (
-          <>
         {/* ---------- Closing ---------- */}
         <section className="lp-wrap pb-16 pt-28 text-center md:pb-24 md:pt-44">
           <div className="mb-10 flex justify-center -space-x-3">
@@ -120,8 +96,6 @@ export default function Home() {
             </Link>
           </p>
         </section>
-          </>
-        )}
       </main>
 
       <MarketingFooter />
