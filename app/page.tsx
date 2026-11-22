@@ -29,7 +29,7 @@ const FEATURES = [
   {
     title: "Private by default, not by setting",
     body: "Events are invite only, hosts can approve each guest, and there is no public gallery. What happens at the event stays with the people who were there.",
-    img: "/landing/uc/weddings-1400.webp",
+    img: "/landing/hq/weddings.webp",
     alt: "Bride and groom dancing while guests film them on their phones",
   },
   {

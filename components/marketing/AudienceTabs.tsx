@@ -52,7 +52,7 @@ const TABS: Tab[] = [
       "Invite code on badges, slides and screens",
       "Large events set up with our team",
     ],
-    img: "/landing/uc/conferences-1400.webp",
+    img: "/landing/hq/conferences.webp",
     alt: "Conference attendees applauding a speaker",
     tint: "var(--c-lavender)",
   },
