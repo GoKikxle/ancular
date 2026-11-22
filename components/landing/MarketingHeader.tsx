@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { Logo } from "@/components/brand/Logo";
 
 const NAV = [
@@ -12,18 +9,10 @@ const NAV = [
 
 /**
  * Public header: a thin black beta strip, then a quiet top bar that scrolls away
- * with the page. Once you're past the first screen a small floating dock rises at
- * the bottom with the logo, sign in and start free, so the way in is always a tap away.
+ * with the page.
  * `base` is "/" on other pages, so the section links lead back to the landing page.
  */
 export function MarketingHeader({ base = "", cta = true }: { base?: string; cta?: boolean }) {
-  const [docked, setDocked] = useState(false);
-  useEffect(() => {
-    const on = () => setDocked(window.scrollY > window.innerHeight * 0.6);
-    on();
-    window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
-  }, []);
 
   return (
     <>
@@ -60,17 +49,6 @@ export function MarketingHeader({ base = "", cta = true }: { base?: string; cta?
         </div>
       </header>
 
-      <div className="lp-dock" data-show={docked}>
-        <Logo />
-        <div className="flex items-center gap-1">
-          <Link href="/login" className="lp-dock-link">
-            Sign in
-          </Link>
-          <Link href="/signup" className="lp-btn lp-btn-purple lp-btn-sm">
-            Start free
-          </Link>
-        </div>
-      </div>
     </>
   );
 }
