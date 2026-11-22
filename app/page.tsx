@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HowItWorks } from "@/components/landing/HowItWorks";
 import { HeroOrbit } from "@/components/landing/HeroOrbit";
 import { MarketingFooter } from "@/components/landing/MarketingFooter";
 import { MarketingHeader } from "@/components/landing/MarketingHeader";
@@ -42,112 +43,6 @@ const promises: { icon: PixelIconName; color: string; title: string; body: strin
     color: "var(--c-mint)",
     title: "Face data deletes itself",
     body: "It's removed after the event, 30 days by default, and you can delete yours any time.",
-  },
-];
-
-/* ---------- Collages for the three steps ---------- */
-
-function UploadArt() {
-  const shots = [
-    { f: "weddings", x: "4%", y: "14%", r: "-7deg", w: "46%" },
-    { f: "festivals", x: "50%", y: "4%", r: "5deg", w: "44%" },
-    { f: "conferences", x: "28%", y: "44%", r: "-2deg", w: "50%" },
-  ];
-  return (
-    <div className="st-art st-art-lav">
-      {shots.map((s, i) => (
-        <div key={s.f} className="st-print" style={{ left: s.x, top: s.y, width: s.w, rotate: s.r }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/landing/uc/${s.f}-600.webp`} alt="" loading="lazy" />
-          <span className="st-facebox" style={{ animationDelay: `${i * 0.5}s` }} />
-        </div>
-      ))}
-      <span className="lp-chip st-chip" style={{ left: "6%", bottom: "8%", background: "var(--c-mint)" }}>
-        Finding faces <span className="lp-mono">✱ auto</span>
-      </span>
-      <IconDot name="photo" color="var(--c-yellow)" size={64} className="st-sticker px-dot-float" />
-    </div>
-  );
-}
-
-function ShareArt() {
-  const N = 21;
-  const finder = (x: number, y: number) => {
-    for (const [fx, fy] of [[0, 0], [N - 7, 0], [0, N - 7]]) {
-      const dx = x - fx;
-      const dy = y - fy;
-      if (dx >= 0 && dx < 7 && dy >= 0 && dy < 7) {
-        const ring = Math.max(Math.abs(dx - 3), Math.abs(dy - 3));
-        return ring === 3 || ring <= 1 ? 1 : 0;
-      }
-      if (dx >= -1 && dx <= 7 && dy >= -1 && dy <= 7) return 0;
-    }
-    return null;
-  };
-  const cells: number[] = [];
-  for (let y = 0; y < N; y++)
-    for (let x = 0; x < N; x++) cells.push(finder(x, y) ?? ((x * 7 + y * 13 + x * y) % 5 < 2 ? 1 : 0));
-  return (
-    <div className="st-art st-art-yellow">
-      <div className="st-qr">
-        <svg viewBox={`0 0 ${N} ${N}`} className="block w-full" shapeRendering="crispEdges" aria-hidden="true">
-          {cells.map((c, i) => (c ? <rect key={i} x={i % N} y={Math.floor(i / N)} width="1" height="1" /> : null))}
-        </svg>
-      </div>
-      <span className="lp-chip st-chip" style={{ left: "50%", bottom: "12%", translate: "-50% 0", background: "#fff" }}>
-        <span className="lp-mono text-ink-4">ancular.com/e/</span>your-event
-      </span>
-      <span className="lp-oval st-oval">
-        <span>✱</span> One link <span>✱</span>
-      </span>
-      <IconDot name="link" color="var(--c-purple)" size={60} className="st-sticker st-sticker-left px-dot-float" />
-    </div>
-  );
-}
-
-function SelfieArt() {
-  const found = [32333369, 32333364, 32333372, 32333376, 32333365, 32333373];
-  return (
-    <div className="st-art st-art-pink">
-      <div className="st-selfie">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/landing/hero/selfie.webp" alt="" loading="lazy" />
-        <span className="st-scan" />
-      </div>
-      <div className="st-found">
-        {found.map((id, i) => (
-          <span key={id} style={{ animationDelay: `${0.6 + i * 0.12}s` }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/landing/hero/${id}.webp`} alt="" loading="lazy" />
-          </span>
-        ))}
-      </div>
-      <span className="lp-chip st-chip" style={{ right: "6%", bottom: "8%", background: "var(--c-ink)", color: "#fff" }}>
-        12 photos found ✱
-      </span>
-      <IconDot name="smile" color="var(--c-yellow)" size={64} className="st-sticker st-sticker-top px-dot-float" />
-    </div>
-  );
-}
-
-const steps = [
-  {
-    who: "Host",
-    title: "Upload the day's photos",
-    body: "The photographer or media team uploads everything. Ancular finds the faces as the photos go up.",
-    Art: UploadArt,
-  },
-  {
-    who: "Host",
-    title: "Share one invite link",
-    body: "Put the code on the programme, the big screen or the group chat. Only people with it can ask to join.",
-    Art: ShareArt,
-  },
-  {
-    who: "Guest",
-    title: "Take one selfie",
-    body: "Each guest sees only the photos they're in, ready to save or send on WhatsApp. No app to download.",
-    Art: SelfieArt,
   },
 ];
 
@@ -210,31 +105,8 @@ export default function Home() {
           <>
         {/* ---------- How it works ---------- */}
         <section id="how-it-works" className="lp-wrap scroll-mt-10 py-16 md:py-24">
-          <div className="max-w-3xl">
-            <p className="lp-label">How it works</p>
-            <h2 className="lp-h2 mt-5">
-              Three steps. <span className="lp-serif text-purple">Nothing</span> to install.
-            </h2>
-          </div>
-          <ol className="mt-14 flex flex-col gap-20 md:mt-24 md:gap-32">
-            {steps.map(({ who, title, body, Art }, i) => (
-              <li key={title} className={`st-row reveal-view ${i % 2 ? "st-row-flip" : ""}`}>
-                <div className="st-copy">
-                  <div className="flex items-center gap-3">
-                    <span className="lp-mono text-[13px] text-ink-4">{String(i + 1).padStart(2, "0")}</span>
-                    <span className="lp-chip !static" style={{ background: who === "Guest" ? "var(--c-pink)" : "var(--c-lavender)" }}>
-                      {who}
-                    </span>
-                  </div>
-                  <h3 className="lp-h3 mt-5">{title}</h3>
-                  <p className="lp-lead mt-4 max-w-[34ch]">{body}</p>
-                </div>
-                <Art />
-              </li>
-            ))}
-          </ol>
+          <HowItWorks />
         </section>
-
           </>
         )}
 

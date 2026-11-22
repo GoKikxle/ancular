@@ -2076,3 +2076,32 @@ body {
     line-height: 1.12;
   }
 }
+
+/* ---------- How it works: pinned paragraph left, steps scrolling right ---------- */
+@layer components {
+  .hiw { display: grid; gap: 56px; }
+  @media (min-width: 900px) {
+    .hiw { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 64px; align-items: start; }
+    .hiw-left { position: sticky; top: 96px; }
+  }
+  .hiw-para {
+    margin-top: 28px;
+    font-size: clamp(1.9rem, 3.8vw, 3.75rem);
+    font-weight: 400;
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+  }
+  .hiw-w {
+    opacity: clamp(0.22, calc((var(--p, 2) * 1.15 - var(--i)) * var(--n) / 4), 1);
+    transition: opacity 0.12s linear;
+  }
+  .hiw-para .lp-ring { line-height: 1.05; }
+  .hiw-steps { display: flex; flex-direction: column; gap: 96px; }
+  @media (min-width: 900px) { .hiw-steps { padding-top: 40vh; padding-bottom: 10vh; gap: 140px; } }
+  .hiw-media { aspect-ratio: 1; overflow: hidden; background: #e8e8ee; }
+  .hiw-media img { width: 100%; height: 100%; object-fit: cover; }
+  .hiw-qr { display: grid; place-items: center; width: 100%; height: 100%; }
+  .hiw-qr svg { width: 46%; }
+  .hiw-title { margin-top: 18px; font-size: 1.6rem; font-weight: 400; letter-spacing: -0.03em; line-height: 1.1; }
+  .hiw-line { margin-top: 8px; font-size: 12px; letter-spacing: 0.02em; color: rgba(15, 13, 20, 0.6); }
+}
