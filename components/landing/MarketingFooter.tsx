@@ -1,20 +1,13 @@
 import Link from "next/link";
 import { CookieSettingsLink } from "@/components/consent/CookieConsent";
-import { IconDot } from "./PixelIcon";
 
-/** Footer for the public pages: the colour dots, small links, then the oversized wordmark. */
+/** Footer for the public pages: a line, small links, then the oversized wordmark. */
 export function MarketingFooter() {
   return (
     <footer className="lp-footer">
       <div className="lp-wrap flex flex-col gap-8 pb-8 pt-16 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="flex -space-x-2">
-            <IconDot name="camera" color="var(--c-purple)" size={40} />
-            <IconDot name="heart" color="var(--c-pink)" size={40} />
-            <IconDot name="smile" color="var(--c-yellow)" size={40} />
-            <IconDot name="lock" color="var(--c-mint)" size={40} />
-          </div>
-          <p className="mt-5 max-w-xs text-[15px] leading-[1.45] text-ink-3">
+          <p className="max-w-xs text-[15px] leading-[1.45] text-ink-3">
             Private photo finding for events everywhere.
           </p>
         </div>
