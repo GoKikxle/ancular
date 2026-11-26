@@ -2634,3 +2634,18 @@ body {
     .eb-confirm { padding-left: 0; }
   }
 }
+
+@layer components {
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: -8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  .back-link:hover { background: var(--fill); color: var(--ink); }
+}
