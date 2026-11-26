@@ -263,6 +263,7 @@ function EventHeader({ invite, accountName, next }: { invite: Invite; accountNam
   return (
     <>
       <SiteHeader
+        logoHref={accountName !== null ? "/home" : "/"}
         action={
           accountName !== null ? (
             <AccountButton name={accountName} />
