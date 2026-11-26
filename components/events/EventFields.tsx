@@ -79,7 +79,7 @@ export function EventFields({ event }: { event?: Partial<EventRow> }) {
       <fieldset>
         <legend className="label">Who can join with the invite link?</legend>
         <div className="grid gap-2 sm:grid-cols-2">
-          <label className="flex cursor-pointer gap-3 rounded-[4px] bg-fill p-4 hover:bg-[var(--fill-hover)] has-[:checked]:shadow-[inset_0_0_0_1.5px_var(--ink)]">
+          <label className="flex cursor-pointer gap-3 choice-card p-4">
             <input
               type="radio"
               name="join_mode"
@@ -92,7 +92,7 @@ export function EventFields({ event }: { event?: Partial<EventRow> }) {
               <span className="hint">Best for weddings and private events.</span>
             </span>
           </label>
-          <label className="flex cursor-pointer gap-3 rounded-[4px] bg-fill p-4 hover:bg-[var(--fill-hover)] has-[:checked]:shadow-[inset_0_0_0_1.5px_var(--ink)]">
+          <label className="flex cursor-pointer gap-3 choice-card p-4">
             <input
               type="radio"
               name="join_mode"

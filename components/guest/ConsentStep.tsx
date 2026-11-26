@@ -64,7 +64,7 @@ export function ConsentStep({ eventName, onAgree }: { eventName: string; onAgree
         ))}
       </ol>
 
-      <label className="mt-8 flex cursor-pointer items-start gap-3 rounded-[4px] bg-fill p-4">
+      <label className="mt-8 flex cursor-pointer items-start gap-3 choice-card p-4">
         <input
           type="checkbox"
           checked={adult}
@@ -77,7 +77,7 @@ export function ConsentStep({ eventName, onAgree }: { eventName: string; onAgree
         </span>
       </label>
 
-      <label className="mt-2 flex cursor-pointer items-start gap-3 rounded-[4px] bg-fill p-4">
+      <label className="mt-2 flex cursor-pointer items-start gap-3 choice-card p-4">
         <input
           type="checkbox"
           checked={checked}

@@ -12,7 +12,7 @@ export function NewEventForm() {
     <form action={action} className="mt-10 space-y-6">
       <EventFields />
 
-      <label className="flex cursor-pointer items-start gap-3 rounded-[4px] bg-fill p-4">
+      <label className="flex cursor-pointer items-start gap-3 choice-card p-4">
         <input type="checkbox" name="guests_told" className="mt-0.5 h-[18px] w-[18px] shrink-0" />
         <span className="t-item-sub">
           <strong className="t-item block text-ink">Guests will be told about face matching</strong>

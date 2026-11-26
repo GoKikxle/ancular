@@ -373,7 +373,8 @@ body {
     padding: 0 12px;
     border: 0;
     border-radius: var(--radius-control);
-    background: var(--fill);
+    background: #fff;
+    box-shadow: inset 0 0 0 1px var(--hairline-strong);
     color: var(--ink);
     font-size: 1rem; /* 16px stops iOS zooming in */
     font-weight: 500;
@@ -384,6 +385,25 @@ body {
   }
   .field::placeholder {
     color: var(--ink-4);
+  }
+  .field:hover:not(:focus):not(:disabled) {
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.28);
+  }
+  .field:disabled {
+    background: var(--fill);
+  }
+  /* A tappable option (radio or checkbox with its text): outlined, black when chosen. */
+  .choice-card {
+    border-radius: var(--radius-control);
+    background: #fff;
+    box-shadow: inset 0 0 0 1px var(--hairline-strong);
+    transition: box-shadow 0.15s ease;
+  }
+  .choice-card:hover {
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.28);
+  }
+  .choice-card:has(:checked) {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
   }
   .field:focus {
     outline: none;
