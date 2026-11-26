@@ -29,20 +29,27 @@ export function BackLink({
         else router.push(fallback);
       }}
     >
-      <svg
-        viewBox="0 0 16 16"
-        width="14"
-        height="14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M13 8H3M7 4L3 8l4 4" />
-      </svg>
+      <NavArrowLeft />
       {label}
     </button>
+  );
+}
+
+/** Iconoir "nav-arrow-left". */
+export function NavArrowLeft() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M15 6L9 12L15 18" />
+    </svg>
   );
 }

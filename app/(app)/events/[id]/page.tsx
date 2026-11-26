@@ -10,6 +10,7 @@ import { SharePanel } from "@/components/events/SharePanel";
 import { GuestList } from "@/components/events/GuestList";
 import { PhotoGrid } from "@/components/events/PhotoGrid";
 import { SettingsPanel } from "@/components/events/SettingsPanel";
+import { NavArrowLeft } from "@/components/layout/BackLink";
 import { EventPlanBar } from "@/components/billing/EventPlanBar";
 import { readEventAllowance, type EventAllowance } from "@/lib/allowance";
 import { PASS_PHOTOS_PER_EVENT, PASS_PRICE_PENCE, PRO_PRICE_PENCE, billingEnabled, formatPrice } from "@/lib/billing";
@@ -97,8 +98,9 @@ export default async function EventPage({
 
   return (
     <div>
-      <Link href="/dashboard" className="t-ui hover:text-ink">
-        ← Your events
+      <Link href="/dashboard" className="back-link">
+        <NavArrowLeft />
+        Your events
       </Link>
       <h1 className="display mt-4">{event.name}</h1>
       <p className="t-lead t-muted mt-4">
