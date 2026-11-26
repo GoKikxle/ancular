@@ -332,7 +332,6 @@ function EventHeader({
   return (
     <>
       <SiteHeader
-        logoHref={accountName !== null ? "/home" : "/"}
         action={
           accountName !== null ? (
             <AccountButton name={accountName} />
