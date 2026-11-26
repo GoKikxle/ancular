@@ -18,7 +18,7 @@ const PUBLIC_PREFIXES = [
 const PUBLIC_BRAND_IMAGES = ["/opengraph-image", "/twitter-image", "/icon", "/apple-icon", "/favicon.ico"];
 const AUTH_PAGES = ["/login", "/signup"];
 /** Signed-in but unconfirmed users may stay on these without being bounced to confirm-email. */
-const UNVERIFIED_OK = ["/confirm-email", "/login", "/signup", "/auth", "/privacy", "/pricing", "/waitlist", "/e/"];
+const UNVERIFIED_OK = ["/home", "/confirm-email", "/login", "/signup", "/auth", "/privacy", "/pricing", "/waitlist", "/e/"];
 
 function isPublic(pathname: string) {
   if (pathname === "/") return true;

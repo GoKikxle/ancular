@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
+import { getUser } from "@/lib/supabase/server";
 
 /**
  * Top bar, laid out like swipe.hex: logo left, small nav in the middle,
  * one black action on the right. 49px tall with a hairline under it.
+ * Without `logoHref`, the logo goes home: /home when signed in, / when not.
  */
-export function SiteHeader({
-  logoHref = "/",
+export async function SiteHeader({
+  logoHref,
   nav,
   action,
 }: {
@@ -14,11 +16,13 @@ export function SiteHeader({
   nav?: { href: string; label: string; current?: boolean }[];
   action?: React.ReactNode;
 }) {
+  // Signed in, the logo takes you to your own home (dashboard or your photos); signed out, to the homepage.
+  const href = logoHref ?? ((await getUser()).user ? "/home" : "/");
   return (
     <header className="site-header">
       <div className="flex h-full items-center justify-between gap-4 px-3 sm:px-4">
         <div className="flex items-center gap-2">
-          <Logo href={logoHref} />
+          <Logo href={href} />
           <span className="rounded-full bg-fill px-[7px] py-[3px] text-[11px] font-semibold leading-none text-ink-2">Beta</span>
         </div>
         {nav && nav.length > 0 && (

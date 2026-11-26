@@ -2,56 +2,46 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { UpgradeNudge } from "@/components/billing/UpgradeNudge";
 import { getUser } from "@/lib/supabase/server";
-import { KIND_LABELS, formatEventDate, type EventRow } from "@/lib/events";
+import { EventsBoard } from "@/components/dashboard/EventsBoard";
+import { loadBoard, type BoardRow } from "@/lib/dashboard";
+import { KIND_LABELS, formatEventDate } from "@/lib/events";
 import { readLiveEventAllowance } from "@/lib/live-events";
 import { listPreviewEvents } from "@/lib/preview-events";
 import { listPreviewPhotos } from "@/lib/preview-photos";
 
 export const metadata: Metadata = { title: "Your events" };
 
-type Membership = { role: "host" | "guest"; status: string; events: EventRow | null };
-
 export default async function DashboardPage() {
   const { supabase, user } = await getUser();
 
-  let hosting: Membership[] = [];
-  let attending: Membership[] = [];
-  const photoCounts = new Map<string, number>();
-  const pendingCounts = new Map<string, number>();
+  let hosting: BoardRow[] = [];
+  let joined: BoardRow[] = [];
 
   if (!user) {
-    hosting = (await listPreviewEvents()).map((event) => ({
-      role: "host",
-      status: "approved",
-      events: event,
-    }));
+    const counts = new Map<string, number>();
     for (const photo of await listPreviewPhotos()) {
-      if (photo.status === "ready") photoCounts.set(photo.event_id, (photoCounts.get(photo.event_id) ?? 0) + 1);
+      if (photo.status === "ready")
+        counts.set(photo.event_id, (counts.get(photo.event_id) ?? 0) + 1);
     }
+    hosting = (await listPreviewEvents()).map((e) => ({
+      id: e.id,
+      href: `/events/${e.id}`,
+      title: e.name,
+      sub: [KIND_LABELS[e.kind], formatEventDate(e.event_date)]
+        .filter(Boolean)
+        .join(", "),
+      past: false,
+      tags: [{ label: "Live", tone: "live" as const }],
+      meta: `${counts.get(e.id) ?? 0} photos`,
+      action: null,
+    }));
   } else {
-    const { data } = await supabase
-      .from("event_members")
-      .select("role, status, events(*)")
-      .eq("user_id", user.id)
-      .order("requested_at", { ascending: false });
-    const memberships = ((data ?? []) as unknown as Membership[]).filter((m) => m.events);
-    hosting = memberships.filter((m) => m.role === "host");
-    attending = memberships.filter((m) => m.role === "guest");
+    ({ hosting, joined } = await loadBoard(supabase, user.id));
   }
 
   const live = user ? await readLiveEventAllowance(supabase, user.id) : null;
   const canCreate = !live || live.canCreate;
   const showFreeNudge = live?.plan === "free";
-
-  const hostedIds = user ? hosting.map((m) => m.events!.id) : [];
-  if (user && hostedIds.length) {
-    const [{ data: photos }, { data: pending }] = await Promise.all([
-      supabase.from("photos").select("event_id").in("event_id", hostedIds).eq("status", "ready"),
-      supabase.from("event_members").select("event_id").in("event_id", hostedIds).eq("status", "pending"),
-    ]);
-    photos?.forEach((p) => photoCounts.set(p.event_id, (photoCounts.get(p.event_id) ?? 0) + 1));
-    pending?.forEach((p) => pendingCounts.set(p.event_id, (pendingCounts.get(p.event_id) ?? 0) + 1));
-  }
 
   return (
     <div>
@@ -69,12 +59,13 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {hosting.length === 0 && attending.length === 0 && (
+      {hosting.length === 0 && joined.length === 0 ? (
         <section className="mt-10 border-t border-hairline pt-8 md:mt-16">
           <h2 className="t-title">No events yet</h2>
           <p className="t-item-sub mt-2 max-w-md">
-            Create an event to upload photos and get an invite link for your guests. If someone sent you an invite
-            link, open it and you&apos;ll find the event here afterwards.
+            Create an event to upload photos and get an invite link for your
+            guests. If someone sent you an invite link, open it and you&apos;ll
+            find the event here afterwards.
           </p>
           {canCreate && (
             <Link href="/events/new" className="btn btn-quiet btn-lg mt-6">
@@ -82,70 +73,15 @@ export default async function DashboardPage() {
             </Link>
           )}
         </section>
-      )}
-
-      {hosting.length > 0 && (
-        <EventList title="Hosting" count={hosting.length}>
-          {hosting.map(({ events: e }) => {
-            const pending = pendingCounts.get(e!.id) ?? 0;
-            return (
-              <Row
-                key={e!.id}
-                href={`/events/${e!.id}`}
-                title={e!.name}
-                sub={[KIND_LABELS[e!.kind], formatEventDate(e!.event_date)].filter(Boolean).join(", ")}
-                end={
-                  <>
-                    {pending > 0 && <span className="pill !bg-ink !text-page">{pending} waiting</span>}
-                    <span className="t-meta tabular-nums">{photoCounts.get(e!.id) ?? 0} photos</span>
-                  </>
-                }
-              />
-            );
-          })}
-        </EventList>
-      )}
-
-      {attending.length > 0 && (
-        <EventList title="Invited to" count={attending.length}>
-          {attending.map(({ events: e, status }) => (
-            <Row
-              key={e!.id}
-              href={`/e/${e!.invite_code}`}
-              title={e!.name}
-              sub={e!.host_name ?? KIND_LABELS[e!.kind]}
-              end={
-                <span className="t-ui">{status === "approved" ? "Find my photos →" : "Waiting for approval"}</span>
-              }
-            />
-          ))}
-        </EventList>
+      ) : (
+        <div className="mt-10 md:mt-14">
+          <EventsBoard
+            hosting={hosting}
+            joined={joined}
+            defaultTab={hosting.length ? "hosting" : "joined"}
+          />
+        </div>
       )}
     </div>
-  );
-}
-
-function EventList({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
-  return (
-    <section className="mt-12 md:mt-16">
-      <h2 className="t-title">
-        {title} <span className="text-ink-4">{count}</span>
-      </h2>
-      <ul className="mt-4 border-t border-hairline">{children}</ul>
-    </section>
-  );
-}
-
-function Row({ href, title, sub, end }: { href: string; title: string; sub: string; end: React.ReactNode }) {
-  return (
-    <li className="border-b border-hairline">
-      <Link href={href} className="group -mx-2 flex items-center justify-between gap-4 rounded-[4px] px-2 py-4 hover:bg-fill">
-        <div className="min-w-0">
-          <p className="t-item truncate">{title}</p>
-          <p className="t-item-sub truncate">{sub}</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">{end}</div>
-      </Link>
-    </li>
   );
 }

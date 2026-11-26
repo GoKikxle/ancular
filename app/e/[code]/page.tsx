@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BackLink } from "@/components/layout/BackLink";
 import { AccountButton, SiteHeader } from "@/components/layout/SiteHeader";
 import { GuestFinder, type Match } from "@/components/guest/GuestFinder";
 import { JoinForm } from "@/components/guest/JoinForm";
@@ -7,8 +8,16 @@ import { ConfirmEmailPanel } from "@/components/auth/ConfirmEmailPanel";
 import { isEmailVerified } from "@/lib/auth";
 import { getUser } from "@/lib/supabase/server";
 import { KIND_LABELS, formatEventDate, type EventKind } from "@/lib/events";
-import { PREVIEW_OWNER_ID, getPreviewEventByInviteCode, previewEnabled } from "@/lib/preview-events";
-import { continueWithoutAccountHref, getPreviewMembership, previewGuestActive } from "@/lib/preview-guest";
+import {
+  PREVIEW_OWNER_ID,
+  getPreviewEventByInviteCode,
+  previewEnabled,
+} from "@/lib/preview-events";
+import {
+  continueWithoutAccountHref,
+  getPreviewMembership,
+  previewGuestActive,
+} from "@/lib/preview-guest";
 
 type Invite = {
   id: string;
@@ -25,15 +34,24 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function InvitePage({ params }: { params: Promise<{ code: string }> }) {
+export default async function InvitePage({
+  params,
+}: {
+  params: Promise<{ code: string }>;
+}) {
   const { code } = await params;
   const { supabase, user: sessionUser } = await getUser();
   // Preview events store a placeholder owner. That id is not a signed-in visitor.
-  const user = sessionUser && !(previewEnabled() && sessionUser.id === PREVIEW_OWNER_ID) ? sessionUser : null;
+  const user =
+    sessionUser && !(previewEnabled() && sessionUser.id === PREVIEW_OWNER_ID)
+      ? sessionUser
+      : null;
 
   let invite: Invite | undefined;
   try {
-    const { data, error } = await supabase.rpc("get_event_invite", { p_code: code });
+    const { data, error } = await supabase.rpc("get_event_invite", {
+      p_code: code,
+    });
     if (!error) invite = (data as Invite[] | null)?.[0];
   } catch {
     invite = undefined;
@@ -65,7 +83,8 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
       <Shell>
         <h1 className="display">This invite link isn&apos;t working</h1>
         <p className="t-lead t-muted mt-5">
-          It may have been typed wrongly or the event has closed. Ask the host to send the link again.
+          It may have been typed wrongly or the event has closed. Ask the host
+          to send the link again.
         </p>
         <Link href="/" className="btn btn-quiet btn-lg mt-8">
           Go to Ancular
@@ -74,12 +93,23 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     );
   }
 
-  const accountName = user ? ((user.user_metadata?.full_name as string | undefined)?.trim() || user.email || "") : null;
-  const header = <EventHeader invite={invite} accountName={accountName} next={`/e/${code}`} />;
+  const accountName = user
+    ? (user.user_metadata?.full_name as string | undefined)?.trim() ||
+      user.email ||
+      ""
+    : null;
+  const header = (
+    <EventHeader
+      invite={invite}
+      accountName={accountName}
+      next={`/e/${code}`}
+    />
+  );
   const next = `/e/${code}`;
   // The preview-guest cookie is for local sample events only. On a live invite it must not
   // show the preview join form, which cannot see this event.
-  const previewGuest = fromPreviewStore && !user && (await previewGuestActive());
+  const previewGuest =
+    fromPreviewStore && !user && (await previewGuestActive());
 
   if (previewGuest) {
     const membership = await getPreviewMembership(invite.id);
@@ -88,7 +118,9 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
       return (
         <Shell header={header}>
           <h1 className="display">Join to find your photos</h1>
-          <p className="t-lead t-muted mt-5">Add your name and you can search straight away.</p>
+          <p className="t-lead t-muted mt-5">
+            Add your name and you can search straight away.
+          </p>
           <JoinForm code={code} defaultName="" />
         </Shell>
       );
@@ -99,7 +131,8 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
         <Shell header={header}>
           <h1 className="display">Waiting for the host to let you in</h1>
           <p className="t-lead t-muted mt-5">
-            We&apos;ve told them you asked to join. Check back on this page later, or nudge the host on WhatsApp.
+            We&apos;ve told them you asked to join. Check back on this page
+            later, or nudge the host on WhatsApp.
           </p>
           <Link href={next} className="btn btn-quiet btn-lg mt-8">
             Check again
@@ -111,8 +144,12 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
     if (membership.status === "declined") {
       return (
         <Shell header={header}>
-          <h1 className="display">The host hasn&apos;t added you to this event</h1>
-          <p className="t-lead t-muted mt-5">If you think that&apos;s a mistake, contact the host directly.</p>
+          <h1 className="display">
+            The host hasn&apos;t added you to this event
+          </h1>
+          <p className="t-lead t-muted mt-5">
+            If you think that&apos;s a mistake, contact the host directly.
+          </p>
         </Shell>
       );
     }
@@ -136,22 +173,32 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
       <Shell header={header}>
         <h1 className="display">Find every photo you&apos;re in</h1>
         <p className="t-lead t-muted mt-5">
-          Create a free account or sign in, then take one selfie. You&apos;ll only see photos of you, and your selfie
-          stays on your phone.
+          Create a free account or sign in, then take one selfie. You&apos;ll
+          only see photos of you, and your selfie stays on your phone.
         </p>
         <div className="mt-8 flex flex-col gap-2">
           {fromPreviewStore ? (
-            <Link href={continueWithoutAccountHref(next)} className="btn btn-primary btn-lg">
+            <Link
+              href={continueWithoutAccountHref(next)}
+              className="btn btn-primary btn-lg"
+            >
               Continue as a guest
             </Link>
           ) : null}
           <Link
             href={`/signup?next=${encodeURIComponent(next)}`}
-            className={fromPreviewStore ? "btn btn-quiet btn-lg" : "btn btn-primary btn-lg"}
+            className={
+              fromPreviewStore
+                ? "btn btn-quiet btn-lg"
+                : "btn btn-primary btn-lg"
+            }
           >
             Create an account
           </Link>
-          <Link href={`/login?next=${encodeURIComponent(next)}`} className="btn btn-quiet btn-lg">
+          <Link
+            href={`/login?next=${encodeURIComponent(next)}`}
+            className="btn btn-quiet btn-lg"
+          >
             I have an account
           </Link>
         </div>
@@ -166,7 +213,8 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
       <Shell header={header}>
         <h1 className="display">Confirm your email to continue</h1>
         <p className="t-lead t-muted mb-8 mt-5">
-          We need a confirmed email before you can join this event. Your selfie still stays on your phone.
+          We need a confirmed email before you can join this event. Your selfie
+          still stays on your phone.
         </p>
         <ConfirmEmailPanel
           email={user.email}
@@ -187,7 +235,8 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   const hosting = membership?.role === "host";
 
   if (!membership) {
-    const suggested = (user.user_metadata?.full_name as string | undefined) ?? "";
+    const suggested =
+      (user.user_metadata?.full_name as string | undefined) ?? "";
     return (
       <Shell header={header}>
         <h1 className="display">Join to find your photos</h1>
@@ -206,7 +255,8 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
       <Shell header={header}>
         <h1 className="display">Waiting for the host to let you in</h1>
         <p className="t-lead t-muted mt-5">
-          We&apos;ve told them you asked to join. Check back on this page later, or nudge the host on WhatsApp.
+          We&apos;ve told them you asked to join. Check back on this page later,
+          or nudge the host on WhatsApp.
         </p>
         <Link href={next} className="btn btn-quiet btn-lg mt-8">
           Check again
@@ -218,34 +268,45 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   if (!hosting && membership.status === "declined") {
     return (
       <Shell header={header}>
-        <h1 className="display">The host hasn&apos;t added you to this event</h1>
-        <p className="t-lead t-muted mt-5">If you think that&apos;s a mistake, contact the host directly.</p>
+        <h1 className="display">
+          The host hasn&apos;t added you to this event
+        </h1>
+        <p className="t-lead t-muted mt-5">
+          If you think that&apos;s a mistake, contact the host directly.
+        </p>
       </Shell>
     );
   }
 
-  const [{ data: consent }, { data: matches }, { data: eventModel }] = await Promise.all([
-    supabase
-      .from("consents")
-      .select("id, adult_confirmed")
-      .eq("event_id", invite.id)
-      .eq("user_id", user.id)
-      .is("withdrawn_at", null)
-      .maybeSingle(),
-    supabase
-      .from("photo_matches")
-      .select("photo_id, distance, confidence, confirmed")
-      .eq("event_id", invite.id)
-      .eq("user_id", user.id)
-      .eq("rejected", false)
-      .order("distance"),
-    supabase.from("events").select("face_model").eq("id", invite.id).maybeSingle(),
-  ]);
+  const [{ data: consent }, { data: matches }, { data: eventModel }] =
+    await Promise.all([
+      supabase
+        .from("consents")
+        .select("id, adult_confirmed")
+        .eq("event_id", invite.id)
+        .eq("user_id", user.id)
+        .is("withdrawn_at", null)
+        .maybeSingle(),
+      supabase
+        .from("photo_matches")
+        .select("photo_id, distance, confidence, confirmed")
+        .eq("event_id", invite.id)
+        .eq("user_id", user.id)
+        .eq("rejected", false)
+        .order("distance"),
+      supabase
+        .from("events")
+        .select("face_model")
+        .eq("id", invite.id)
+        .maybeSingle(),
+    ]);
 
   return (
     <Shell header={header} wide>
       {hosting && (
-        <p className="t-meta mb-6">You host this event. Guests who open this link see this page.</p>
+        <p className="t-meta mb-6">
+          You host this event. Guests who open this link see this page.
+        </p>
       )}
       <GuestFinder
         eventId={invite.id}
@@ -258,7 +319,15 @@ export default async function InvitePage({ params }: { params: Promise<{ code: s
   );
 }
 
-function EventHeader({ invite, accountName, next }: { invite: Invite; accountName: string | null; next: string }) {
+function EventHeader({
+  invite,
+  accountName,
+  next,
+}: {
+  invite: Invite;
+  accountName: string | null;
+  next: string;
+}) {
   const date = formatEventDate(invite.event_date);
   return (
     <>
@@ -267,13 +336,21 @@ function EventHeader({ invite, accountName, next }: { invite: Invite; accountNam
           accountName !== null ? (
             <AccountButton name={accountName} />
           ) : (
-            <Link href={`/login?next=${encodeURIComponent(next)}`} className="btn btn-sm btn-quiet">
+            <Link
+              href={`/login?next=${encodeURIComponent(next)}`}
+              className="btn btn-sm btn-quiet"
+            >
               Sign in
             </Link>
           )
         }
       />
       <div className="container-page pt-6 md:pt-10">
+        {accountName !== null && (
+          <div className="mb-4">
+            <BackLink fallback="/home" />
+          </div>
+        )}
         <p className="t-ui">
           {invite.name}
           {date ? `, ${date}` : ` (${KIND_LABELS[invite.kind]})`}
@@ -283,7 +360,15 @@ function EventHeader({ invite, accountName, next }: { invite: Invite; accountNam
   );
 }
 
-function Shell({ children, header, wide }: { children: React.ReactNode; header?: React.ReactNode; wide?: boolean }) {
+function Shell({
+  children,
+  header,
+  wide,
+}: {
+  children: React.ReactNode;
+  header?: React.ReactNode;
+  wide?: boolean;
+}) {
   return (
     <div className="min-h-dvh">
       {header ?? <SiteHeader />}

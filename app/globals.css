@@ -373,7 +373,8 @@ body {
     padding: 0 12px;
     border: 0;
     border-radius: var(--radius-control);
-    background: var(--fill);
+    background: #fff;
+    box-shadow: inset 0 0 0 1px var(--hairline-strong);
     color: var(--ink);
     font-size: 1rem; /* 16px stops iOS zooming in */
     font-weight: 500;
@@ -384,6 +385,25 @@ body {
   }
   .field::placeholder {
     color: var(--ink-4);
+  }
+  .field:hover:not(:focus):not(:disabled) {
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.28);
+  }
+  .field:disabled {
+    background: var(--fill);
+  }
+  /* A tappable option (radio or checkbox with its text): outlined, black when chosen. */
+  .choice-card {
+    border-radius: var(--radius-control);
+    background: #fff;
+    box-shadow: inset 0 0 0 1px var(--hairline-strong);
+    transition: box-shadow 0.15s ease;
+  }
+  .choice-card:hover {
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.28);
+  }
+  .choice-card:has(:checked) {
+    box-shadow: inset 0 0 0 1.5px var(--ink);
   }
   .field:focus {
     outline: none;
@@ -2584,4 +2604,48 @@ body {
   .v3-foot-links { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; }
   .v3-foot-links a, .v3-foot-links button { color: rgba(15, 13, 20, 0.65); transition: color 0.2s ease; }
   .v3-foot-links a:hover, .v3-foot-links button:hover { color: var(--c-ink); }
+}
+
+/* ---------- Events board (dashboard and guest home) ---------- */
+@layer components {
+  .eb-tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--hairline); }
+  .eb-tab { margin-bottom: -1px; padding: 10px 0; border-bottom: 2px solid transparent; font-size: 15px; font-weight: 500; color: var(--ink-3); }
+  .eb-tab:hover { color: var(--ink); }
+  .eb-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+  .eb-group { margin-bottom: 8px; font-size: 13px; font-weight: 500; color: var(--ink-3); }
+  .eb-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border-bottom: 1px solid var(--hairline); }
+  .eb-link { display: flex; flex: 1; min-width: 0; align-items: center; gap: 14px; margin-inline: -8px; padding: 12px 8px; border-radius: 4px; }
+  .eb-link:hover { background: var(--fill); }
+  .eb-row[data-past="true"] .t-item { color: var(--ink-2); }
+  .eb-cover { flex: none; width: 56px; height: 42px; overflow: hidden; border-radius: 4px; background: var(--fill); }
+  .eb-cover img { width: 100%; height: 100%; object-fit: cover; }
+  .eb-meta { margin-top: 2px; font-size: 12.5px; color: var(--ink-4); }
+  .eb-tags { display: flex; flex: none; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+  .eb-tag { padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .eb-tag[data-tone="live"] { background: #e3f6ec; color: #17683e; }
+  .eb-tag[data-tone="attention"] { background: #fff1d6; color: #8a5300; }
+  .eb-tag[data-tone="quiet"] { background: var(--fill); color: var(--ink-3); }
+  .eb-action { flex: none; padding: 6px 8px; border-radius: 4px; font-size: 13px; color: var(--ink-3); }
+  .eb-action:hover { background: var(--fill); color: var(--danger); }
+  .eb-confirm { flex-basis: 100%; padding: 0 0 14px 70px; }
+  .eb-more { padding: 12px 0; font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: underline; text-underline-offset: 4px; }
+  @media (max-width: 640px) {
+    .eb-tags { display: none; }
+    .eb-confirm { padding-left: 0; }
+  }
+}
+
+@layer components {
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: -8px;
+    padding: 6px 10px 6px 4px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  .back-link:hover { background: var(--fill); color: var(--ink); }
 }
