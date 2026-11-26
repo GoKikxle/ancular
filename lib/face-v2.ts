@@ -74,7 +74,7 @@ export async function detectAllFacesV2(input: HTMLCanvasElement): Promise<Detect
   const { faceapi, model } = await loadV2("host");
   const W = input.width;
   const H = input.height;
-  const options = new faceapi.SsdMobilenetv1Options({ minConfidence: 0.3, maxResults: 200 });
+  const options = new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5, maxResults: 200 });
   const regions: { x: number; y: number; w: number; h: number }[] = [{ x: 0, y: 0, w: W, h: H }];
   if (Math.max(W, H) > 900) {
     const tw = Math.round(W * 0.6);
