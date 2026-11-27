@@ -210,3 +210,38 @@ export async function deletePhoto(eventId: string, photoId: string) {
   }
   revalidatePath(`/events/${eventId}`);
 }
+
+/** Branding and the "photos coming soon" switch. Files are uploaded from the browser first. */
+export async function updateBranding(eventId: string, _: FormState, form: FormData): Promise<FormState> {
+  const { supabase, user } = await getUser();
+  if (!user) return { error: "Sign in again to save branding." };
+
+  const path = (key: string) => {
+    const v = String(form.get(key) ?? "").trim();
+    if (!v) return null;
+    return v.startsWith(`${eventId}/`) && v.length <= 300 && !v.includes("..") ? v : undefined;
+  };
+  const logo = path("brand_logo_path");
+  const cover = path("brand_cover_path");
+  if (logo === undefined || cover === undefined) return { error: "That file didn't upload properly. Try again." };
+
+  const colorRaw = String(form.get("brand_color") ?? "").trim();
+  const color = form.get("use_color") === "on" && /^#[0-9a-fA-F]{6}$/.test(colorRaw) ? colorRaw : null;
+  const message = String(form.get("brand_message") ?? "").trim().slice(0, 280) || null;
+  const photosLive = form.get("hold_photos") !== "on";
+
+  const { error } = await supabase
+    .from("events")
+    .update({
+      brand_logo_path: logo,
+      brand_cover_path: cover,
+      brand_color: color,
+      brand_message: message,
+      photos_live: photosLive,
+    })
+    .eq("id", eventId);
+
+  if (error) return { error: plainError(error.message, "Could not save branding. Try again.") };
+  revalidatePath(`/events/${eventId}`);
+  return { saved: true };
+}

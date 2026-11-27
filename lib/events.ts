@@ -18,7 +18,22 @@ export type EventRow = {
   plan?: "free" | "pass";
   /** Face model for this event's face codes. Missing on rows from before it existed: treat as "v1". */
   face_model?: "v1" | "v2";
+  /** Branding shown on the invite and "photos coming soon" page. Paths in the public "branding" bucket. */
+  brand_logo_path?: string | null;
+  brand_cover_path?: string | null;
+  brand_color?: string | null;
+  brand_message?: string | null;
+  /** False: guests see the "photos coming soon" page even if photos are uploaded. */
+  photos_live?: boolean;
 };
+
+/** Public URL of a file in the "branding" bucket. */
+export function brandUrl(path: string | null | undefined) {
+  if (!path) return null;
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!base) return null;
+  return `${base}/storage/v1/object/public/branding/${path.split("/").map(encodeURIComponent).join("/")}`;
+}
 
 export type MemberRow = {
   event_id: string;
