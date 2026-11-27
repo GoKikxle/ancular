@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { ClearSearchForm, DeleteAccountForm, ProfileForm } from "./SettingsForms";
 import { PlanSection } from "@/components/billing/PlanSection";
+import { VerificationSection, type MyVerification } from "@/components/settings/VerificationSection";
 import {
   FREE_PHOTOS_PER_EVENT,
   PRO_PHOTOS_PER_EVENT,
@@ -36,6 +37,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
     .eq("user_id", user.id)
     .maybeSingle();
   const live = await readLiveEventAllowance(supabase, user.id);
+  const { data: verification } = await supabase.rpc("my_verification");
+  const myVerification = ((verification as MyVerification[] | null)?.[0] ?? null) as MyVerification;
   const renews = billing?.current_period_end
     ? new Date(billing.current_period_end as string).toLocaleDateString("en-GB", { day: "numeric", month: "long" })
     : null;
@@ -58,6 +61,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             justPaid={paid === "1"}
             billingOn={billingOn}
           />
+        </Section>
+        <Section title="Verified organisation">
+          <VerificationSection current={myVerification} />
         </Section>
         <Section title="Face search">
           <ClearSearchForm />

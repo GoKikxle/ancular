@@ -50,7 +50,7 @@ export default async function AdminPage() {
   const admin = createAdminClient();
   const [{ data, error }, { data: verified }] = await Promise.all([
     admin.rpc("admin_overview", { p_days: 30 }),
-    admin.from("organiser_verifications").select("user_id, verified_name, verified_email, verified_at, note").order("verified_at", { ascending: false }),
+    admin.from("organiser_verifications").select("user_id, org_name, website_domain, contact_email, status, requested_at, decided_at, note").order("requested_at", { ascending: false }),
   ]);
   if (error || !data) {
     return (

@@ -4,34 +4,39 @@ import { revalidatePath } from "next/cache";
 import { isAdmin } from "@/lib/admin";
 import { createAdminClient, getUser } from "@/lib/supabase/server";
 
-export type VerifyState = { error?: string; done?: string } | undefined;
-
 async function requireAdmin() {
   const { user } = await getUser();
   return !!user && isAdmin(user.email);
 }
 
-/** Mark an organiser's name and email as checked by Ancular. */
-export async function verifyOrganiser(_: VerifyState, form: FormData): Promise<VerifyState> {
+/** Approve or decline an organisation's verification request. */
+export async function decideVerification(
+  userId: string,
+  decision: "approved" | "declined",
+  note: string
+): Promise<{ error?: string }> {
   if (!(await requireAdmin())) return { error: "Only Ancular admins can do this." };
-  const email = String(form.get("email") ?? "").trim();
-  const name = String(form.get("name") ?? "").trim();
-  const note = String(form.get("note") ?? "").trim();
-  if (!email.includes("@")) return { error: "Enter the email they signed up with." };
-  if (name.length < 2) return { error: "Enter the name guests should see, for example CCI Manchester." };
-  const { error } = await createAdminClient().rpc("admin_verify_organiser", {
-    p_email: email,
-    p_name: name,
-    p_note: note || null,
-  });
-  if (error) return { error: error.message.replace(/^.*?:\s*/, "") };
+  const { error } = await createAdminClient()
+    .from("organiser_verifications")
+    .update({ status: decision, decided_at: new Date().toISOString(), note: note.trim() || null })
+    .eq("user_id", userId);
+  if (error) {
+    return {
+      error: error.message.includes("name_lock")
+        ? "Another organisation is already verified with this name."
+        : error.message,
+    };
+  }
   revalidatePath("/admin");
-  return { done: `${name} is verified.` };
+  return {};
 }
 
-/** Take the badge away. */
-export async function unverifyOrganiser(userId: string) {
+/** Take a badge away. The organiser can ask again. */
+export async function removeVerification(userId: string) {
   if (!(await requireAdmin())) return;
-  await createAdminClient().from("organiser_verifications").delete().eq("user_id", userId);
+  await createAdminClient()
+    .from("organiser_verifications")
+    .update({ status: "declined", decided_at: new Date().toISOString() })
+    .eq("user_id", userId);
   revalidatePath("/admin");
 }

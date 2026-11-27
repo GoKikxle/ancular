@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 export type Verification = {
   name: string;
-  email: string;
+  /** The organisation's website, for example ccimanchester.org. */
+  domain: string;
   at: string;
 };
 
@@ -22,7 +23,7 @@ function BadgeCheck({ size = 16 }: { size?: number }) {
 }
 
 /**
- * "Hosted by <name> [Verified]". Tapping the badge shows the name and email Ancular checked,
+ * "Hosted by <name> [Verified]". Tapping the badge shows the organisation and the website Ancular checked,
  * so a guest can trust the link before signing up or taking a selfie.
  */
 export function VerifiedBadge({ v, tone = "ink" }: { v: Verification; tone?: "ink" | "light" }) {
@@ -68,12 +69,14 @@ export function VerifiedBadge({ v, tone = "ink" }: { v: Verification; tone?: "in
             <span className="vb-v">{v.name}</span>
           </span>
           <span className="vb-row">
-            <span className="vb-k">Email</span>
-            <span className="vb-v">{v.email}</span>
+            <span className="vb-k">Website</span>
+            <a className="vb-v underline" href={`https://${v.domain}`} target="_blank" rel="noopener noreferrer">
+              {v.domain}
+            </a>
           </span>
           <span className="vb-note">
-            Ancular checked this organiser&apos;s name and email on {date}. Only photos they upload appear
-            here, and you only ever see photos of you.
+            Ancular confirmed on {date} that this organiser runs {v.domain}, using an email address on that
+            website. Only photos they upload appear here, and you only ever see photos of you.
           </span>
         </span>
       )}

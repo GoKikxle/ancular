@@ -36,13 +36,13 @@ type Invite = {
   /** Missing before migration 0011: treat as ready so nothing changes. */
   photos_ready?: boolean | null;
   verified_name?: string | null;
-  verified_email?: string | null;
+  verified_domain?: string | null;
   verified_at?: string | null;
 };
 
 function verificationOf(invite: Invite): Verification | null {
-  return invite.verified_name && invite.verified_email && invite.verified_at
-    ? { name: invite.verified_name, email: invite.verified_email, at: invite.verified_at }
+  return invite.verified_name && invite.verified_domain && invite.verified_at
+    ? { name: invite.verified_name, domain: invite.verified_domain, at: invite.verified_at }
     : null;
 }
 
