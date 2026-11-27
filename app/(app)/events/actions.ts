@@ -219,7 +219,8 @@ export async function updateBranding(eventId: string, _: FormState, form: FormDa
   const path = (key: string) => {
     const v = String(form.get(key) ?? "").trim();
     if (!v) return null;
-    return v.startsWith(`${eventId}/`) && v.length <= 300 && !v.includes("..") ? v : undefined;
+    const ok = v.startsWith(`${eventId}/`) || v.startsWith(`/brand/${eventId}/`);
+    return ok && v.length <= 300 && !v.includes("..") ? v : undefined;
   };
   const logo = path("brand_logo_path");
   const cover = path("brand_cover_path");

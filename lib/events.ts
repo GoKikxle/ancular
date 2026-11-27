@@ -30,6 +30,8 @@ export type EventRow = {
 /** Public URL of a file in the "branding" bucket. */
 export function brandUrl(path: string | null | undefined) {
   if (!path) return null;
+  // Files we add by hand for a client ship with the site under /brand/<event id>/.
+  if (path.startsWith("/brand/")) return path;
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!base) return null;
   return `${base}/storage/v1/object/public/branding/${path.split("/").map(encodeURIComponent).join("/")}`;
