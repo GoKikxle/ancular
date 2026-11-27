@@ -8,6 +8,8 @@ import { KIND_LABELS, formatEventDate } from "@/lib/events";
 import { readLiveEventAllowance } from "@/lib/live-events";
 import { listPreviewEvents } from "@/lib/preview-events";
 import { listPreviewPhotos } from "@/lib/preview-photos";
+import { loadOrgProfile } from "@/lib/org-profile";
+import { ProfileBanner } from "@/components/profile/ProfileBanner";
 
 export const metadata: Metadata = { title: "Your events" };
 
@@ -42,6 +44,9 @@ export default async function DashboardPage() {
   const live = user ? await readLiveEventAllowance(supabase, user.id) : null;
   const canCreate = !live || live.canCreate;
   const showFreeNudge = live?.plan === "free";
+  const org = user ? await loadOrgProfile(supabase, user.id) : null;
+  const showProfileBanner =
+    !!org && org.steps.done < org.steps.total && !org.profile?.banner_dismissed_at;
 
   return (
     <div>
@@ -53,6 +58,11 @@ export default async function DashboardPage() {
           </Link>
         )}
       </div>
+      {showProfileBanner && org && (
+        <div className="mt-8">
+          <ProfileBanner steps={org.steps} />
+        </div>
+      )}
       {showFreeNudge && live && (
         <div className="mt-8">
           <UpgradeNudge used={live.used} atLimit={!live.canCreate} />

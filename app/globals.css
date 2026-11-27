@@ -2707,3 +2707,11 @@ body {
 .br-thumb { width: 100%; max-width: 280px; aspect-ratio: 16 / 8; object-fit: cover; border-radius: 4px; background: var(--fill); display: block; }
 .br-logo { max-height: 56px; max-width: 200px; object-fit: contain; display: block; }
 .br-swatch { width: 44px; height: 44px; padding: 0; border: 0; border-radius: 4px; background: none; cursor: pointer; }
+
+/* ===== Organisation profile banner ===== */
+.pb-banner {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px;
+  padding: 18px 20px; border-radius: 4px; background: var(--fill);
+}
+.pb-meter { margin-top: 12px; height: 4px; width: 220px; max-width: 100%; border-radius: 2px; background: var(--hairline-strong); overflow: hidden; }
+.pb-meter > span { display: block; height: 100%; background: var(--ink); }

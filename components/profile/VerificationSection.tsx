@@ -1,20 +1,18 @@
 "use client";
 
 import { useActionState } from "react";
-import { requestVerification, type VerificationState } from "@/app/(app)/settings/verification-actions";
-
-export type MyVerification = {
-  org_name: string;
-  website_domain: string;
-  contact_email: string;
-  status: "pending" | "approved" | "declined";
-  requested_at: string;
-  decided_at: string | null;
-} | null;
+import { requestVerification, type VerificationState } from "@/app/(app)/profile/verification-actions";
+import type { MyVerification } from "@/lib/org-profile";
 
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
-export function VerificationSection({ current }: { current: MyVerification }) {
+export function VerificationSection({
+  current,
+  defaults,
+}: {
+  current: MyVerification;
+  defaults?: { name?: string | null; website?: string | null };
+}) {
   const [state, action, pending] = useActionState<VerificationState, FormData>(requestVerification, undefined);
 
   if (current?.status === "approved") {
@@ -59,7 +57,7 @@ export function VerificationSection({ current }: { current: MyVerification }) {
             className="field"
             required
             maxLength={120}
-            defaultValue={current?.org_name}
+            defaultValue={current?.org_name ?? defaults?.name ?? ""}
             placeholder="As guests know it"
           />
         </div>
@@ -72,7 +70,7 @@ export function VerificationSection({ current }: { current: MyVerification }) {
             name="website"
             className="field"
             required
-            defaultValue={current?.website_domain}
+            defaultValue={current?.website_domain ?? defaults?.website ?? ""}
             placeholder="yourorganisation.org"
           />
         </div>

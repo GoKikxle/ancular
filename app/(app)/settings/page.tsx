@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { ClearSearchForm, DeleteAccountForm, ProfileForm } from "./SettingsForms";
 import { PlanSection } from "@/components/billing/PlanSection";
-import { VerificationSection, type MyVerification } from "@/components/settings/VerificationSection";
+import Link from "next/link";
 import {
   FREE_PHOTOS_PER_EVENT,
   PRO_PHOTOS_PER_EVENT,
@@ -37,8 +37,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
     .eq("user_id", user.id)
     .maybeSingle();
   const live = await readLiveEventAllowance(supabase, user.id);
-  const { data: verification } = await supabase.rpc("my_verification");
-  const myVerification = ((verification as MyVerification[] | null)?.[0] ?? null) as MyVerification;
   const renews = billing?.current_period_end
     ? new Date(billing.current_period_end as string).toLocaleDateString("en-GB", { day: "numeric", month: "long" })
     : null;
@@ -62,8 +60,14 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             billingOn={billingOn}
           />
         </Section>
-        <Section title="Verified organisation">
-          <VerificationSection current={myVerification} />
+        <Section title="Organisation">
+          <p className="t-item-sub">
+            Your organisation&apos;s name, website, logo and verification are on your{" "}
+            <Link href="/profile" className="font-semibold text-ink underline underline-offset-4">
+              organisation profile
+            </Link>
+            .
+          </p>
         </Section>
         <Section title="Face search">
           <ClearSearchForm />

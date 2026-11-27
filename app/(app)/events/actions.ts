@@ -231,16 +231,11 @@ export async function updateBranding(eventId: string, _: FormState, form: FormDa
   const message = String(form.get("brand_message") ?? "").trim().slice(0, 280) || null;
   const photosLive = form.get("hold_photos") !== "on";
 
-  const { error } = await supabase
-    .from("events")
-    .update({
-      brand_logo_path: logo,
-      brand_cover_path: cover,
-      brand_color: color,
-      brand_message: message,
-      photos_live: photosLive,
-    })
-    .eq("id", eventId);
+  // Only touch the fields this form sends (logo and colour now live on the organisation profile).
+  const update: Record<string, unknown> = { brand_cover_path: cover, brand_message: message, photos_live: photosLive };
+  if (form.has("brand_logo_path")) update.brand_logo_path = logo;
+  if (form.has("use_color") || form.has("brand_color")) update.brand_color = color;
+  const { error } = await supabase.from("events").update(update).eq("id", eventId);
 
   if (error) return { error: plainError(error.message, "Could not save branding. Try again.") };
   revalidatePath(`/events/${eventId}`);

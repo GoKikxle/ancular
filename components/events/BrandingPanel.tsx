@@ -76,13 +76,11 @@ export function BrandingPanel({ event }: { event: EventRow }) {
     updateBranding.bind(null, event.id),
     undefined
   );
-  const [useColor, setUseColor] = useState(!!event.brand_color);
-  const [color, setColor] = useState(event.brand_color ?? "#0f0d14");
 
   return (
     <form action={save} className="space-y-8 border-t border-hairline pt-8">
       <div>
-        <h2 className="t-title">Branding and early visitors</h2>
+        <h2 className="t-title">Event cover and early visitors</h2>
         <p className="t-item-sub mt-2">
           Guests who open the link before photos are up see a &ldquo;photos coming soon&rdquo; page with your
           branding, instead of an empty search.
@@ -102,44 +100,19 @@ export function BrandingPanel({ event }: { event: EventRow }) {
 
       <FilePick
         eventId={event.id}
-        kind="logo"
-        label="Logo"
-        hint="PNG or SVG with a transparent background works best."
-        initial={event.brand_logo_path}
-      />
-      <FilePick
-        eventId={event.id}
         kind="cover"
-        label="Cover photo"
-        hint="Wide image, at least 1600px across."
+        label="Event cover"
+        hint="The event poster or a wide photo, at least 1600px across. Shown whole at the top of the page."
         initial={event.brand_cover_path}
       />
 
-      <div>
-        <label className="flex items-center gap-2 t-ui">
-          <input type="checkbox" name="use_color" checked={useColor} onChange={(e) => setUseColor(e.target.checked)} />
-          Use a brand colour
-        </label>
-        {useColor && (
-          <div className="mt-3 flex items-center gap-3">
-            <input
-              type="color"
-              className="br-swatch"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              aria-label="Brand colour"
-            />
-            <input
-              name="brand_color"
-              className="field max-w-[140px]"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              pattern="#[0-9a-fA-F]{6}"
-              aria-label="Brand colour hex"
-            />
-          </div>
-        )}
-      </div>
+      <p className="t-item-sub">
+        Your logo and brand colour come from your{" "}
+        <a href="/profile" className="font-semibold text-ink underline underline-offset-4">
+          organisation profile
+        </a>
+        .
+      </p>
 
       <div>
         <label htmlFor="brand_message" className="label">

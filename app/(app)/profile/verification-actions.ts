@@ -15,6 +15,7 @@ export async function requestVerification(_: VerificationState, form: FormData):
     p_email: String(form.get("contact_email") ?? ""),
   });
   if (error) return { error: error.message };
-  revalidatePath("/settings");
+  revalidatePath("/profile");
+  revalidatePath("/dashboard");
   return { sent: true };
 }
