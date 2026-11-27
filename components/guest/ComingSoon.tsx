@@ -30,18 +30,28 @@ export function ComingSoon({
   state: "signed-out" | "joined";
   next: string;
 }) {
-  const accent = color ?? "var(--c-ink)";
+  const accent = color ?? "var(--ink)";
   return (
     <div className="cs" style={{ ["--brand" as string]: accent }}>
       <div className="cs-band" />
+      {coverUrl && (
+        <>
+          {logoUrl && (
+            <header className="cs-top">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className="cs-top-logo" src={logoUrl} alt={verification?.name ?? hostName ?? eventName} />
+            </header>
+          )}
+          {/* The event's cover, shown whole (posters carry text), on a soft blur of itself. */}
+          <div className="cs-hero" style={{ ["--cover" as string]: `url("${coverUrl}")` }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="cs-cover" src={coverUrl} alt={eventName} />
+          </div>
+        </>
+      )}
       <main className="cs-main">
-        {coverUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img className="cs-cover" src={coverUrl} alt="" />
-        ) : null}
-
         <div className="cs-body">
-          {logoUrl ? (
+          {logoUrl && !coverUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img className="cs-logo" src={logoUrl} alt={verification?.name ?? hostName ?? eventName} />
           ) : null}
