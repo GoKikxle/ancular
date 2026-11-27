@@ -2651,17 +2651,17 @@ body {
 }
 
 /* ===== Verified organiser badge ===== */
-.vb { position: relative; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.vb { --vb-blue: #4a86f7; position: relative; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .vb-host { font-size: 14px; font-weight: 500; color: var(--ink); }
 .vb-chip {
   display: inline-flex; align-items: center; gap: 4px;
   height: 26px; padding: 0 9px 0 6px; border-radius: 999px;
-  background: color-mix(in srgb, var(--c-blue) 12%, #fff);
+  background: color-mix(in srgb, var(--vb-blue) 12%, #fff);
   color: #1f4fb8; font-size: 12.5px; font-weight: 600; line-height: 1;
   cursor: pointer; transition: background .15s;
 }
-.vb-chip:hover { background: color-mix(in srgb, var(--c-blue) 20%, #fff); }
-.vb-chip:focus-visible { outline: 2px solid var(--c-blue); outline-offset: 2px; }
+.vb-chip:hover { background: color-mix(in srgb, var(--vb-blue) 20%, #fff); }
+.vb-chip:focus-visible { outline: 2px solid var(--vb-blue); outline-offset: 2px; }
 .vb-pop {
   position: absolute; z-index: 30; top: calc(100% + 8px); left: 0;
   width: min(340px, calc(100vw - 32px));
