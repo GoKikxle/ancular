@@ -2691,8 +2691,8 @@ body {
   content: ""; position: absolute; inset: 0; z-index: -1;
   background: linear-gradient(to bottom, rgba(255,255,255,0) 55%, #fff 100%);
 }
-.cs-cover { display: block; width: 100%; max-width: 1100px; height: auto; margin: 0 auto; border-radius: 4px; }
-@media (min-width: 768px) { .cs-hero { padding: 28px 32px 56px; } }
+.cs-cover { display: block; width: auto; max-width: min(100%, 1100px); height: auto; max-height: 56vh; margin: 0 auto; border-radius: 4px; }
+@media (min-width: 768px) { .cs-hero { padding: 20px 32px 28px; } .cs-hero + .cs-main .cs-body { padding-top: 8px; } }
 .cs-body { padding-top: 32px; }
 .cs-logo { display: block; max-height: 64px; max-width: 220px; width: auto; object-fit: contain; margin-bottom: 28px; }
 .cs-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); }
