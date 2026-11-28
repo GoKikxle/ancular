@@ -10,6 +10,8 @@ import { SharePanel } from "@/components/events/SharePanel";
 import { GuestList } from "@/components/events/GuestList";
 import { PhotoGrid } from "@/components/events/PhotoGrid";
 import { SettingsPanel } from "@/components/events/SettingsPanel";
+import { NotifyGuestsCard } from "@/components/events/NotifyGuestsCard";
+import { emailEnabled } from "@/lib/email";
 import { NavArrowLeft } from "@/components/layout/BackLink";
 import { EventPlanBar } from "@/components/billing/EventPlanBar";
 import { readEventAllowance, type EventAllowance } from "@/lib/allowance";
@@ -121,6 +123,14 @@ export default async function EventPage({
           </div>
         ))}
       </dl>
+
+      {emailEnabled() && readyPhotos.length > 0 && event.photos_live !== false && (
+        <NotifyGuestsCard
+          eventId={id}
+          guests={guests.filter((g) => g.status === "approved" && g.role !== "host").length}
+          notifiedAt={event.photos_notified_at ?? null}
+        />
+      )}
 
       <nav className="-mx-4 mt-10 flex gap-1.5 overflow-x-auto px-4 md:mx-0 md:mt-12 md:px-0" aria-label="Event sections">
         {TABS.map((t) => (

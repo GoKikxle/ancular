@@ -235,9 +235,28 @@ export async function updateBranding(eventId: string, _: FormState, form: FormDa
   const update: Record<string, unknown> = { brand_cover_path: cover, brand_message: message, photos_live: photosLive };
   if (form.has("brand_logo_path")) update.brand_logo_path = logo;
   if (form.has("use_color") || form.has("brand_color")) update.brand_color = color;
+  const { data: before } = await supabase.from("events").select("photos_live").eq("id", eventId).maybeSingle();
   const { error } = await supabase.from("events").update(update).eq("id", eventId);
 
   if (error) return { error: plainError(error.message, "Could not save branding. Try again.") };
+  // Unticking "Hold photos" is the moment everything goes live: email the guests (once).
+  if (before && before.photos_live === false && photosLive) {
+    const { notifyGuestsPhotosReady } = await import("@/lib/notify-guests");
+    await notifyGuestsPhotosReady(eventId).catch(() => undefined);
+  }
   revalidatePath(`/events/${eventId}`);
   return { saved: true };
+}
+
+/** Host presses "Email guests": tell everyone who joined that the photos are ready. */
+export async function emailGuestsPhotosReady(eventId: string): Promise<{ error?: string; sent?: number }> {
+  const { supabase, user } = await getUser();
+  if (!user) return { error: "Sign in again to continue." };
+  const { data: isHost } = await supabase.rpc("is_event_host", { p_event: eventId });
+  if (!isHost) return { error: "Only the event's host can do this." };
+  const { notifyGuestsPhotosReady } = await import("@/lib/notify-guests");
+  const res = await notifyGuestsPhotosReady(eventId);
+  revalidatePath(`/events/${eventId}`);
+  if (res.already) return { error: "Guests have already been emailed." };
+  return res.error ? { error: res.error } : { sent: res.sent };
 }

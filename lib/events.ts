@@ -25,6 +25,8 @@ export type EventRow = {
   brand_message?: string | null;
   /** False: guests see the "photos coming soon" page even if photos are uploaded. */
   photos_live?: boolean;
+  /** When guests were emailed that photos are ready (once per event). */
+  photos_notified_at?: string | null;
 };
 
 /** Public URL of a file in the "branding" bucket. */
