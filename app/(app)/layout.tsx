@@ -13,6 +13,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (user && !emailVerified && process.env.NODE_ENV !== "development") {
     redirect(confirmEmailHref("/dashboard"));
   }
+  // Dashboard accounts are only for the Ancular dashboard: no events, profile or settings.
+  if (user && isAdmin(user.email)) redirect("/admin");
 
   const name = user
     ? (user.user_metadata?.full_name as string | undefined)?.trim() || user.email
@@ -26,7 +28,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           { href: "/dashboard", label: "Events" },
           { href: "/profile", label: "Organisation" },
           { href: "/settings", label: "Settings" },
-          ...(isAdmin(user?.email) ? [{ href: "/admin", label: "Dashboard" }] : []),
         ]}
         action={
           user ? (

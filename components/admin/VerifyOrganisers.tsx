@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { decideVerification, removeVerification } from "@/app/(app)/admin/actions";
+import { decideVerification, removeVerification } from "@/app/(admin)/admin/actions";
 
 export type VerifiedRow = {
   user_id: string;
@@ -87,10 +87,10 @@ export function VerifyOrganisers({ rows }: { rows: VerifiedRow[] }) {
   const approved = rows.filter((r) => r.status === "approved");
   return (
     <section aria-labelledby="verified">
-      <h2 id="verified" className="t-title">
+      <h2 id="verified" className="sr-only">
         Verified organisations
       </h2>
-      <p className="t-item-sub mt-2 max-w-2xl">
+      <p className="t-item-sub max-w-2xl">
         Only organisations with their own website and an email on that domain. Guests see the name and website on a
         Verified badge, never the email.
       </p>

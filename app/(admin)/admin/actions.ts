@@ -5,8 +5,8 @@ import { isAdmin } from "@/lib/admin";
 import { createAdminClient, getUser } from "@/lib/supabase/server";
 
 async function requireAdmin() {
-  const { user } = await getUser();
-  return !!user && isAdmin(user.email);
+  const { user, emailVerified } = await getUser();
+  return !!user && emailVerified && isAdmin(user.email);
 }
 
 /** Approve or decline an organisation's verification request. */

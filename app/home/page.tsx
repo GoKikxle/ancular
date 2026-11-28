@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { isAdmin } from "@/lib/admin";
 import { signOut } from "@/app/(app)/actions";
 import { AccountButton, SiteHeader } from "@/components/layout/SiteHeader";
 import { SubmitButton } from "@/components/ui/SubmitButton";
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const { supabase, user, emailVerified } = await getUser();
   if (!user) redirect("/");
+  if (isAdmin(user.email)) redirect("/admin");
 
   const { hosting, joined } = await loadBoard(supabase, user.id);
   if (hosting.length > 0 || (joined.length === 0 && emailVerified))
