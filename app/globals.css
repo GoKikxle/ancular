@@ -2649,3 +2649,69 @@ body {
   }
   .back-link:hover { background: var(--fill); color: var(--ink); }
 }
+
+/* ===== Verified organiser badge ===== */
+.vb { --vb-blue: #4a86f7; position: relative; display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.vb-host { font-size: 14px; font-weight: 500; color: var(--ink); }
+.vb-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 26px; padding: 0 9px 0 6px; border-radius: 999px;
+  background: color-mix(in srgb, var(--vb-blue) 12%, #fff);
+  color: #1f4fb8; font-size: 12.5px; font-weight: 600; line-height: 1;
+  cursor: pointer; transition: background .15s;
+}
+.vb-chip:hover { background: color-mix(in srgb, var(--vb-blue) 20%, #fff); }
+.vb-chip:focus-visible { outline: 2px solid var(--vb-blue); outline-offset: 2px; }
+.vb-pop {
+  position: absolute; z-index: 30; top: calc(100% + 8px); left: 0;
+  width: min(340px, calc(100vw - 32px));
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 16px; border-radius: 4px; background: #fff;
+  box-shadow: inset 0 0 0 1px var(--hairline-strong);
+}
+.vb-pop-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--ink); }
+.vb-row { display: grid; grid-template-columns: 56px 1fr; gap: 8px; font-size: 14px; }
+.vb-k { color: var(--ink-muted); }
+.vb-v { color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
+.vb-note { font-size: 13px; line-height: 1.45; color: var(--ink-muted); border-top: 1px solid var(--hairline); padding-top: 10px; }
+
+/* ===== Photos coming soon (branded) ===== */
+.cs { min-height: 100dvh; display: flex; flex-direction: column; background: #fff; }
+.cs-band { height: 6px; background: var(--brand); }
+.cs-main { flex: 1; width: 100%; max-width: 760px; margin: 0 auto; padding: 24px 20px 48px; }
+.cs-top { width: 100%; max-width: 1140px; margin: 0 auto; padding: 18px 20px; }
+.cs-top-logo { display: block; height: 30px; width: auto; max-width: 180px; object-fit: contain; }
+.cs-hero { position: relative; overflow: hidden; padding: 0 20px; isolation: isolate; }
+.cs-hero::before {
+  content: ""; position: absolute; inset: -60px; z-index: -1;
+  background: var(--cover) center / cover no-repeat;
+  filter: blur(48px) saturate(1.2); opacity: .55;
+}
+.cs-hero::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 55%, #fff 100%);
+}
+.cs-cover { display: block; width: auto; max-width: min(100%, 1100px); height: auto; max-height: 56vh; margin: 0 auto; border-radius: 4px; }
+@media (min-width: 768px) { .cs-hero { padding: 20px 32px 28px; } .cs-hero + .cs-main .cs-body { padding-top: 8px; } }
+.cs-body { padding-top: 32px; }
+.cs-logo { display: block; max-height: 64px; max-width: 220px; width: auto; object-fit: contain; margin-bottom: 28px; }
+.cs-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); }
+.cs-foot {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 20px; border-top: 1px solid var(--hairline);
+  font-size: 13px; color: var(--ink-muted);
+}
+@media (min-width: 768px) { .cs-main { padding-top: 48px; } .cs-body { padding-top: 40px; } }
+
+/* ===== Branding settings ===== */
+.br-thumb { width: 100%; max-width: 280px; aspect-ratio: 16 / 8; object-fit: cover; border-radius: 4px; background: var(--fill); display: block; }
+.br-logo { max-height: 56px; max-width: 200px; object-fit: contain; display: block; }
+.br-swatch { width: 44px; height: 44px; padding: 0; border: 0; border-radius: 4px; background: none; cursor: pointer; }
+
+/* ===== Organisation profile banner ===== */
+.pb-banner {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px;
+  padding: 18px 20px; border-radius: 4px; background: var(--fill);
+}
+.pb-meter { margin-top: 12px; height: 4px; width: 220px; max-width: 100%; border-radius: 2px; background: var(--hairline-strong); overflow: hidden; }
+.pb-meter > span { display: block; height: 100%; background: var(--ink); }

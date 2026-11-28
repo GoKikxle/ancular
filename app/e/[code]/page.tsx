@@ -7,7 +7,9 @@ import { JoinForm } from "@/components/guest/JoinForm";
 import { ConfirmEmailPanel } from "@/components/auth/ConfirmEmailPanel";
 import { isEmailVerified } from "@/lib/auth";
 import { getUser } from "@/lib/supabase/server";
-import { KIND_LABELS, formatEventDate, type EventKind } from "@/lib/events";
+import { KIND_LABELS, brandUrl, formatEventDate, type EventKind } from "@/lib/events";
+import { ComingSoon } from "@/components/guest/ComingSoon";
+import { VerifiedBadge, type Verification } from "@/components/guest/VerifiedBadge";
 import {
   PREVIEW_OWNER_ID,
   getPreviewEventByInviteCode,
@@ -27,7 +29,22 @@ type Invite = {
   event_date: string | null;
   join_mode: "open" | "approval";
   status: "active" | "archived";
+  brand_logo_path?: string | null;
+  brand_cover_path?: string | null;
+  brand_color?: string | null;
+  brand_message?: string | null;
+  /** Missing before migration 0011: treat as ready so nothing changes. */
+  photos_ready?: boolean | null;
+  verified_name?: string | null;
+  verified_domain?: string | null;
+  verified_at?: string | null;
 };
+
+function verificationOf(invite: Invite): Verification | null {
+  return invite.verified_name && invite.verified_domain && invite.verified_at
+    ? { name: invite.verified_name, domain: invite.verified_domain, at: invite.verified_at }
+    : null;
+}
 
 export const metadata: Metadata = {
   title: "Your event photos",
@@ -36,10 +53,13 @@ export const metadata: Metadata = {
 
 export default async function InvitePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ code: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }) {
   const { code } = await params;
+  const { preview: previewParam } = await searchParams;
   const { supabase, user: sessionUser } = await getUser();
   // Preview events store a placeholder owner. That id is not a signed-in visitor.
   const user =
@@ -106,6 +126,21 @@ export default async function InvitePage({
     />
   );
   const next = `/e/${code}`;
+  const comingSoon = invite.photos_ready === false;
+  const comingSoonPage = (state: "signed-out" | "joined") => (
+    <ComingSoon
+      eventName={invite.name}
+      dateLine={formatEventDate(invite.event_date)}
+      hostName={invite.host_name}
+      logoUrl={brandUrl(invite.brand_logo_path)}
+      coverUrl={brandUrl(invite.brand_cover_path)}
+      color={invite.brand_color ?? null}
+      message={invite.brand_message ?? null}
+      verification={verificationOf(invite)}
+      state={state}
+      next={next}
+    />
+  );
   // The preview-guest cookie is for local sample events only. On a live invite it must not
   // show the preview join form, which cannot see this event.
   const previewGuest =
@@ -169,6 +204,7 @@ export default async function InvitePage({
   }
 
   if (!user) {
+    if (comingSoon) return comingSoonPage("signed-out");
     return (
       <Shell header={header}>
         <h1 className="display">Find every photo you&apos;re in</h1>
@@ -301,11 +337,17 @@ export default async function InvitePage({
         .maybeSingle(),
     ]);
 
+  if (comingSoon && !hosting) return comingSoonPage("joined");
+  // Hosts can see what early visitors get from Settings > Preview the page.
+  if (hosting && previewParam === "coming-soon") return comingSoonPage("joined");
+
   return (
     <Shell header={header} wide>
       {hosting && (
         <p className="t-meta mb-6">
-          You host this event. Guests who open this link see this page.
+          {comingSoon
+            ? "You host this event. Until photos are live, guests who open this link see your “photos coming soon” page. Change it in Settings."
+            : "You host this event. Guests who open this link see this page."}
         </p>
       )}
       <GuestFinder
@@ -329,6 +371,7 @@ function EventHeader({
   next: string;
 }) {
   const date = formatEventDate(invite.event_date);
+  const verification = verificationOf(invite);
   return (
     <>
       <SiteHeader
@@ -355,6 +398,11 @@ function EventHeader({
           {invite.name}
           {date ? `, ${date}` : ` (${KIND_LABELS[invite.kind]})`}
         </p>
+        {verification && (
+          <div className="mt-2">
+            <VerifiedBadge v={verification} />
+          </div>
+        )}
       </div>
     </>
   );

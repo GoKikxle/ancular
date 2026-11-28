@@ -210,3 +210,34 @@ export async function deletePhoto(eventId: string, photoId: string) {
   }
   revalidatePath(`/events/${eventId}`);
 }
+
+/** Branding and the "photos coming soon" switch. Files are uploaded from the browser first. */
+export async function updateBranding(eventId: string, _: FormState, form: FormData): Promise<FormState> {
+  const { supabase, user } = await getUser();
+  if (!user) return { error: "Sign in again to save branding." };
+
+  const path = (key: string) => {
+    const v = String(form.get(key) ?? "").trim();
+    if (!v) return null;
+    const ok = v.startsWith(`${eventId}/`) || v.startsWith(`/brand/${eventId}/`);
+    return ok && v.length <= 300 && !v.includes("..") ? v : undefined;
+  };
+  const logo = path("brand_logo_path");
+  const cover = path("brand_cover_path");
+  if (logo === undefined || cover === undefined) return { error: "That file didn't upload properly. Try again." };
+
+  const colorRaw = String(form.get("brand_color") ?? "").trim();
+  const color = form.get("use_color") === "on" && /^#[0-9a-fA-F]{6}$/.test(colorRaw) ? colorRaw : null;
+  const message = String(form.get("brand_message") ?? "").trim().slice(0, 280) || null;
+  const photosLive = form.get("hold_photos") !== "on";
+
+  // Only touch the fields this form sends (logo and colour now live on the organisation profile).
+  const update: Record<string, unknown> = { brand_cover_path: cover, brand_message: message, photos_live: photosLive };
+  if (form.has("brand_logo_path")) update.brand_logo_path = logo;
+  if (form.has("use_color") || form.has("brand_color")) update.brand_color = color;
+  const { error } = await supabase.from("events").update(update).eq("id", eventId);
+
+  if (error) return { error: plainError(error.message, "Could not save branding. Try again.") };
+  revalidatePath(`/events/${eventId}`);
+  return { saved: true };
+}

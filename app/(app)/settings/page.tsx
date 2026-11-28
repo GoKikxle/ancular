@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/supabase/server";
 import { ClearSearchForm, DeleteAccountForm, ProfileForm } from "./SettingsForms";
 import { PlanSection } from "@/components/billing/PlanSection";
+import Link from "next/link";
 import {
   FREE_PHOTOS_PER_EVENT,
   PRO_PHOTOS_PER_EVENT,
@@ -58,6 +59,15 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             justPaid={paid === "1"}
             billingOn={billingOn}
           />
+        </Section>
+        <Section title="Organisation">
+          <p className="t-item-sub">
+            Your organisation&apos;s name, website, logo and verification are on your{" "}
+            <Link href="/profile" className="font-semibold text-ink underline underline-offset-4">
+              organisation profile
+            </Link>
+            .
+          </p>
         </Section>
         <Section title="Face search">
           <ClearSearchForm />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Sparkline } from "@/components/admin/Sparkline";
+import { VerifyOrganisers, type VerifiedRow } from "@/components/admin/VerifyOrganisers";
 import { isAdmin } from "@/lib/admin";
 import { createAdminClient, getUser } from "@/lib/supabase/server";
 
@@ -46,7 +47,11 @@ export default async function AdminPage() {
   const { user } = await getUser();
   if (!user || !isAdmin(user.email)) notFound();
 
-  const { data, error } = await createAdminClient().rpc("admin_overview", { p_days: 30 });
+  const admin = createAdminClient();
+  const [{ data, error }, { data: verified }] = await Promise.all([
+    admin.rpc("admin_overview", { p_days: 30 }),
+    admin.from("organiser_verifications").select("user_id, org_name, website_domain, contact_email, status, requested_at, decided_at, note").order("requested_at", { ascending: false }),
+  ]);
   if (error || !data) {
     return (
       <div className="max-w-xl">
@@ -218,6 +223,8 @@ export default async function AdminPage() {
           </table>
         </div>
       </section>
+
+      <VerifyOrganisers rows={(verified ?? []) as VerifiedRow[]} />
 
       <section aria-labelledby="traffic" className="grid gap-10 lg:grid-cols-3">
         <h2 id="traffic" className="sr-only">

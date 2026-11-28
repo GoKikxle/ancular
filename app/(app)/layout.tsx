@@ -24,6 +24,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         logoHref="/dashboard"
         nav={[
           { href: "/dashboard", label: "Events" },
+          { href: "/profile", label: "Organisation" },
           { href: "/settings", label: "Settings" },
           ...(isAdmin(user?.email) ? [{ href: "/admin", label: "Dashboard" }] : []),
         ]}
