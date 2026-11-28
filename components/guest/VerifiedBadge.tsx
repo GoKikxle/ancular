@@ -75,8 +75,7 @@ export function VerifiedBadge({ v, tone = "ink" }: { v: Verification; tone?: "in
             </a>
           </span>
           <span className="vb-note">
-            Ancular confirmed on {date} that this organiser runs {v.domain}, using an email address on that
-            website. Only photos they upload appear here, and you only ever see photos of you.
+            Verified by Ancular on {date}. This organiser owns or is officially linked to {v.domain}.
           </span>
         </span>
       )}
