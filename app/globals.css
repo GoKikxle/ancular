@@ -2715,3 +2715,19 @@ body {
 }
 .pb-meter { margin-top: 12px; height: 4px; width: 220px; max-width: 100%; border-radius: 2px; background: var(--hairline-strong); overflow: hidden; }
 .pb-meter > span { display: block; height: 100%; background: var(--ink); }
+
+/* ===== Admin dashboard ===== */
+.adm-top { border-bottom: 1px solid var(--hairline); background: #fff; position: sticky; top: 0; z-index: 20; }
+.adm-tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.adm-tabs::-webkit-scrollbar { display: none; }
+.adm-tab {
+  position: relative; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  padding: 14px 12px; font-size: 14px; font-weight: 500; color: var(--ink-muted);
+}
+.adm-tab:hover { color: var(--ink); }
+.adm-tab[aria-current="page"] { color: var(--ink); }
+.adm-tab[aria-current="page"]::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 2px; background: var(--ink); }
+.adm-count {
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+  background: var(--ink); color: #fff; font-size: 12px; font-weight: 600; line-height: 20px; text-align: center;
+}
