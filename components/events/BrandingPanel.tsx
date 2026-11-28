@@ -87,7 +87,7 @@ export function BrandingPanel({ event }: { event: EventRow }) {
         </p>
       </div>
 
-      <label className="choice-card flex items-start gap-3">
+      <label className="flex cursor-pointer items-start gap-3 choice-card p-4">
         <input type="checkbox" name="hold_photos" defaultChecked={event.photos_live === false} className="mt-1" />
         <span>
           <span className="t-ui block font-semibold">Hold photos until I&apos;m ready</span>
