@@ -17,7 +17,23 @@ type Item = {
 
 type UploadTarget = { url: string; headers: Record<string, string> };
 
-const CONCURRENCY = 2;
+/**
+ * Uploads run as a pipeline so big batches move fast:
+ * - faces are found one photo at a time (the graphics chip does one job well at a time),
+ * - while up to UPLOADS photos are uploading in the background.
+ * PREPARED_AHEAD caps how many scanned photos wait for upload, to keep memory in check.
+ */
+const UPLOADS = 4;
+const PREPARED_AHEAD = 6;
+
+type Prepared = {
+  item: Item;
+  faces: { embedding: number[]; box: unknown }[];
+  preview: Blob;
+  thumb: Blob;
+  width: number;
+  height: number;
+};
 
 async function put(target: UploadTarget, body: Blob) {
   const res = await fetch(target.url, { method: "PUT", headers: target.headers, body });
@@ -55,32 +71,81 @@ export function PhotoUploader({ eventId, faceModel = "v1" }: { eventId: string; 
     if (!busy) return;
     const warn = (e: BeforeUnloadEvent) => e.preventDefault();
     window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
+    // Keep the screen awake so a long upload doesn't stall when the computer dims.
+    let lock: { release: () => Promise<void> } | null = null;
+    const nav = navigator as Navigator & { wakeLock?: { request: (t: "screen") => Promise<{ release: () => Promise<void> }> } };
+    nav.wakeLock?.request("screen").then((l) => (lock = l), () => undefined);
+    return () => {
+      window.removeEventListener("beforeunload", warn);
+      lock?.release().catch(() => undefined);
+    };
   }, [busy]);
 
   const update = (id: string, patch: Partial<Item>) =>
     setItems((list) => list.map((i) => (i.id === id ? { ...i, ...patch } : i)));
 
-  const processOne = useCallback(
-    async (item: Item) => {
+  const markFailed = useCallback(
+    async (item: Item, err: unknown, photoId: string | null) => {
+      if (photoId) {
+        const failed = await fetch(`/api/events/${eventId}/photos/${photoId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "failed" }),
+        }).catch(() => null);
+        if (!failed?.ok) {
+          await createClient()
+            .from("photos")
+            .update({ status: "failed" })
+            .eq("id", photoId)
+            .then(() => undefined, () => undefined);
+        }
+      }
+      update(item.id, {
+        state: "failed",
+        error:
+          err instanceof Error && /decode|source image/i.test(err.message)
+            ? "This file type can't be read. Export it as JPEG and try again."
+            : plainError(err instanceof Error ? err.message : null, "The upload failed. Try again."),
+      });
+    },
+    [eventId]
+  );
+
+  /** Step 1, one at a time: read the photo, find faces, make the light copies. */
+  const prepare = useCallback(
+    async (item: Item): Promise<Prepared | null> => {
       update(item.id, { state: "working" });
-      let photoId: string | null = null;
       try {
         const bitmap = await loadBitmap(item.file);
-        const detectCanvas = drawScaled(bitmap, DETECT_MAX);
-        const faces = await detectAllFaces(detectCanvas, faceModel);
-        const preview = await canvasToJpeg(drawScaled(bitmap, PREVIEW_MAX), 0.82);
-        const thumb = await canvasToJpeg(drawScaled(bitmap, THUMB_MAX), 0.78);
+        const faces = await detectAllFaces(drawScaled(bitmap, DETECT_MAX), faceModel);
+        const [preview, thumb] = await Promise.all([
+          canvasToJpeg(drawScaled(bitmap, PREVIEW_MAX), 0.82),
+          canvasToJpeg(drawScaled(bitmap, THUMB_MAX), 0.78),
+        ]);
         const { width, height } = bitmap;
         bitmap.close();
+        return { item, faces, preview, thumb, width, height };
+      } catch (err) {
+        await markFailed(item, err, null);
+        return null;
+      }
+    },
+    [faceModel, markFailed]
+  );
 
+  /** Step 2, several at once: create the record, upload all three files together, save faces. */
+  const send = useCallback(
+    async (p: Prepared) => {
+      const { item, faces } = p;
+      let photoId: string | null = null;
+      try {
         const res = await fetch(`/api/events/${eventId}/photos`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: item.file.name,
-            width,
-            height,
+            width: p.width,
+            height: p.height,
             bytes: item.file.size,
             originalType: item.file.type || "image/jpeg",
           }),
@@ -90,8 +155,7 @@ export function PhotoUploader({ eventId, faceModel = "v1" }: { eventId: string; 
         photoId = data.photoId as string;
         const uploads = data.uploads as Record<"original" | "preview" | "thumb", UploadTarget>;
 
-        await Promise.all([put(uploads.thumb, thumb), put(uploads.preview, preview)]);
-        await put(uploads.original, item.file);
+        await Promise.all([put(uploads.thumb, p.thumb), put(uploads.preview, p.preview), put(uploads.original, item.file)]);
 
         if (data.local) {
           const done = await fetch(`/api/events/${eventId}/photos/${photoId}`, {
@@ -123,46 +187,41 @@ export function PhotoUploader({ eventId, faceModel = "v1" }: { eventId: string; 
 
         update(item.id, { state: "done", faces: faces.length });
       } catch (err) {
-        if (photoId) {
-          const failed = await fetch(`/api/events/${eventId}/photos/${photoId}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: "failed" }),
-          }).catch(() => null);
-          if (!failed?.ok) {
-            await createClient()
-              .from("photos")
-              .update({ status: "failed" })
-              .eq("id", photoId)
-              .then(() => undefined, () => undefined);
-          }
-        }
-        update(item.id, {
-          state: "failed",
-          error:
-            err instanceof Error && /decode|source image/i.test(err.message)
-              ? "This file type can't be read. Export it as JPEG and try again."
-              : plainError(err instanceof Error ? err.message : null, "The upload failed. Try again."),
-        });
+        await markFailed(item, err, photoId);
       }
     },
-    [eventId, faceModel]
+    [eventId, faceModel, markFailed]
   );
 
+  const scanning = useRef(false);
+  const ready = useRef<Prepared[]>([]);
   const pumpRef = useRef<() => void>(() => undefined);
   useEffect(() => {
     pumpRef.current = () => {
-      while (running.current < CONCURRENCY && queue.current.length) {
-        const next = queue.current.shift()!;
+      // Start uploads for anything already scanned.
+      while (running.current < UPLOADS && ready.current.length) {
+        const next = ready.current.shift()!;
         running.current++;
-        processOne(next).finally(() => {
+        send(next).finally(() => {
           running.current--;
-          if (queue.current.length) pumpRef.current();
-          else if (running.current === 0) router.refresh();
+          pumpRef.current();
         });
       }
+      // Scan the next photo, unless enough are already waiting to upload.
+      if (!scanning.current && queue.current.length && ready.current.length < PREPARED_AHEAD) {
+        const next = queue.current.shift()!;
+        scanning.current = true;
+        prepare(next).then((p) => {
+          scanning.current = false;
+          if (p) ready.current.push(p);
+          pumpRef.current();
+        });
+      }
+      if (!scanning.current && running.current === 0 && !queue.current.length && !ready.current.length) {
+        router.refresh();
+      }
     };
-  }, [processOne, router]);
+  }, [prepare, send, router]);
   const pump = () => pumpRef.current();
 
   async function addFiles(fileList: FileList | File[]) {
@@ -251,7 +310,11 @@ export function PhotoUploader({ eventId, faceModel = "v1" }: { eventId: string; 
           <div className="mt-3 h-1 overflow-hidden rounded-full bg-fill">
             <div className="h-full rounded-full bg-ink transition-[width] duration-300" style={{ width: `${pct}%` }} />
           </div>
-          {busy && <p className="t-meta mt-3">Keep this page open until the upload finishes.</p>}
+          {busy && (
+            <p className="t-meta mt-3">
+              Keep this page open and in front until the upload finishes. Browsers slow down pages in background tabs.
+            </p>
+          )}
           {failed > 0 && (
             <div className="mt-4">
               <p className="t-ui !text-danger">{failed} didn&apos;t upload</p>
